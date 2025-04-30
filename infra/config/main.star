@@ -11,6 +11,14 @@ lucicfg.config(
 luci.project(
     name = "chromium-infra",
     config_dir = "luci",
+    acls = [
+        acl.entry(
+            roles = [
+                acl.PROJECT_CONFIGS_READER,
+            ],
+            groups = "all",
+        ),
+    ],
 )
 
 luci.cq(
