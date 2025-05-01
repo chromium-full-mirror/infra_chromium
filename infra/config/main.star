@@ -11,6 +11,10 @@ lucicfg.config(
 luci.project(
     name = "chromium-infra",
     config_dir = "luci",
+    buildbucket = "cr-buildbucket.appspot.com",
+    logdog = "luci-logdog.appspot.com",
+    milo = "luci-milo.appspot.com",
+    swarming = "chromium-swarm.appspot.com",
     acls = [
         acl.entry(
             roles = [
@@ -19,6 +23,10 @@ luci.project(
             groups = "all",
         ),
     ],
+)
+
+luci.milo(
+    logo = "https://storage.googleapis.com/chrome-infra-public/logo/chromium.svg",
 )
 
 luci.cq(
@@ -47,4 +55,44 @@ luci.cq_group(
             groups = "project-chromium-tryjob-access",
         ),
     ],
+)
+
+luci.logdog(
+    gs_bucket = "chromium-luci-logdog",
+)
+
+luci.bucket(
+    name = "try",
+    bindings = [
+        luci.binding(
+            roles = "role/buildbucket.reader",
+            groups = "all",
+        ),
+        luci.binding(
+            roles = "role/buildbucket.triggerer",
+            groups = "project-chromium-tryjob-access",
+        ),
+    ],
+)
+
+# TODO: crbug.com/407065680 - Once the starlark libs in chromium/src's
+# infra/config/lib directory are migrated here, take advantage of them to
+# provide consistency with chromium builder declarations
+luci.builder(
+    name = "linux-presubmit",
+    bucket = "try",
+    executable = luci.recipe(
+        name = "presubmit",
+        cipd_package = "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
+    ),
+    service_account = "chromium-try-builder@chops-service-accounts.iam.gserviceaccount.com",
+    dimensions = dict(
+        builderless = "1",
+        cores = "8",
+        cpu = "x86-64",
+        free_space = "standard",
+        os = "Ubuntu-22.04",
+        pool = "luci.chromium.try",
+        ssd = "0",
+    ),
 )
