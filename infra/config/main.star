@@ -3,6 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+"""LUCI configuration for the chromium-infra project."""
+
 lucicfg.config(
     fail_on_warnings = True,
     lint_checks = ["all"],
@@ -28,7 +30,7 @@ luci.project(
             roles = "role/configs.validator",
             users = "chromium-try-builder@chops-service-accounts.iam.gserviceaccount.com",
         ),
-    ]
+    ],
 )
 
 luci.milo(
