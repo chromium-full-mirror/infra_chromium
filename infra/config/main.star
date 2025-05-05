@@ -23,6 +23,12 @@ luci.project(
             groups = "all",
         ),
     ],
+    bindings = [
+        luci.binding(
+            roles = "role/configs.validator",
+            users = "chromium-try-builder@chops-service-accounts.iam.gserviceaccount.com",
+        ),
+    ]
 )
 
 luci.milo(
