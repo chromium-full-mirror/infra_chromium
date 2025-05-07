@@ -104,3 +104,9 @@ luci.builder(
         ssd = "0",
     ),
 )
+
+luci.cq_tryjob_verifier(
+    builder = "try/linux-presubmit",
+    cq_group = "cq",
+    disable_reuse = True,
+)
