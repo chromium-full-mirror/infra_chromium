@@ -20,45 +20,39 @@ load("//args.star", "args")  # @unused
 # Loads project.star, builder_config.star, orchestrator.star
 # load("//bootstrap.star", "bootstrap")  # @unused
 
-# Loads project.star
-# load("//branches.star", "branches")  # @unused
+load("//branches.star", "branches")  # @unused
 
-# Loads project.star, branches.star, html.star, sheriff_rotations.star
+# Loads project.star, html.star, sheriff_rotations.star
 # Generator fails because there is no cr-buildbucket.cfg
 # load("//builder_config.star", "builder_config")  # @unused
 
 # Loads project.star
 # load("//builder_health_indicators.star", "builder_health_indicators")  # @unused
 
-# Loads project.star, bootstrap.star, branches.star, builder_config.star,
+# Loads project.star, bootstrap.star, builder_config.star,
 # builder_health_indicators.star, gn_args.star, recipe_experiments.star,
 # sheriff_rotations.star
 # load("//builders.star", "builders")  # @unused
 
 load("//chrome_settings.star", "chrome_settings")  # @unused
 
-# Loads project.star, branches.star, builder_config.star, builders.star
+# Loads project.star, builder_config.star, builders.star
 # load("//ci.star", "ci")  # @unused
 
-# Loads branches.star
-# load("//consoles.star", "consoles")  # @unused
-
+load("//consoles.star", "consoles")  # @unused
 load("//dimensions.star", "dimensions")  # @unused
 load("//enums.star", "enums")  # @unused
 
 # Loads project.star
 # load("//gn_args.star", "gn_args")  # @unused
 
-# Loads branches.star
 # load("//headers.star", "headers")  # @unused
 
 # Loads project.star
 # load("//html.star", "html")  # @unused
 
 load("//nodes.star", "nodes")  # @unused
-
-# Loads branches.star
-# load("//notifiers.star", "notifiers")  # @unused
+load("//notifiers.star", "notifiers")  # @unused
 
 # Loads html.star, builder_config.star
 # load("//orchestrator.star", "orchestrator")  # @unused
@@ -74,13 +68,12 @@ load("//nodes.star", "nodes")  # @unused
 
 load("//structs.star", "structs")  # @unused
 
-# Loads branches.star
 # load("//swarming.star", "swarming")  # @unused
 
 # Generates output files
 # load("//targets.star", "targets")  # @unused
 
-# Loads project.star, branches.star, builders.star, orchestrator.star
+# Loads project.star, builders.star, orchestrator.star
 # load("//try.star", "try_")  # @unused
 
 load("//xcode.star", "xcode")  # @unused

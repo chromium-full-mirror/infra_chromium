@@ -7,21 +7,23 @@
 The module provide the `branches` struct which provides access to versions of
 a subset of luci functions with an additional `branch_selector` keyword argument
 that controls what branches the definition is actually executed for. If
-`branch_selector` doesn't match the current branch as determined by values on
-the `settings` struct in '//project.star', then the resource is not defined.
+`branch_selector` doesn't match the current branch as determined by the
+'is_main' and 'platforms' values passed to `chromium_luci.configure_project`,
+then the resource is not defined.
 
 The valid branch selectors are in the `branches.selector` struct. The
 following selectors cause the resource to be defined on main or if a branch
 project includes the corresponding platform value in its settings:
-* ANDROID_BRANCHES: platform.ANDROID
-* CROS_BRANCHES: platform.CROS
-* CROS_LTS_BRANCHES: platform.CROS, platform.CROS_LTS
-* DESKTOP_BRANCHES: platform.LINUX, platform.MAC, platform.WINDOWS
-* FUCHSIA_BRANCHES: platform.FUCHSIA
-* IOS_BRANCHES: platform.IOS
-* LINUX_BRANCHES: platform.LINUX
-* MAC_BRANCHES: platform.MAC
-* WINDOWS_BRANCHES: platform.WINDOWS
+* ANDROID_BRANCHES: branches.platform.ANDROID
+* CROS_BRANCHES: branches.platform.CROS
+* CROS_LTS_BRANCHES: branches.platform.CROS, branches.platform.CROS_LTS
+* DESKTOP_BRANCHES: branches.platform.LINUX, branches.platform.MAC,
+    branches.platform.WINDOWS
+* FUCHSIA_BRANCHES: branches.platform.FUCHSIA
+* IOS_BRANCHES: branches.platform.IOS
+* LINUX_BRANCHES: branches.platform.LINUX
+* MAC_BRANCHES: branches.platform.MAC
+* WINDOWS_BRANCHES: branches.platform.WINDOWS
 
 The MAIN branch selector causes a resource to be defined only on the main
 project. The ALL_BRANCHES branch selector causes the resource to be defined on
@@ -36,8 +38,20 @@ also accessible via the `branches` struct:
 * exec - Allows for conditionally executing starlark modules.
 """
 
-load("./args.star", "args")
-load("//project.star", "PLATFORMS", "platform", "settings")
+load("//args.star", "args")
+load("//enums.star", "enums")
+load("//internal/chromium_luci.star", "chromium_luci")
+
+_platform = enums.enum(
+    ANDROID = "android",
+    CROS = "cros",
+    CROS_LTS = "cros-lts",
+    FUCHSIA = "fuchsia",
+    IOS = "ios",
+    LINUX = "linux",
+    MAC = "mac",
+    WINDOWS = "windows",
+)
 
 def _branch_selector(tag, *, platforms = None):
     return struct(
@@ -48,23 +62,23 @@ def _branch_selector(tag, *, platforms = None):
 selector = struct(
     # Branch selectors corresponding to the individual platform values (except
     # CROS_LTS_BRANCHES also implies CROS_BRANCHES)
-    ANDROID_BRANCHES = _branch_selector("ANDROID_BRANCHES", platforms = [platform.ANDROID]),
-    CROS_BRANCHES = _branch_selector("CROS_BRANCHES", platforms = [platform.CROS]),
-    CROS_LTS_BRANCHES = _branch_selector("CROS_LTS_BRANCHES", platforms = [platform.CROS, platform.CROS_LTS]),
-    FUCHSIA_BRANCHES = _branch_selector("FUCHSIA_BRANCHES", platforms = [platform.FUCHSIA]),
-    IOS_BRANCHES = _branch_selector("IOS_BRANCHES", platforms = [platform.IOS]),
-    LINUX_BRANCHES = _branch_selector("LINUX_BRANCHES", platforms = [platform.LINUX]),
-    MAC_BRANCHES = _branch_selector("MAC_BRANCHES", platforms = [platform.MAC]),
-    WINDOWS_BRANCHES = _branch_selector("WINDOWS_BRANCHES", platforms = [platform.WINDOWS]),
+    ANDROID_BRANCHES = _branch_selector("ANDROID_BRANCHES", platforms = [_platform.ANDROID]),
+    CROS_BRANCHES = _branch_selector("CROS_BRANCHES", platforms = [_platform.CROS]),
+    CROS_LTS_BRANCHES = _branch_selector("CROS_LTS_BRANCHES", platforms = [_platform.CROS, _platform.CROS_LTS]),
+    FUCHSIA_BRANCHES = _branch_selector("FUCHSIA_BRANCHES", platforms = [_platform.FUCHSIA]),
+    IOS_BRANCHES = _branch_selector("IOS_BRANCHES", platforms = [_platform.IOS]),
+    LINUX_BRANCHES = _branch_selector("LINUX_BRANCHES", platforms = [_platform.LINUX]),
+    MAC_BRANCHES = _branch_selector("MAC_BRANCHES", platforms = [_platform.MAC]),
+    WINDOWS_BRANCHES = _branch_selector("WINDOWS_BRANCHES", platforms = [_platform.WINDOWS]),
 
     # Linux, Mac & Windows
-    DESKTOP_BRANCHES = _branch_selector("DESKTOP_BRANCHES", platforms = [platform.LINUX, platform.MAC, platform.WINDOWS]),
+    DESKTOP_BRANCHES = _branch_selector("DESKTOP_BRANCHES", platforms = [_platform.LINUX, _platform.MAC, _platform.WINDOWS]),
 
     # Branch selector for just the main project
     MAIN = _branch_selector("MAIN"),
 
     # Branch selector matching all branches
-    ALL_BRANCHES = _branch_selector("ALL_BRANCHES", platforms = PLATFORMS),
+    ALL_BRANCHES = _branch_selector("ALL_BRANCHES", platforms = _platform.values),
 )
 
 def _matches(branch_selector, *, platform = None):
@@ -81,6 +95,7 @@ def _matches(branch_selector, *, platform = None):
         The main project will match any branch selector iff platform is not
         specified.
     """
+    settings = chromium_luci.project_settings()
     if type(platform) == type(""):
         platforms = [platform]
     elif platform == None:
@@ -128,6 +143,7 @@ def _make_branch_conditional(fn):
     return conditional_fn
 
 branches = struct(
+    platform = _platform,
     selector = selector,
 
     # Branch functions
