@@ -32,10 +32,7 @@ load("//html.star", "linkify")  # @unused
 load("//nodes.star", "nodes")  # @unused
 load("//notifiers.star", "notifiers")  # @unused
 load("//orchestrator.star", "register_orchestrator")  # @unused
-
-# Loads project.star
-# load("//polymorphic.star", "polymorphic")  # @unused
-
+load("//polymorphic.star", "polymorphic")  # @unused
 load("//recipe_experiments.star", "register_recipe_experiments")  # @unused
 load("//structs.star", "structs")  # @unused
 load("//swarming.star", "swarming")  # @unused

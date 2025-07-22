@@ -7,8 +7,8 @@
 load("@stdlib//internal/graph.star", "graph")
 load("@stdlib//internal/luci/common.star", "builder_ref", "keys")
 load("./builders.star", "builder", "defaults")
+load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 load("./nodes.star", "nodes")
-load("//project.star", "settings")
 
 _LAUNCHER = nodes.create_bucket_scoped_node_type("polymorphic-launcher")
 _RUNNER = nodes.create_link_node_type("polymorphic-runner", _LAUNCHER, nodes.BUILDER)
@@ -18,7 +18,7 @@ _TARGET_TESTER = nodes.create_link_node_type("polymorphic-target-tester", nodes.
 def _builder_ref_to_builder_id(ref):
     bucket, builder = ref.split("/", 1)
     return dict(
-        project = settings.project,
+        project = _chromium_luci.project_settings().name,
         bucket = bucket,
         builder = builder,
     )
@@ -131,6 +131,10 @@ def _target_builder_prop(context_node, builder_proto_by_key, target_builder):
     return p
 
 def _generate_launcher_properties(ctx):
+    launcher_nodes = graph.children(keys.project(), _LAUNCHER.kind)
+    if not launcher_nodes:
+        return
+
     cfg = None
     for f in ctx.output:
         if f.startswith("luci/cr-buildbucket"):
@@ -148,23 +152,18 @@ def _generate_launcher_properties(ctx):
             builder_name = builder.name
             builder_proto_by_key[keys.builder(bucket_name, builder_name)] = builder
 
-    for bucket in cfg.buckets:
-        if not proto.has(bucket, "swarming"):
-            continue
-        bucket_name = bucket.name
-        for builder in bucket.swarming.builders:
-            builder_name = builder.name
-            node = _LAUNCHER.get(bucket_name, builder_name)
-            if not node:
-                continue
+    for node in launcher_nodes:
+        bucket_name = node.key.container.id
+        builder_name = node.key.id
+        builder = builder_proto_by_key[keys.builder(bucket_name, builder_name)]
 
-            properties = json.decode(builder.properties)
+        properties = json.decode(builder.properties)
 
-            properties.update({
-                "runner_builder": _builder_ref_to_builder_id(node.props.runner),
-                "target_builders": [_target_builder_prop(node, builder_proto_by_key, t) for t in node.props.target_builders],
-            })
+        properties.update({
+            "runner_builder": _builder_ref_to_builder_id(node.props.runner),
+            "target_builders": [_target_builder_prop(node, builder_proto_by_key, t) for t in node.props.target_builders],
+        })
 
-            builder.properties = json.encode(properties)
+        builder.properties = json.encode(properties)
 
 lucicfg.generator(_generate_launcher_properties)
