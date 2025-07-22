@@ -4,15 +4,22 @@
 
 """A library for working with html."""
 
-load("//project.star", "settings")
+load("//internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 
 def linkify(url, text):
     """Returns a <a> html hyperlink."""
     return "<a href=\"{}\">{}</a>".format(url, text)
 
 def builder_url(bucket, builder, project = None):
-    """A simple utility for constructing the milo URL for a builder."""
-    project = project or settings.project
+    """Get a milo URL for a builder.
+
+    Args:
+        bucket: The bucket of the builder.
+        builder: The builder's name.
+        project: The project of the builder. If not provided, then the name of
+            the current project will be used.
+    """
+    project = project or _chromium_luci.project_settings().name
     url = "https://ci.chromium.org/p/%s/builders/%s/%s" % (
         project,
         bucket,

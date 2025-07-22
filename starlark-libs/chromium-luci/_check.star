@@ -22,7 +22,7 @@ load("//args.star", "args")  # @unused
 
 load("//branches.star", "branches")  # @unused
 
-# Loads project.star, html.star, sheriff_rotations.star
+# Loads project.star, sheriff_rotations.star
 # Generator fails because there is no cr-buildbucket.cfg
 # load("//builder_config.star", "builder_config")  # @unused
 
@@ -47,14 +47,11 @@ load("//enums.star", "enums")  # @unused
 # load("//gn_args.star", "gn_args")  # @unused
 
 load("//headers.star", "headers")  # @unused
-
-# Loads project.star
-# load("//html.star", "html")  # @unused
-
+load("//html.star", "linkify")  # @unused
 load("//nodes.star", "nodes")  # @unused
 load("//notifiers.star", "notifiers")  # @unused
 
-# Loads html.star, builder_config.star
+# Loads builder_config.star
 # load("//orchestrator.star", "orchestrator")  # @unused
 
 # Loads project.star, builders.star
