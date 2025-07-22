@@ -41,8 +41,5 @@ load("//structs.star", "structs")  # @unused
 load("//swarming.star", "swarming")  # @unused
 load("//targets-internal/targets-specs-generation.star", "get_targets_spec_generator")  # @unused
 load("//targets.star", "targets")  # @unused
-
-# Loads project.star
-# load("//try.star", "try_")  # @unused
-
+load("//try.star", "try_")  # @unused
 load("//xcode.star", "xcode")  # @unused

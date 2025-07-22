@@ -20,8 +20,8 @@ to set the default value. Can also be accessed through `try_.defaults`.
 load("./args.star", "args")
 load("./branches.star", "branches")
 load("./builders.star", "builders", "os")
+load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 load("./orchestrator.star", "SOURCELESS_BUILDER_CACHE_NAME", "register_compilator", "register_orchestrator")
-load("//project.star", "settings")
 
 def default_location_filters(builder_name = None):
     """Get the default location filters for a builder.
@@ -50,11 +50,8 @@ def default_location_filters(builder_name = None):
         # Contains configuration files that aren't active until after committed
         location_filter(path_regexp = "infra/config/.+", exclude = True),
     ]
-    if settings.project.startswith("chromium"):
-        filters.append(
-            # Contains documentation that doesn't affect the outputs
-            location_filter(path_regexp = "docs/.+", exclude = True),
-        )
+    for r in _chromium_luci.try_settings().additional_default_exclude_path_regexps:
+        filters.append(location_filter(path_regexp = r, exclude = True))
 
     if builder_name:
         pieces = builder_name.split("/")
@@ -272,9 +269,8 @@ def try_builder(
     if not branches.matches(branch_selector):
         return None
 
-    bq_dataset_name = "chrome"
-    if settings.project.startswith("chromium"):
-        bq_dataset_name = "chromium"
+    library_settings = _chromium_luci.try_settings()
+    bq_dataset_name = library_settings.test_results_bq_dataset_name
     merged_resultdb_bigquery_exports = [
         resultdb.export_test_results(
             bq_table = "chrome-luci-data.{}.try_test_results".format(bq_dataset_name),
@@ -330,26 +326,25 @@ def try_builder(
         cq_reason = "required" if not tryjob.location_filters else "path-based"
         properties["cq"] = cq_reason
 
-        if settings.project.startswith("chromium"):
-            # TODO(crbug.com/40273153) - Once we've migrated to the ResultDB-based solution
-            # check_for_flakiness_with_resultdb should be deprecated in favor for the
-            # original check_for_flakiness argument.
-            check_for_flakiness = defaults.get_value(
-                "check_for_flakiness",
-                check_for_flakiness,
-            )
-            check_for_flakiness_with_resultdb = defaults.get_value(
-                "check_for_flakiness_with_resultdb",
-                check_for_flakiness_with_resultdb,
-            )
+        # TODO(crbug.com/40273153) - Once we've migrated to the ResultDB-based solution
+        # check_for_flakiness_with_resultdb should be deprecated in favor for the
+        # original check_for_flakiness argument.
+        check_for_flakiness = defaults.get_value(
+            "check_for_flakiness",
+            check_for_flakiness,
+        )
+        check_for_flakiness_with_resultdb = defaults.get_value(
+            "check_for_flakiness_with_resultdb",
+            check_for_flakiness_with_resultdb,
+        )
 
-            flakiness = {}
-            if defaults.get_value("check_for_flakiness", check_for_flakiness):
-                flakiness["check_for_flakiness"] = True
-            if defaults.get_value("check_for_flakiness_with_resultdb", check_for_flakiness_with_resultdb):
-                flakiness["check_for_flakiness_with_resultdb"] = True
-            if flakiness:
-                properties["$build/flakiness"] = flakiness
+        flakiness = {}
+        if defaults.get_value("check_for_flakiness", check_for_flakiness):
+            flakiness["check_for_flakiness"] = True
+        if defaults.get_value("check_for_flakiness_with_resultdb", check_for_flakiness_with_resultdb):
+            flakiness["check_for_flakiness_with_resultdb"] = True
+        if flakiness:
+            properties["$build/flakiness"] = flakiness
 
     # Define the builder first so that any validation of luci.builder arguments
     # (e.g. bucket) occurs before we try to use it
@@ -358,7 +353,7 @@ def try_builder(
         branch_selector = branch_selector,
         list_view = list_view,
         resultdb_bigquery_exports = merged_resultdb_bigquery_exports,
-        resultdb_index_by_timestamp = settings.project.startswith("chromium"),
+        resultdb_index_by_timestamp = library_settings.resultdb_index_by_timestamp,
         properties = properties,
         **kwargs
     )
@@ -382,7 +377,8 @@ def try_builder(
                 disable_reuse_footers = args.listify(disable_reuse_footers, _DEFAULT_DISABLE_REUSE_FOOTERS)
             if not tryjob.omit_from_luci_cv:
                 kwargs = {}
-                if settings.project.startswith("chromium"):
+
+                if not tryjob.includable_only:
                     # These are the default if includable_only is False, but we list
                     # them here so we can add additional modes in a later generator.
                     kwargs["mode_allowlist"] = tryjob.custom_cq_run_modes or [cq.MODE_DRY_RUN, cq.MODE_FULL_RUN]
@@ -494,7 +490,8 @@ def _orchestrator_builder(
         kwargs.setdefault("pool", "luci.chromium.try.orchestrator")
         kwargs.setdefault("builderless", None)
     else:
-        kwargs.setdefault("builderless", not settings.is_main)
+        project_settings = _chromium_luci.project_settings()
+        kwargs.setdefault("builderless", not project_settings.is_main)
 
     # Orchestrator builders that don't use a src checkout don't need a
     # builder cache.
@@ -552,7 +549,7 @@ def _compilator_builder(*, name, **kwargs):
     if not builder_group:
         fail("builder_group must be specified")
 
-    kwargs.setdefault("builderless", not settings.is_main)
+    kwargs.setdefault("builderless", not _chromium_luci.project_settings().is_main)
     kwargs.setdefault("cores", defaults.compilator_cores.get())
     kwargs.setdefault("executable", "recipe:chromium/compilator")
     kwargs.setdefault("ssd", True)
@@ -569,12 +566,6 @@ def _compilator_builder(*, name, **kwargs):
 
     return ret
 
-def _gpu_optional_tests_builder(*, name, **kwargs):
-    kwargs.setdefault("builderless", False)
-    kwargs.setdefault("execution_timeout", 6 * time.hour)
-    kwargs.setdefault("service_account", try_.gpu.SERVICE_ACCOUNT)
-    return try_.builder(name = name, **kwargs)
-
 try_ = struct(
     # Module-level defaults for try functions
     defaults = defaults,
@@ -587,14 +578,6 @@ try_ = struct(
     compilator_builder = _compilator_builder,
 
     # CONSTANTS
-    DEFAULT_EXECUTABLE = "recipe:chromium_trybot",
-    DEFAULT_EXECUTION_TIMEOUT = 4 * time.hour,
-    DEFAULT_POOL = "luci.chromium.try",
-    DEFAULT_SERVICE_ACCOUNT = "chromium-try-builder@chops-service-accounts.iam.gserviceaccount.com",
     MEGA_CQ_DRY_RUN_NAME = "CQ_MODE_MEGA_DRY_RUN",
     MEGA_CQ_FULL_RUN_NAME = "CQ_MODE_MEGA_FULL_RUN",
-    gpu = struct(
-        optional_tests_builder = _gpu_optional_tests_builder,
-        SERVICE_ACCOUNT = "chromium-try-gpu-builder@chops-service-accounts.iam.gserviceaccount.com",
-    ),
 )

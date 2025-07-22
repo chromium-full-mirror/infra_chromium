@@ -515,6 +515,54 @@ def _targets_settings():
     """
     return _TARGETS_SETTINGS.get()
 
+_TRY_SETTINGS = _settings(
+    "try-settings",
+    required_configure = "chromium_luci.configure_try",
+)
+
+def _configure_try(
+        *,
+        test_results_bq_dataset_name,
+        resultdb_index_by_timestamp = False,
+        additional_default_exclude_path_regexps = []):
+    """Configure the try library.
+
+    Args:
+        test_results_bq_dataset_name: The name of dataset to upload test results
+            to. Try builders will upload results to tables with names of the
+            form chrome-luci-data.<test_results_bq_dataset_name>.<pre>try_test_results
+            with <pre> depending on the test ID.
+        resultdb_index_by_timestamp: A boolean indicating whether ResultDb
+            should index results for try builders by timestamp, which allows for
+            searching for results by timestamp.
+        additional_default_exclude_path_regexps: Additional paths regexps that
+            will be excluded by the default filters for a tryjob.
+    """
+    return _TRY_SETTINGS.set(
+        test_results_bq_dataset_name = test_results_bq_dataset_name,
+        resultdb_index_by_timestamp = resultdb_index_by_timestamp,
+        additional_default_exclude_path_regexps = additional_default_exclude_path_regexps,
+    )
+
+def _try_settings():
+    """Get the try settings.
+
+    chromium_luci.configure_try must be called before calling this.
+
+    Returns:
+        A struct with the following attributes:
+            test_results_bq_dataset_name: The name of dataset to upload test
+                results to. Try builders will upload results to tables with
+                names of the form chrome-luci-data.<test_results_bq_dataset_name>.<pre>try_test_results
+                with <pre> depending on the test ID.
+            resultdb_index_by_timestamp: A boolean indicating whether ResultDb
+                should index results for try builders by timestamp, which allows
+                for searching for results by timestamp.
+            additional_default_exclude_path_regexps: Additional paths regexps
+                that will be excluded by the default filters for a tryjob.
+    """
+    return _TRY_SETTINGS.get()
+
 chromium_luci = struct(
     configure_project = _configure_project,
     project_settings = _project_settings,
@@ -539,4 +587,6 @@ chromium_luci = struct(
     gn_args_settings = _gn_args_settings,
     configure_targets = _configure_targets,
     targets_settings = _targets_settings,
+    configure_try = _configure_try,
+    try_settings = _try_settings,
 )
