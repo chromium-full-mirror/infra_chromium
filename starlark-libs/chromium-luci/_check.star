@@ -16,15 +16,12 @@ load can be uncommented here to ensure they remain loadable.
 """
 
 load("//args.star", "args")  # @unused
-
-# Loads project.star
-# load("//bootstrap.star", "bootstrap")  # @unused
-
+load("//bootstrap.star", "register_bootstrap")  # @unused
 load("//branches.star", "branches")  # @unused
 load("//builder_config.star", "builder_config")  # @unused
 load("//builder_health_indicators.star", "health_spec")  # @unused
 
-# Loads project.star, bootstrap.star, recipe_experiments.star
+# Loads project.star, recipe_experiments.star
 # load("//builders.star", "builders")  # @unused
 # Loads project.star, builders.star
 # load("//ci.star", "ci")  # @unused

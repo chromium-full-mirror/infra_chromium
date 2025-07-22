@@ -41,7 +41,7 @@ _PROJECT_SETTINGS = _settings(
     required_configure = "chromium_luci.configure_project",
 )
 
-def _configure_project(*, name, is_main, platforms = [], relative_path = None):
+def _configure_project(*, name, is_main, platforms = [], ref = "refs/heads/main", relative_path = None):
     """Configure the project for the chromium-luci libraries.
 
     Args:
@@ -49,6 +49,7 @@ def _configure_project(*, name, is_main, platforms = [], relative_path = None):
         is_main: Whether the project is for the main branch.
         platforms: The platforms that the branch is enabled for. It is an error
             to set this if is_main is true: all platforms are enabled for main.
+        ref: The ref of the repo containing the project.
         relative_path: The path of the repo containing the project relative to
             the top-level repo.
     """
@@ -58,6 +59,7 @@ def _configure_project(*, name, is_main, platforms = [], relative_path = None):
         name = name,
         is_main = is_main,
         platforms = platforms,
+        ref = ref,
         relative_path = relative_path,
     )
 
@@ -106,6 +108,41 @@ def _per_builder_outputs_settings():
                 which per-builder outputs will be generated.
     """
     return _PER_BUILDER_OUTPUT_SETTINGS.get()
+
+_BOOTSTRAP_SETTINGS = _settings("bootstrap-settings", default = struct(
+    top_level = None,
+))
+
+def _configure_bootstrap(*, top_level_host, top_level_project, top_level_ref):
+    """Configure the bootstrap library.
+
+    Configure the top-level repo for bootstrapping a dependency project.
+
+    Args:
+        top_level_host: The gitiles host that hosts the top-level project.
+        top_level_project: The name of the top-level project
+            (e.g. "chromium/src").
+        top_level_ref: The ref of the top-level project.
+    """
+    _BOOTSTRAP_SETTINGS.set(top_level = struct(
+        host = top_level_host,
+        project = top_level_project,
+        ref = top_level_ref,
+    ))
+
+def _bootstrap_settings():
+    """Get the bootstrap settings.
+
+    Returns:
+        A struct with the following attributes:
+            top_level: If chromium_luci.configure_bootstrap was called, a struct
+                with the following attributes:
+                    host: The gitiles host that hosts the top-level project.
+                    project: The name of the top-level project.
+                    ref: The ref of the top-level project.
+                Otherwise, None
+    """
+    return _BOOTSTRAP_SETTINGS.get()
 
 _BUILDER_CONFIG_SETTINGS = _settings("builder_config-settings", default = struct(
     exempted_gardened_mirrors_in_cq_builders = {},
@@ -343,6 +380,8 @@ chromium_luci = struct(
     per_builder_outputs_settings = _per_builder_outputs_settings,
 
     # library-specific configuration
+    configure_bootstrap = _configure_bootstrap,
+    bootstrap_settings = _bootstrap_settings,
     configure_builder_config = _configure_builder_config,
     builder_config_settings = _builder_config_settings,
     configure_builder_health_indicators = _configure_builder_health_indicators,

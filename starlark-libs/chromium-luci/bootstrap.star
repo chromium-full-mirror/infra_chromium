@@ -22,9 +22,10 @@ builder definition its and it must be using a bootstrappable recipe. See
 //recipes.star for more information on bootstrappable recipes.
 """
 
-load("./chrome_settings.star", "per_builder_outputs_config")
+load("@stdlib//internal/graph.star", "graph")
+load("@stdlib//internal/luci/common.star", "keys")
+load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 load("./nodes.star", "nodes")
-load("//project.star", "settings")
 
 # buildifier: disable=out-of-order-load
 # builder_config.star and orchestrator.star have generators that modify
@@ -34,6 +35,19 @@ load("./builder_config.star", _ = "builder_config")  # @unused
 load("./orchestrator.star", _2 = "register_orchestrator")  # @unused
 
 POLYMORPHIC = "POLYMORPHIC"
+
+_top_level = lucicfg.var(default = None)
+
+def _set_top_level(*, host, project, ref):
+    _top_level.set(struct(
+        host = host,
+        project = project,
+        ref = ref,
+    ))
+
+bootstrap = struct(
+    set_top_level = _set_top_level,
+)
 
 _NON_BOOTSTRAPPED_PROPERTIES = [
     # The led_recipes_tester recipe examines the recipe property in the input
@@ -75,12 +89,26 @@ _RECIPE_BOOTSTRAPPABILITY = nodes.create_unscoped_node_type("recipe_bootstrappab
 _BOOTSTRAP = nodes.create_bucket_scoped_node_type("bootstrap")
 
 def register_recipe_bootstrappability(name, bootstrappability):
+    """Register a recipe's bootstrappability.
+
+    In order for a builder to be bootstrapped, the recipe that it runs must
+    implement the bootstrapping protocol, so recipes must be explicity register
+    to indicate they support the protocol.
+
+    Args:
+        name: The name of the recipe.
+        bootstrappability: Either a bool indicating whether the recipe is
+            bootstrappable or POLYMORPHIC to indicate that the recipe uses the
+            polymorphic bootstrapping protocol, which allows it to act on behalf
+            of multiple builders.
+    """
     if bootstrappability not in (False, True, POLYMORPHIC):
         fail("bootstrap must be one of False, True or POLYMORPHIC")
     if bootstrappability:
-        _RECIPE_BOOTSTRAPPABILITY.add(name, props = {
+        key = _RECIPE_BOOTSTRAPPABILITY.add(name, props = {
             "bootstrappability": bootstrappability,
         })
+        graph.add_edge(keys.project(), key)
 
 def register_bootstrap(bucket, name, bootstrap, executable):
     """Registers the bootstrap for a builder.
@@ -92,6 +120,8 @@ def register_bootstrap(bucket, name, bootstrap, executable):
         executable: The builder's executable.
     """
 
+    top_level = _top_level.get() or _chromium_luci.bootstrap_settings().top_level
+
     # The properties file will be generated for any bootstrappable recipe so
     # that if a builder is switched to be bootstrapped its property file exist
     # even if an earlier revision is built (to a certain point). The bootstrap
@@ -100,6 +130,7 @@ def register_bootstrap(bucket, name, bootstrap, executable):
     _BOOTSTRAP.add(bucket, name, props = {
         "bootstrap": bootstrap,
         "executable": executable,
+        "top_level": top_level,
     })
 
 def _bootstrap_properties(ctx):
@@ -122,6 +153,9 @@ def _bootstrap_properties(ctx):
     properties have any final modifications that luci.builder would perform
     (merging module-level defaults, setting global defaults, etc.).
     """
+    if not graph.children(keys.project(), _RECIPE_BOOTSTRAPPABILITY.kind):
+        return
+
     cfg = None
     for f in ctx.output:
         if f.startswith("luci/cr-buildbucket"):
@@ -129,6 +163,8 @@ def _bootstrap_properties(ctx):
             break
     if cfg == None:
         fail("There is no buildbucket configuration file to reformat properties")
+
+    settings = _chromium_luci.project_settings()
 
     for bucket in cfg.buckets:
         if not proto.has(bucket, "swarming"):
@@ -167,19 +203,36 @@ def _bootstrap_properties(ctx):
                 if builder_shadow_properties != None:
                     non_bootstrapped_shadow_properties = get_non_bootstrapped_properties(builder_shadow_properties)
 
-                root_out_dir = per_builder_outputs_config().root_dir
+                root_out_dir = _chromium_luci.per_builder_outputs_settings().root_dir
                 out_dir = "{}/{}/{}".format(root_out_dir, bucket_name, builder_name)
                 properties_file = "{}/properties.json".format(out_dir)
-                bootstrap_property = {
-                    "top_level_project": {
-                        "repo": {
-                            "host": "chromium.googlesource.com",
-                            "project": "chromium/src",
+                if bootstrap_node.props.top_level:
+                    bootstrap_property = {
+                        "dependency_project": {
+                            "top_level_repo": {
+                                "host": bootstrap_node.props.top_level.host,
+                                "project": bootstrap_node.props.top_level.project,
+                            },
+                            "top_level_ref": bootstrap_node.props.top_level.ref,
+                            "config_repo": {
+                                "host": "chrome-internal.googlesource.com",
+                                "project": "chrome/src-internal",
+                            },
+                            "config_repo_submodule_path": "internal",
                         },
-                        "ref": settings.ref,
-                    },
-                    "properties_file": "infra/config/generated/{}".format(properties_file),
-                }
+                        "properties_file": "infra/config/generated/{}".format(properties_file),
+                    }
+                else:
+                    bootstrap_property = {
+                        "top_level_project": {
+                            "repo": {
+                                "host": "chromium.googlesource.com",
+                                "project": "chromium/src",
+                            },
+                            "ref": settings.ref,
+                        },
+                        "properties_file": "infra/config/generated/{}".format(properties_file),
+                    }
                 if builder_shadow_properties:
                     shadow_properties_file = "{}/shadow-properties.json".format(out_dir)
                     bootstrap_property["shadow_properties_file"] = "infra/config/generated/{}".format(shadow_properties_file)
