@@ -4,25 +4,17 @@
 
 """Library for defining chromium_tests_builder_config properties."""
 
-load("@stdlib//internal/luci/common.star", "kinds")
+load("@stdlib//internal/graph.star", "graph")
+load("@stdlib//internal/luci/common.star", "keys", "kinds")
 load("./args.star", "args")
 load("./branches.star", "branches")
-load(
-    "./builder_exemptions.star",
-    "exempted_gardened_mirrors_in_cq_builders",
-    "mega_cq_excluded_builders",
-    "mega_cq_excluded_gardener_rotations",
-    "standalone_trybot_excluded_builder_groups",
-    "standalone_trybot_excluded_builders",
-)
-load("./chrome_settings.star", "per_builder_outputs_config")
 load("./enums.star", "enums")
+load("./gardener_rotations.star", "get_gardener_rotations")
 load("./html.star", "linkify_builder")
+load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 load("./nodes.star", "nodes")
-load("./sheriff_rotations.star", "get_gardener_rotations")
 load("./structs.star", "structs")
 load("./targets-internal/targets-specs-generation.star", "get_targets_spec_generator", "register_targets")
-load("//project.star", "settings")
 
 _execution_mode = enums.enum(
     # The builder will perform compilation of any targets configured in the
@@ -537,6 +529,7 @@ def register_builder_config(
         additional_exclusions = additional_exclusions,
         description_html = description_html,
     ))
+    graph.add_edge(keys.project(), builder_config_key)
 
     if _is_copy_from(builder_spec):
         _BUILDER_SPEC_COPY_FROM.link(builder_config_key, builder_spec.builder)
@@ -549,9 +542,6 @@ def register_builder_config(
     else:
         for m in mirrors or []:
             _BUILDER_CONFIG_MIRROR.link(builder_config_key, m)
-
-    if targets and settings.project.startswith("chrome"):
-        fail("Defining targets in starlark is not yet supported in src-internal")
 
     if targets:
         # Register the bundle under the qualified builder name, this allows for
@@ -601,8 +591,9 @@ def _get_mirroring_builders(bc_state, node):
     return nodes
 
 def _builder_id(node):
+    project_node = graph.node(keys.project())
     return dict(
-        project = settings.project,
+        project = project_node.props.name,
         bucket = node.key.container.id,
         builder = node.key.id,
     )
@@ -706,8 +697,6 @@ def _get_builder_mirror_description(bucket_name, builder, bc_state):
             fail("Error with {}: only builders in bucket 'try' and 'finch' can mirror other builders".format(bucket_name))
     else:
         description += "This builder is mirrored by any of the following try builders:<br/>"
-        if bucket_name != "ci":
-            fail("Error with {}: only builders in buckets 'ci' can be mirrored".format(bucket_name))
 
     description += "<ul>"
     m_ids = [_builder_id(m) for m in mirrored_builders or mirroring_builders]
@@ -738,6 +727,10 @@ def _targets_spec(bc_state, nodes):
     return targets_spec
 
 def _set_builder_config_property(ctx):
+    builder_config_nodes = graph.children(keys.project(), _BUILDER_CONFIG.kind)
+    if not builder_config_nodes:
+        return
+
     cfg = None
     for f in ctx.output:
         if f.startswith("luci/cr-buildbucket"):
@@ -746,9 +739,15 @@ def _set_builder_config_property(ctx):
     if cfg == None:
         fail("There is no buildbucket configuration file to update properties")
 
+    project_settings = _chromium_luci.project_settings()
+    library_settings = _chromium_luci.builder_config_settings()
+
     bc_state = _bc_state()
     needs_mega_cq_mode = set()
     trybot_ungardened_mirrors = {}
+
+    project_node = graph.node(keys.project())
+    project = project_node.props.name
 
     for bucket in cfg.buckets:
         if not proto.has(bucket, "swarming"):
@@ -841,8 +840,9 @@ def _set_builder_config_property(ctx):
             )
             if node.props.additional_exclusions:
                 builder_config["additional_exclusions"] = [
-                    "infra/config/generated/{}/{}".format(
-                        per_builder_outputs_config().root_dir,
+                    "{}infra/config/generated/{}/{}".format(
+                        project_settings.relative_path + "/" if project_settings.relative_path else "",
+                        _chromium_luci.per_builder_outputs_settings().root_dir,
                         exclusion,
                     )
                     for exclusion in node.props.additional_exclusions
@@ -864,14 +864,14 @@ def _set_builder_config_property(ctx):
             if targets_spec:
                 builder_config["targets_spec_directory"] = (
                     "src/infra/config/generated/{}/{}/{}/targets".format(
-                        per_builder_outputs_config().root_dir,
+                        _chromium_luci.per_builder_outputs_settings().root_dir,
                         bucket_name,
                         builder_name,
                     )
                 )
                 for builder_group, contents in targets_spec.items():
                     json_file = "{}/{}/{}/targets/{}.json".format(
-                        per_builder_outputs_config().root_dir,
+                        _chromium_luci.per_builder_outputs_settings().root_dir,
                         bucket_name,
                         builder_name,
                         builder_group,
@@ -888,8 +888,8 @@ def _set_builder_config_property(ctx):
             rotations = get_gardener_rotations(bucket_name, builder.name)
             is_excluded = (
                 bucket_name != "ci" or
-                builder.name in mega_cq_excluded_builders or
-                any([s.key.id in mega_cq_excluded_gardener_rotations for s in rotations])
+                builder.name in library_settings.mega_cq_excluded_builders or
+                any([s.key.id in library_settings.mega_cq_excluded_gardener_rotations for s in rotations])
             )
             if rotations and not mirroring_builders and not is_excluded:
                 fail("{} is on a sheriff/gardener rotation, but lacks a matching trybot".format(builder.name))
@@ -900,9 +900,9 @@ def _set_builder_config_property(ctx):
                     mirror_id = _builder_id(m)
                     mirror_rotations = get_gardener_rotations(mirror_id["bucket"], mirror_id["builder"])
                     mirror = "{}/{}".format(mirror_id["bucket"], mirror_id["builder"])
-                    if len(mirror_rotations) == 0 and mirror not in exempted_gardened_mirrors_in_cq_builders:
+                    if len(mirror_rotations) == 0 and mirror not in library_settings.exempted_gardened_mirrors_in_cq_builders:
                         cq_identifier = "{}/{}/{}".format(
-                            settings.project,
+                            project,
                             bucket_name,
                             builder.name,
                         )
@@ -911,8 +911,8 @@ def _set_builder_config_property(ctx):
                         trybot_ungardened_mirrors[cq_identifier] = trybot_ungardened_mirrors[cq_identifier].union([mirror])
 
             if (bucket_name == "try" and not mirrors and
-                builder_properties.get("builder_group") not in standalone_trybot_excluded_builder_groups and
-                builder.name not in standalone_trybot_excluded_builders):
+                builder_properties.get("builder_group") not in library_settings.standalone_trybot_excluded_builder_groups and
+                builder.name not in library_settings.standalone_trybot_excluded_builders):
                 fail(builder.name + " must not be a stand-alone trybot. Please add a corresponding CI bot for it to mirror.")
 
             # Put most gardened CI bots' trybots onto the mega CQ. We skip a
@@ -941,15 +941,15 @@ def _set_builder_config_property(ctx):
                     is_excluded = True
                 if builder_properties["recipe"] not in allowed_trybot_recipes:
                     is_excluded = True
-                if mirror_id["builder"] in mega_cq_excluded_builders:
+                if mirror_id["builder"] in library_settings.mega_cq_excluded_builders:
                     is_excluded = True
                 if is_excluded:
                     break
-            if all([r.key.id in mega_cq_excluded_gardener_rotations for r in all_mirror_rotations]):
+            if all([r.key.id in library_settings.mega_cq_excluded_gardener_rotations for r in all_mirror_rotations]):
                 is_excluded = True
             if not is_excluded:
                 cq_identifier = "{}/{}/{}".format(
-                    settings.project,
+                    project,
                     bucket_name,
                     builder.name,
                 )

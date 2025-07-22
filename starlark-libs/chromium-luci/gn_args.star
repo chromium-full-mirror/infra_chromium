@@ -9,7 +9,6 @@ More details can be found in design doc: go/gn-args-in-starlark-dd
 
 load("@stdlib//internal/graph.star", "graph")
 load("@stdlib//internal/luci/common.star", "keys")
-load("./chrome_settings.star", "per_builder_outputs_config")
 load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 load("./nodes.star", "nodes")
 
@@ -274,7 +273,7 @@ def _generate_gn_args(ctx):
         return
 
     args_gn_locations = {}
-    root_out_dir = per_builder_outputs_config().root_dir
+    root_out_dir = _chromium_luci.per_builder_outputs_settings().root_dir
     resolve_gn_args = _get_gn_args_resolver()
 
     # Builders with non-phased GN configs

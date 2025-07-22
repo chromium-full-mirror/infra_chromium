@@ -41,7 +41,7 @@ _PROJECT_SETTINGS = _settings(
     required_configure = "chromium_luci.configure_project",
 )
 
-def _configure_project(*, name, is_main, platforms = []):
+def _configure_project(*, name, is_main, platforms = [], relative_path = None):
     """Configure the project for the chromium-luci libraries.
 
     Args:
@@ -49,6 +49,8 @@ def _configure_project(*, name, is_main, platforms = []):
         is_main: Whether the project is for the main branch.
         platforms: The platforms that the branch is enabled for. It is an error
             to set this if is_main is true: all platforms are enabled for main.
+        relative_path: The path of the repo containing the project relative to
+            the top-level repo.
     """
     if is_main and platforms:
         fail("platforms cannot be set when is_main is true")
@@ -56,6 +58,7 @@ def _configure_project(*, name, is_main, platforms = []):
         name = name,
         is_main = is_main,
         platforms = platforms,
+        relative_path = relative_path,
     )
 
 def _project_settings():
@@ -73,6 +76,101 @@ def _project_settings():
                 is_main is false.
     """
     return _PROJECT_SETTINGS.get()
+
+_PER_BUILDER_OUTPUT_SETTINGS = _settings(
+    "per_builder_outputs-settings",
+    required_configure = "chromium_luci.configure_per_builder_outputs",
+)
+
+def _configure_per_builder_outputs(*, root_dir):
+    """Configure per-builder outputs for the project.
+
+    Args:
+        root_dir: The root directory in the generated output directory under
+            which per-builder outputs will be generated. Must be a non-empty
+            string.
+    """
+    if not root_dir or type(root_dir) != type(""):
+        fail("root_dir must be a non-empty string")
+    _PER_BUILDER_OUTPUT_SETTINGS.set(root_dir = root_dir)
+
+def _per_builder_outputs_settings():
+    """Get the per-builder output settings.
+
+    chromium_luci.configure_per_builder_outputs must be called before this is
+    called.
+
+    Returns:
+        A struct with the following attributes:
+            root_dir: The root directory in the generated output directory under
+                which per-builder outputs will be generated.
+    """
+    return _PER_BUILDER_OUTPUT_SETTINGS.get()
+
+_BUILDER_CONFIG_SETTINGS = _settings("builder_config-settings", default = struct(
+    exempted_gardened_mirrors_in_cq_builders = {},
+    mega_cq_excluded_builders = {},
+    mega_cq_excluded_gardener_rotations = {},
+    standalone_trybot_excluded_builder_groups = {},
+    standalone_trybot_excluded_builders = {},
+))
+
+def _configure_builder_config(
+        *,
+        exempted_gardened_mirrors_in_cq_builders = {},
+        mega_cq_excluded_builders = {},
+        mega_cq_excluded_gardener_rotations = {},
+        standalone_trybot_excluded_builder_groups = {},
+        standalone_trybot_excluded_builders = {}):
+    """Configure the builder_config library.
+
+    Args:
+        exempted_gardened_mirrors_in_cq_builders: A list of bucket-qualified
+            builder names (e.g. "Ci/Linux Builder") of builders without any
+            gardener rotations that will not cause an error if mirrored by a CQ
+            builder.
+        mega_cq_excluded_builders: A list of simple builder names (e.g.
+            "linux-rel") of builders that will not be included on the mega CQ.
+        mega_cq_excluded_gardener_rotations: A list of gardener rotations for
+            which any builders that are part of the rotation will not be
+            included on the mega CQ.
+        standalone_trybot_excluded_builder_groups: A list of builder groups that
+            are allowed to declare try builders that do not declare any mirrors.
+        standalone_trybot_excluded_builders: A list of simple builder names
+            (e.g. "linux-rel") of try builders that do not need to declare
+            mirrors.
+    """
+    _BUILDER_CONFIG_SETTINGS.set(
+        exempted_gardened_mirrors_in_cq_builders = exempted_gardened_mirrors_in_cq_builders,
+        mega_cq_excluded_builders = mega_cq_excluded_builders,
+        mega_cq_excluded_gardener_rotations = mega_cq_excluded_gardener_rotations,
+        standalone_trybot_excluded_builder_groups = standalone_trybot_excluded_builder_groups,
+        standalone_trybot_excluded_builders = standalone_trybot_excluded_builders,
+    )
+
+def _builder_config_settings():
+    """Get the builder_config settings.
+
+    Returns:
+        A struct with the following attributes:
+            exempted_gardened_mirrors_in_cq_builders: A list of bucket-qualified
+                builder names (e.g. "Ci/Linux Builder") of builders without any
+                gardener rotations that will not cause an error if mirrored by a
+                CQ builder.
+            mega_cq_excluded_builders: A list of simple builder names (e.g.
+                "linux-rel") of builders that will not be included on the mega
+                CQ.
+            mega_cq_excluded_gardener_rotations: A list of gardener rotations
+                for which any builders that are part of the rotation will not be
+                included on the mega CQ.
+            standalone_trybot_excluded_builder_groups: A list of builder groups
+                that are allowed to declare try builders that do not declare any
+                mirrors.
+            standalone_trybot_excluded_builders: A list of simple builder names
+                (e.g. "linux-rel") of try builders that do not need to declare
+                mirrors.
+    """
+    return _BUILDER_CONFIG_SETTINGS.get()
 
 _BUILDER_HEALTH_INDICATORS_SETTINGS = _settings(
     "builder_health_indicators-settings",
@@ -241,8 +339,12 @@ def _targets_settings():
 chromium_luci = struct(
     configure_project = _configure_project,
     project_settings = _project_settings,
+    configure_per_builder_outputs = _configure_per_builder_outputs,
+    per_builder_outputs_settings = _per_builder_outputs_settings,
 
     # library-specific configuration
+    configure_builder_config = _configure_builder_config,
+    builder_config_settings = _builder_config_settings,
     configure_builder_health_indicators = _configure_builder_health_indicators,
     builder_health_indicators_settings = _builder_health_indicators_settings,
     configure_gardener_rotations = _configure_gardener_rotations,

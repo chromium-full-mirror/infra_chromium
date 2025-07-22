@@ -17,24 +17,16 @@ load can be uncommented here to ensure they remain loadable.
 
 load("//args.star", "args")  # @unused
 
-# Loads project.star, builder_config.star, orchestrator.star
+# Loads project.star, orchestrator.star
 # load("//bootstrap.star", "bootstrap")  # @unused
 
 load("//branches.star", "branches")  # @unused
-
-# Loads project.star
-# Generator fails because there is no cr-buildbucket.cfg
-# load("//builder_config.star", "builder_config")  # @unused
-
+load("//builder_config.star", "builder_config")  # @unused
 load("//builder_health_indicators.star", "health_spec")  # @unused
 
-# Loads project.star, bootstrap.star, builder_config.star,
-# recipe_experiments.star
+# Loads project.star, bootstrap.star, recipe_experiments.star
 # load("//builders.star", "builders")  # @unused
-
-load("//chrome_settings.star", "chrome_settings")  # @unused
-
-# Loads project.star, builder_config.star, builders.star
+# Loads project.star, builders.star
 # load("//ci.star", "ci")  # @unused
 
 load("//consoles.star", "consoles")  # @unused
@@ -47,7 +39,6 @@ load("//html.star", "linkify")  # @unused
 load("//nodes.star", "nodes")  # @unused
 load("//notifiers.star", "notifiers")  # @unused
 
-# Loads builder_config.star
 # load("//orchestrator.star", "orchestrator")  # @unused
 
 # Loads project.star, builders.star

@@ -13,8 +13,10 @@ load("//internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 
 chromium_luci = struct(
     configure_project = _chromium_luci.configure_project,
+    configure_per_builder_outputs = _chromium_luci.configure_per_builder_outputs,
 
     # library-specific configuration
+    configure_builder_config = _chromium_luci.configure_builder_config,
     configure_builder_health_indicators = _chromium_luci.configure_builder_health_indicators,
     configure_gardener_rotations = _chromium_luci.configure_gardener_rotations,
     configure_gn_args = _chromium_luci.configure_gn_args,
