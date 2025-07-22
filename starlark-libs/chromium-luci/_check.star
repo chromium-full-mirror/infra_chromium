@@ -21,10 +21,7 @@ load("//branches.star", "branches")  # @unused
 load("//builder_config.star", "builder_config")  # @unused
 load("//builder_health_indicators.star", "health_spec")  # @unused
 load("//builders.star", "builders")  # @unused
-
-# Loads project.star
-# load("//ci.star", "ci")  # @unused
-
+load("//ci.star", "ci")  # @unused
 load("//consoles.star", "consoles")  # @unused
 load("//dimensions.star", "dimensions")  # @unused
 load("//enums.star", "enums")  # @unused

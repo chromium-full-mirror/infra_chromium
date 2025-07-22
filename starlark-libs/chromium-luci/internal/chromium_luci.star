@@ -348,6 +348,54 @@ def _builder_health_indicators_settings():
     """
     return _BUILDER_HEALTH_INDICATORS_SETTINGS.get()
 
+_CI_SETTINGS = _settings(
+    "ci-settings",
+    required_configure = "chromium.luci.configure_ci",
+)
+
+def _configure_ci(
+        *,
+        test_results_bq_dataset_name,
+        resultdb_index_by_timestamp = False,
+        main_console_view = None):
+    """Configure the ci library.
+
+    Args:
+        test_results_bq_dataset_name: The name of dataset to upload test results
+            to. CI builders will upload results to tables with names of the form
+            chrome-luci-data.<test_results_bq_dataset_name>.<pre>ci_test_results
+            with <pre> depending on the test ID.
+        resultdb_index_by_timestamp: A boolean indicating whether ResultDb
+            should index results for CI builders by timestamp, which allows for
+            searching for results by timestamp.
+        main_console_view: The name of a main console view to add all CI
+            builders to.
+    """
+    return _CI_SETTINGS.set(
+        test_results_bq_dataset_name = test_results_bq_dataset_name,
+        resultdb_index_by_timestamp = resultdb_index_by_timestamp,
+        main_console_view = main_console_view,
+    )
+
+def _ci_settings():
+    """Get the ci settings.
+
+    chromium_luci.configure_ci must be called before calling this.
+
+    Returns:
+        A struct with the following attributes:
+            test_results_bq_dataset_name: The name of dataset to upload test
+                results to. CI builders will upload results to tables with names
+                of the form chrome-luci-data.<test_results_bq_dataset_name>.<pre>ci_test_results
+                with <pre> depending on the test ID.
+            resultdb_index_by_timestamp: A boolean indicating whether ResultDb
+                should index results for CI builders by timestamp, which allows
+                for searching for results by timestamp.
+            main_console_view: The name of a main console view to add all CI
+                builders to.
+    """
+    return _CI_SETTINGS.get()
+
 _GN_ARGS_SETTINGS = _settings("gn_args-settings", default = struct(
     enable_siso_defaults = True,
 ))
@@ -483,6 +531,8 @@ chromium_luci = struct(
     builder_config_settings = _builder_config_settings,
     configure_builder_health_indicators = _configure_builder_health_indicators,
     builder_health_indicators_settings = _builder_health_indicators_settings,
+    configure_ci = _configure_ci,
+    ci_settings = _ci_settings,
     configure_gardener_rotations = _configure_gardener_rotations,
     gardener_rotations_settings = _gardener_rotations_settings,
     configure_gn_args = _configure_gn_args,

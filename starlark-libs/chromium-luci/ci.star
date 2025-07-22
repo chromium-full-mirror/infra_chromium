@@ -16,9 +16,10 @@ to set the default value. Can also be accessed through `ci.defaults`.
 load("./args.star", "args")
 load("./branches.star", "branches")
 load("./builder_config.star", "builder_config")
-load("./builders.star", "builders", "os")
+load("./builders.star", "builders")
+load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
+load("./internal/gardener_rotations.star", _gardener_rotations = "gardener_rotations")
 load("./notifiers.star", "notifiers")
-load("//project.star", "settings")
 
 defaults = args.defaults(
     extends = builders.defaults,
@@ -96,9 +97,8 @@ def ci_builder(
 
     kwargs["notifies"] = notifies
 
-    bq_dataset_name = "chrome"
-    if settings.project.startswith("chromium"):
-        bq_dataset_name = "chromium"
+    library_settings = _chromium_luci.ci_settings()
+    bq_dataset_name = library_settings.test_results_bq_dataset_name
     merged_resultdb_bigquery_exports = [
         resultdb.export_test_results(
             bq_table = "chrome-luci-data.{}.ci_test_results".format(bq_dataset_name),
@@ -124,11 +124,12 @@ def ci_builder(
     ]
     merged_resultdb_bigquery_exports.extend(resultdb_bigquery_exports or [])
 
-    branch_gardener_rotations = list({
-        builders.rotation(platform_settings.gardener_rotation, None, None): None
-        for platform, platform_settings in settings.platforms.items()
+    project_settings = _chromium_luci.project_settings()
+    branch_gardener_rotations = [
+        _gardener_rotations.rotation(platform_settings.gardener_rotation, None, None)
+        for platform, platform_settings in project_settings.platforms.items()
         if branches.matches(branch_selector, platform = platform) and platform_settings.gardener_rotation
-    })
+    ]
     branch_gardener_rotations = args.listify(gardener_rotations, branch_gardener_rotations)
 
     # Define the builder first so that any validation of luci.builder arguments
@@ -139,11 +140,11 @@ def ci_builder(
         console_view_entry = console_view_entry,
         resultdb_bigquery_exports = merged_resultdb_bigquery_exports,
         gardener_rotations = branch_gardener_rotations,
-        resultdb_index_by_timestamp = settings.project.startswith("chromium"),
+        resultdb_index_by_timestamp = library_settings.resultdb_index_by_timestamp,
         **kwargs
     )
 
-    if console_view_entry and settings.project.startswith("chromium"):
+    if console_view_entry:
         # builder didn't fail, we're guaranteed that console_view_entry is
         # either a single console_view_entry or a list of them and that they are valid
         if type(console_view_entry) == type(struct()):
@@ -164,8 +165,8 @@ def ci_builder(
             overview_console_category = console_view
             if entry.category:
                 overview_console_category = "|".join([console_view, entry.category])
-            if not settings.is_main:
-                main_console_view = "main"
+            if library_settings.main_console_view:
+                main_console_view = library_settings.main_console_view
             else:
                 main_console_view = defaults.get_value("main_console_view", main_console_view)
             if main_console_view:
@@ -188,6 +189,7 @@ def ci_builder(
                     short_name = entry.short_name,
                 )
             gardener_rotations = defaults.get_value("gardener_rotations", gardener_rotations, merge = args.MERGE_LIST)
+            gardener_rotations = args.listify([rotation.get() for rotation in gardener_rotations])
             for rotation in gardener_rotations:
                 luci.console_view_entry(
                     builder = builder,
@@ -202,39 +204,6 @@ def ci_builder(
                         category = overview_console_category,
                         short_name = entry.short_name,
                     )
-
-def _gpu_linux_builder(*, name, **kwargs):
-    """Defines a GPU-related linux builder.
-
-    This sets linux-specific defaults that are common to GPU-related builder
-    groups.
-    """
-    kwargs.setdefault("cores", 8)
-    kwargs.setdefault("os", os.LINUX_DEFAULT)
-    return ci.builder(name = name, **kwargs)
-
-def _gpu_mac_builder(*, name, **kwargs):
-    """Defines a GPU-related mac builder.
-
-    This sets mac-specific defaults that are common to GPU-related builder
-    groups.
-    """
-    kwargs.setdefault("builderless", True)
-    kwargs.setdefault("os", os.MAC_ANY)
-    return ci.builder(name = name, **kwargs)
-
-def _gpu_windows_builder(*, name, **kwargs):
-    """Defines a GPU-related windows builder.
-
-    This sets windows-specific defaults that are common to GPU-related builder
-    groups.
-    """
-    kwargs.setdefault("builderless", True)
-    kwargs.setdefault("cores", 8)
-    kwargs.setdefault("os", os.WINDOWS_ANY)
-    kwargs.setdefault("ssd", None)
-    kwargs.setdefault("free_space", None)
-    return ci.builder(name = name, **kwargs)
 
 def thin_tester(
         *,
@@ -253,7 +222,7 @@ def thin_tester(
         name: The name of the builder.
         parent: Reference to the parent builder.
         cores: See `builders.builder` for more information. The
-            `thin_tester_core` module-level default in `ci.defaults` will be
+            `thin_tester_cores` module-level default in `ci.defaults` will be
             used as the default if it is set.
         **kwargs: Additional keyword arguments to forward on to `ci.builder`.
 
@@ -274,8 +243,6 @@ def thin_tester(
         **kwargs
     )
 
-_DEFAULT_TREE_CLOSING_NOTIFIERS = ["chromium-tree-closer", "chromium-tree-closer-email"]
-
 ci = struct(
     # Module-level defaults for ci functions
     defaults = defaults,
@@ -283,25 +250,4 @@ ci = struct(
     # Functions for declaring CI builders
     builder = ci_builder,
     thin_tester = thin_tester,
-
-    # CONSTANTS
-    DEFAULT_EXECUTABLE = "recipe:chromium",
-    DEFAULT_EXECUTION_TIMEOUT = 3 * time.hour,
-    DEFAULT_FYI_PRIORITY = 35,
-    DEFAULT_POOL = "luci.chromium.ci",
-    DEFAULT_SHADOW_POOL = "luci.chromium.try",
-    DEFAULT_SERVICE_ACCOUNT = "chromium-ci-builder@chops-service-accounts.iam.gserviceaccount.com",
-    DEFAULT_SHADOW_SERVICE_ACCOUNT = "chromium-try-builder@chops-service-accounts.iam.gserviceaccount.com",
-    DEFAULT_TREE_CLOSING_NOTIFIERS = _DEFAULT_TREE_CLOSING_NOTIFIERS,
-
-    # Functions and constants for the GPU-related builder groups
-    gpu = struct(
-        linux_builder = _gpu_linux_builder,
-        mac_builder = _gpu_mac_builder,
-        windows_builder = _gpu_windows_builder,
-        POOL = "luci.chromium.gpu.ci",
-        SERVICE_ACCOUNT = "chromium-ci-gpu-builder@chops-service-accounts.iam.gserviceaccount.com",
-        SHADOW_SERVICE_ACCOUNT = "chromium-try-gpu-builder@chops-service-accounts.iam.gserviceaccount.com",
-        TREE_CLOSING_NOTIFIERS = _DEFAULT_TREE_CLOSING_NOTIFIERS + ["gpu-tree-closer-email"],
-    ),
 )
