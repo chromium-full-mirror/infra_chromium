@@ -9,6 +9,10 @@ pkg.declare(
     lucicfg = "1.45.0",
 )
 
+# _check.star is just a top-level script that loads all of the starlark files
+# within the directory to ensure that they can be successfully loaded
+pkg.entrypoint("_check.star")
+
 pkg.options.lint_checks([
     "all",
     # Let dicts be not sorted, we can use go/keep-sorted for dicts that we want

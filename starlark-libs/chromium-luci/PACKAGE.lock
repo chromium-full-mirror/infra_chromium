@@ -1,0 +1,12 @@
+{
+	"lucicfg": "1.45.3",
+	"packages": [
+		{
+			"name": "@chromium-luci",
+			"lucicfg": "1.45.0",
+			"entrypoints": [
+				"_check.star"
+			]
+		}
+	]
+}
