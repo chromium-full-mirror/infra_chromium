@@ -18,4 +18,5 @@ chromium_luci = struct(
     configure_builder_health_indicators = _chromium_luci.configure_builder_health_indicators,
     configure_gardener_rotations = _chromium_luci.configure_gardener_rotations,
     configure_gn_args = _chromium_luci.configure_gn_args,
+    configure_targets = _chromium_luci.configure_targets,
 )

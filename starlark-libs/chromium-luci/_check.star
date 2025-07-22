@@ -58,9 +58,8 @@ load("//notifiers.star", "notifiers")  # @unused
 
 load("//structs.star", "structs")  # @unused
 load("//swarming.star", "swarming")  # @unused
-
-# Generates output files
-# load("//targets.star", "targets")  # @unused
+load("//targets-internal/targets-specs-generation.star", "get_targets_spec_generator")  # @unused
+load("//targets.star", "targets")  # @unused
 
 # Loads project.star, builders.star, orchestrator.star
 # load("//try.star", "try_")  # @unused

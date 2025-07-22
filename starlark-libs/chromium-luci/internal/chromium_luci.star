@@ -5,6 +5,7 @@
 """Library providing project configuration."""
 
 load("//nodes.star", "nodes")
+load("//targets-internal/pyl-generators.star", "register_pyl_generators")
 
 # Store project settings both on a node and in a lucicfg.var so that the
 # settings can be accessed during both the graph construction (var) and the
@@ -184,6 +185,59 @@ def _gardener_rotations_settings():
     """
     return _GARDENER_ROTATIONS_SETTINGS.get()
 
+_TARGETS_SETTINGS = _settings("targets-settings", default = struct(
+    autoshard_exceptions = {},
+))
+
+def _get_autoshard_exceptions(autoshard_exceptions_file):
+    if not autoshard_exceptions_file:
+        return {}
+    autoshard_exceptions = {}
+    raw_exceptions = json.decode(io.read_file(autoshard_exceptions_file))
+    for builder_group, raw_exceptions_for_group in raw_exceptions.items():
+        exceptions_for_group = autoshard_exceptions.setdefault(builder_group, {})
+        for builder, raw_exceptions_for_builder in raw_exceptions_for_group.items():
+            exceptions_for_builder = exceptions_for_group.setdefault(builder, {})
+            for test, raw_exception_for_test in raw_exceptions_for_builder.items():
+                exceptions_for_builder[test] = int(raw_exception_for_test["shards"])
+    return autoshard_exceptions
+
+def _configure_targets(*, generate_pyl_files = False, autoshard_exceptions_file = None):
+    """Configure the targets library.
+
+    Args:
+        generate_pyl_files: A boolean indicating whether pyl files should be
+            generated containing the reusable target declarations (variant,
+            tests, legacy suites). This enables test and suite definitions to be
+            shared between builders that have been migrated to starlark and
+            those that have not.
+        autoshard_exceptions_file: Path to a file containing autoshard
+            exceptions to be applied to generated tests. The file should be a
+            json file with a dict where the shards for a test running on a
+            builder in a builder group can be found by dereferencing the
+            following keys: builder group -> builder -> test -> "shards". An
+            entry for each builder group, builder and test isn't required, but
+            any entries present must contain the "shards" key.
+    """
+    if generate_pyl_files:
+        register_pyl_generators()
+    return _TARGETS_SETTINGS.set(
+        autoshard_exceptions = _get_autoshard_exceptions(autoshard_exceptions_file),
+    )
+
+def _targets_settings():
+    """Get the targets settings.
+
+    Returns:
+        A struct with the following attributes:
+            autoshard_exceptions: A dict where the shards for a test running on
+                a builder in a builder group can be gound by dereferincing the
+                following keys: builder group -> builder -> test -> "shards".
+                Entries might not be present for all builder groups, builders
+                and tests but any entries present will contain the "shards" key.
+    """
+    return _TARGETS_SETTINGS.get()
+
 chromium_luci = struct(
     configure_project = _configure_project,
     project_settings = _project_settings,
@@ -195,4 +249,6 @@ chromium_luci = struct(
     gardener_rotations_settings = _gardener_rotations_settings,
     configure_gn_args = _configure_gn_args,
     gn_args_settings = _gn_args_settings,
+    configure_targets = _configure_targets,
+    targets_settings = _targets_settings,
 )

@@ -10,14 +10,11 @@ load("./args.star", "args")
 load("./targets-internal/common.star", _targets_common = "common")
 load("./targets-internal/magic_args.star", _targets_magic_args = "magic_args")
 load("./targets-internal/nodes.star", _targets_nodes = "nodes")
-load("./targets-internal/pyl-generators.star", "register_pyl_generators")
 load("./targets-internal/test-types/gpu_telemetry_test.star", "gpu_telemetry_test")
 load("./targets-internal/test-types/gtest_test.star", "gtest_test")
 load("./targets-internal/test-types/isolated_script_test.star", "isolated_script_test")
 load("./targets-internal/test-types/junit_test.star", "junit_test")
 load("./targets-internal/test-types/script_test.star", "script_test")
-
-register_pyl_generators()
 
 def _compile_target(*, name, label = None, skip_usage_check = False):
     """Define a compile target to use in targets specs.

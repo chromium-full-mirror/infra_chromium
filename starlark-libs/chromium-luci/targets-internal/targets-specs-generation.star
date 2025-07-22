@@ -20,7 +20,7 @@ load("@stdlib//internal/graph.star", "graph")
 load("./common.star", _targets_common = "common")
 load("./nodes.star", _targets_nodes = "nodes")
 load("//args.star", args_lib = "args")
-load("//chrome_settings.star", "targets_config")
+load("//internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 load("//structs.star", "structs")
 
 def register_targets(*, parent_key, builder_group, builder_name, name, targets, settings):
@@ -341,7 +341,8 @@ def get_targets_spec_generator():
         None will be returned.
     """
     bundle_resolver = _get_bundle_resolver()
-    autoshard_exceptions = targets_config().autoshard_exceptions
+
+    autoshard_exceptions = _chromium_luci.targets_settings().autoshard_exceptions
 
     def get_targets_spec(parent_node):
         bundle_nodes = graph.children(parent_node.key, _targets_nodes.BUNDLE.kind)
