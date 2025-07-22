@@ -17,6 +17,8 @@ chromium_luci = struct(
 
     # library-specific configuration
     configure_bootstrap = _chromium_luci.configure_bootstrap,
+    configure_builders = _chromium_luci.configure_builders,
+    os_dimension_overrides = _chromium_luci.os_dimension_overrides,
     configure_builder_config = _chromium_luci.configure_builder_config,
     configure_builder_health_indicators = _chromium_luci.configure_builder_health_indicators,
     configure_gardener_rotations = _chromium_luci.configure_gardener_rotations,

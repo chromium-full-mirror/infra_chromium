@@ -144,6 +144,100 @@ def _bootstrap_settings():
     """
     return _BOOTSTRAP_SETTINGS.get()
 
+def _normalize_os(os):
+    if type(os) == type(""):
+        return os
+    if type(os) == type(struct()) and hasattr(os, "get_dimension"):
+        if os.override_key != None:
+            fail("overridable dimension {} cannot be used as an override value".format(os.name))
+        return os.get_dimension(None, None)
+    fail("{} can't be used as an override value, a string or non-overridable os constant is required".format(os))
+
+def _os_dimension_overrides(*, default = None, overrides = {}):
+    """Define overrides for an os value.
+
+    Dimension values can be specified as a string or a non-overridable os
+    constant. A string will be used directly as the dimension, whereas an os
+    constant will be converted to its associated dimension.
+
+    Args:
+        default: The default dimension value to use.
+        overrides: A dict mapping bucket names to dicts mapping builder names to
+            the dimension value to use for the associated builder.
+
+    Returns:
+        A struct that can be used as a value in the os_dimension_overrides
+        argument of chromium_luci.configure_builders.
+    """
+    return struct(
+        __os_dimension_overrides__ = True,
+        default = None if default == None else _normalize_os(default),
+        overrides = {k: _normalize_os(v) for k, v in overrides},
+    )
+
+def _normalize_overrides(overrides):
+    if hasattr(overrides, "__os_dimension_overrides__"):
+        return overrides
+
+    return _os_dimension_overrides(default = overrides)
+
+_BUILDERS_SETTINGS = _settings("builders-settings", default = struct(
+    builder_group_reuse_bucket_allowlist = [],
+    exempted_from_description_builders = {},
+    os_dimension_overrides = _os_dimension_overrides(),
+))
+
+def _configure_builders(
+        *,
+        builder_group_reuse_bucket_allowlist = [],
+        exempted_from_description_builders = {},
+        os_dimension_overrides = _os_dimension_overrides()):
+    """Configure the builders library.
+
+    Args:
+        builder_group_reuse_bucket_allowlist: A list of buckets that are allowed
+            to reuse builder groups from other buckets. Ordinarily it is an
+            error if a builder group is used within multiple buckets.
+        exempted_from_description_builders: A dict mapping bucket names to a
+            collection of names of builders within the bucket that do not need
+            to specify a description.
+        os_dimension_overrides: A dict mapping overridable os constants to
+            overrides providing the dimension value. The values in the dict can
+            be strings, os constants or structs returned from
+            chromium_luci.os_dimension_overrides. A string will be used as the
+            dimension value for all builders. An os constant will be converted
+            to its associated dimension to be used for all builders.
+    """
+    for os in os_dimension_overrides:
+        if os.override_key == None:
+            fail("{} is not an overridable os value".format(os.name))
+    _BUILDERS_SETTINGS.set(
+        builder_group_reuse_bucket_allowlist = builder_group_reuse_bucket_allowlist,
+        exempted_from_description_builders = exempted_from_description_builders,
+        os_dimension_overrides = {
+            k.override_key: _normalize_overrides(v)
+            for k, v in os_dimension_overrides.items()
+        },
+    )
+
+def _builders_settings():
+    """Get the builders settings.
+
+    Returns:
+        A struct with the following attributes:
+            builder_group_reuse_bucket_allowlist: A list of buckets that are
+                allowed to reuse builder groups from other buckets. Ordinarily
+                it is an error if a builder group is used within multiple
+                buckets.
+            exempted_from_description_builders: A dict mapping bucket names to a
+                collection of names of builders within the bucket that do not
+                need to specify a description.
+            os_dimension_overrides: A dict mapping overridable os constants to
+                chromium_luci.os_dimension_overrides structs determining the
+                dimension value(s) to be used by the os constant.
+    """
+    return _BUILDERS_SETTINGS.get()
+
 _BUILDER_CONFIG_SETTINGS = _settings("builder_config-settings", default = struct(
     exempted_gardened_mirrors_in_cq_builders = {},
     mega_cq_excluded_builders = {},
@@ -382,6 +476,9 @@ chromium_luci = struct(
     # library-specific configuration
     configure_bootstrap = _configure_bootstrap,
     bootstrap_settings = _bootstrap_settings,
+    configure_builders = _configure_builders,
+    os_dimension_overrides = _os_dimension_overrides,
+    builders_settings = _builders_settings,
     configure_builder_config = _configure_builder_config,
     builder_config_settings = _builder_config_settings,
     configure_builder_health_indicators = _configure_builder_health_indicators,

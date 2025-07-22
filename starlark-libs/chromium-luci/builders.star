@@ -29,14 +29,14 @@ load("./args.star", "args")
 load("./bootstrap.star", "register_bootstrap")
 load("./branches.star", "branches")
 load("./builder_config.star", "register_builder_config")
-load("./builder_exemptions.star", "exempted_from_description_builders")
 load("./builder_health_indicators.star", "register_health_spec")
 load("./consoles.star", "register_builder_to_console_view")
+load("./enums.star", _enums = "enums")
+load("./gardener_rotations.star", "register_gardener_builder")
 load("./gn_args.star", "register_gn_args")
+load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 load("./nodes.star", "nodes")
 load("./recipe_experiments.star", "register_recipe_experiments_ref")
-load("./sheriff_rotations.star", "register_gardener_builder")
-load("//project.star", "settings")
 
 ################################################################################
 # Constants for use with the builder function                                  #
@@ -58,101 +58,63 @@ os_category = struct(
     WINDOWS = "Windows",
 )
 
+_os_override_key = _enums.enum(
+    LINUX_DEFAULT = "linux-default",
+    MAC_BETA = "mac-beta",
+    MAC_DEFAULT = "mac-default",
+    WINDOWS_DEFAULT = "windows-default",
+)
+
 # The os constants to be used for the os parameter of the builder function
 # The *_DEFAULT members enable distinguishing between a use that runs the
 # "current" version of the OS and a use that runs against a specific version
 # that happens to be the "current" version
-def os_enum(category, dimension, dimension_overrides = None):
-    if dimension_overrides:
+def _os_enum(name, category, dimension = None, *, override_key = None):
+    if override_key:
+        if override_key not in _os_override_key.values:
+            fail("internal error: unexpected override key {}".format(override_key))
+        if dimension != None:
+            fail("dimension cannot be specified when override_key is specified")
+
         def get_dimension(bucket, builder):
-            return dimension_overrides.get(bucket, {}).get(builder, dimension)
+            override = _chromium_luci.builders_settings().os_dimension_overrides.get(override_key)
+            if override == None:
+                fail("{} dimension must have an override specified in the os_dimension_overrides to chromium_luci.configure_builders".format(name))
+            dimension = override.overrides.get(bucket, {}).get(builder) or override.default
+            if dimension == None:
+                fail("{} dimension must have an override for \"{}/{}\" or a default in the os_dimension_overrides to chromium_luci.configure_builders".format(name, bucket, builder))
+            return dimension
     else:
         def get_dimension(_bucket, _builder):
             return dimension
 
-    return struct(category = category, get_dimension = get_dimension)
+    return struct(name = name, category = category, get_dimension = get_dimension, override_key = override_key)
 
 os = struct(
-    ANDROID = os_enum(os_category.ANDROID, "Android"),
-    LINUX_BIONIC = os_enum(os_category.LINUX, "Ubuntu-18.04"),
-    LINUX_FOCAL = os_enum(os_category.LINUX, "Ubuntu-20.04"),
+    ANDROID = _os_enum("ANDROID", os_category.ANDROID, "Android"),
+    LINUX_BIONIC = _os_enum("LINUX_BIONIC", os_category.LINUX, "Ubuntu-18.04"),
+    LINUX_FOCAL = _os_enum("LINUX_FOCAL", os_category.LINUX, "Ubuntu-20.04"),
+    LINUX_JAMMY = _os_enum("LINUX_JAMMY", os_category.LINUX, "Ubuntu-22.04"),
     # A migration off of bionic is in progress, builders identified in
     # linux-default.json will have a different os dimension
-    LINUX_DEFAULT = os_enum(os_category.LINUX, "Ubuntu-22.04", json.decode(io.read_file("./linux-default.json"))),
-    LINUX_NOBLE = os_enum(os_category.LINUX, "Ubuntu-24.04"),
-    LINUX_UBUNTU_ANY = os_enum(os_category.LINUX, "Ubuntu"),
-    LINUX_ANY = os_enum(os_category.LINUX, "Linux"),
-    MAC_10_15 = os_enum(os_category.MAC, "Mac-10.15"),
-    MAC_12 = os_enum(os_category.MAC, "Mac-12"),
-    MAC_13 = os_enum(os_category.MAC, "Mac-13"),
-    MAC_14 = os_enum(os_category.MAC, "Mac-14"),
-    MAC_DEFAULT = os_enum(os_category.MAC, "Mac-15"),
-    MAC_ANY = os_enum(os_category.MAC, "Mac"),
-    MAC_BETA = os_enum(os_category.MAC, "Mac-15|Mac-26"),
-    WINDOWS_10 = os_enum(os_category.WINDOWS, "Windows-10"),
+    LINUX_DEFAULT = _os_enum("LINUX_DEFAULT", os_category.LINUX, override_key = _os_override_key.LINUX_DEFAULT),
+    LINUX_NOBLE = _os_enum("LINUX_NOBLE", os_category.LINUX, "Ubuntu-24.04"),
+    LINUX_UBUNTU_ANY = _os_enum("LINUX_UBUNTU_ANY", os_category.LINUX, "Ubuntu"),
+    LINUX_ANY = _os_enum("LINUX_ANY", os_category.LINUX, "Linux"),
+    MAC_10_15 = _os_enum("MAC_10_15", os_category.MAC, "Mac-10.15"),
+    MAC_12 = _os_enum("MAC_12", os_category.MAC, "Mac-12"),
+    MAC_13 = _os_enum("MAC_13", os_category.MAC, "Mac-13"),
+    MAC_14 = _os_enum("MAC_14", os_category.MAC, "Mac-14"),
+    MAC_15 = _os_enum("MAC_15", os_category.MAC, "Mac-15"),
+    MAC_DEFAULT = _os_enum("MAC_DEFAULT", os_category.MAC, override_key = _os_override_key.MAC_DEFAULT),
+    MAC_ANY = _os_enum("MAC_ANY", os_category.MAC, "Mac"),
+    MAC_BETA = _os_enum("MAC_BETA", os_category.MAC, override_key = _os_override_key.MAC_BETA),
+    WINDOWS_10 = _os_enum("WINDOWS_10", os_category.WINDOWS, "Windows-10"),
     # TODO(crbug.com/41492657): remove after slow compile issue resolved.
-    WINDOWS_10_1909 = os_enum(os_category.WINDOWS, "Windows-10-18363"),
-    WINDOWS_11 = os_enum(os_category.WINDOWS, "Windows-11"),
-    WINDOWS_DEFAULT = os_enum(os_category.WINDOWS, "Windows-10"),
-    WINDOWS_ANY = os_enum(os_category.WINDOWS, "Windows"),
-)
-
-siso = struct(
-    project = struct(
-        DEFAULT_TRUSTED = "rbe-chromium-trusted",
-        TEST_TRUSTED = "rbe-chromium-trusted-test",
-        DEFAULT_UNTRUSTED = "rbe-chromium-untrusted",
-        TEST_UNTRUSTED = "rbe-chromium-untrusted-test",
-    ) if settings.project.startswith("chromium") else struct(
-        DEFAULT_TRUSTED = "rbe-chrome-trusted",
-        TEST_TRUSTED = "rbe-chrome-trusted-test",
-        DEFAULT_UNTRUSTED = "rbe-chrome-untrusted",
-        TEST_UNTRUSTED = "rbe-chrome-untrusted-test",
-    ),
-    remote_jobs = struct(
-        DEFAULT = 250,
-        LOW_JOBS_FOR_CI = 80,
-        HIGH_JOBS_FOR_CI = 500,
-        LOW_JOBS_FOR_CQ = 150,
-        # Calculated based on the number of CPUs inside Siso.
-        HIGH_JOBS_FOR_CQ = -1 if settings.project.startswith("chromium") else 300,
-    ),
-)
-
-def _rotation(name, console_name, tree_closer_console):
-    if not name:
-        fail("Rotations must be created with a name")
-    return struct(
-        name = name,
-        console_name = console_name,
-        tree_closer_console = tree_closer_console,
-    )
-
-def _main_rotation(name, console_name, tree_closer_console):
-    return branches.value(
-        branch_selector = branches.selector.MAIN,
-        value = _rotation(
-            name = name,
-            console_name = console_name,
-            tree_closer_console = tree_closer_console,
-        ),
-    )
-
-# Gardener rotations that a builder can be added to (only takes effect on trunk)
-# New rotations can be added, but won't automatically show up in SoM without
-# changes to SoM code.
-gardener_rotations = struct(
-    ANDROID = _main_rotation("android", "android rotation", "android tree closers"),
-    ANGLE = _main_rotation("angle", "angle rotation", None),
-    CHROMIUM = _main_rotation("chromium", "chromium rotation", "chromium tree closers"),
-    CFT = _main_rotation("cft", "cft rotation", None),
-    DAWN = _main_rotation("dawn", "dawn rotation", None),
-    FUCHSIA = _main_rotation("fuchsia", "fuchsia rotation", None),
-    CHROMIUM_CLANG = _main_rotation("chromium.clang", "chromium.clang rotation", None),
-    CHROMIUM_GPU = _main_rotation("chromium.gpu", "chromium.gpu rotation", "chromium.gpu tree closers"),
-    IOS = _main_rotation("ios", "ios rotation", "ios tree closers"),
-    CHROMIUMOS = _main_rotation("chromiumos", "chromiumos rotation", "chromiumos tree closers"),  # This group is not on SoM.
-    CRONET = _main_rotation("cronet", "cronet rotation", None),
+    WINDOWS_10_1909 = _os_enum("WINDOWS_10_1909", os_category.WINDOWS, "Windows-10-18363"),
+    WINDOWS_11 = _os_enum("WINDOWS_11", os_category.WINDOWS, "Windows-11"),
+    WINDOWS_DEFAULT = _os_enum("WINDOWS_DEFAULT", os_category.WINDOWS, override_key = _os_override_key.WINDOWS_DEFAULT),
+    WINDOWS_ANY = _os_enum("WINDOWS_ANY", os_category.WINDOWS, "Windows"),
 )
 
 # Free disk space in a machine reserved for build tasks.
@@ -238,7 +200,28 @@ def _code_coverage_property(
 
     return code_coverage or None
 
-def _pgo_property(*, use_pgo, skip_profile_upload):
+def _orderfile_property(*, use_orderfile, upload_orderfile):
+    orderfile = {}
+
+    use_orderfile = defaults.get_value("use_orderfile", use_orderfile)
+    if use_orderfile:
+        orderfile["use_orderfile"] = True
+        upload_orderfile = defaults.get_value(
+            "upload_orderfile",
+            upload_orderfile,
+        )
+        if not upload_orderfile:
+            orderfile["upload_orderfile"] = False
+
+    return orderfile or None
+
+def _pgo_property(
+        *,
+        use_pgo,
+        skip_profile_upload,
+        gs_bucket_override,
+        gs_bucket_path_override,
+        profdata_platform_override):
     pgo = {}
 
     use_pgo = defaults.get_value("use_pgo", use_pgo)
@@ -250,6 +233,12 @@ def _pgo_property(*, use_pgo, skip_profile_upload):
         )
         if skip_profile_upload:
             pgo["skip_profile_upload"] = True
+        if profdata_platform_override:
+            pgo["profdata_platform_override"] = profdata_platform_override
+        if gs_bucket_override:
+            pgo["gs_bucket_override"] = gs_bucket_override
+        if gs_bucket_path_override:
+            pgo["gs_bucket_path_override"] = gs_bucket_path_override
 
     return pgo or None
 
@@ -308,6 +297,8 @@ defaults = args.defaults(
     use_clang_coverage = False,
     use_java_coverage = False,
     use_javascript_coverage = False,
+    use_orderfile = None,
+    upload_orderfile = True,
     use_pgo = None,
     coverage_exclude_sources = None,
     coverage_test_types = None,
@@ -356,17 +347,8 @@ defaults = args.defaults(
 # This node won't actually be accessed, but creating it for builders that have
 # builder_group set will enforce that there can't be builders with the same name
 # in different buckets that use the same builder group since lucicfg will check
-# that there aren't two graphs with the same ID
+# that there aren't two nodes with the same ID
 _BUILDER_GROUP_ID_NODE = nodes.create_unscoped_node_type("builder-group-id")
-
-# For staging, we specifically want to reuse the same builder group so that the
-# staging builders look up the same GN args and targets that the prod official
-# builders use
-_BUILDER_GROUP_REUSE_BUCKET_ALLOWLIST = [
-    "official.diffs.staging",
-    "official.infra.staging",
-    "official.staging",
-] if settings.project.startswith("chrome") else []
 
 def builder(
         *,
@@ -402,7 +384,12 @@ def builder(
         use_clang_coverage = args.DEFAULT,
         use_java_coverage = args.DEFAULT,
         use_javascript_coverage = args.DEFAULT,
+        use_orderfile = args.DEFAULT,
+        upload_orderfile = args.DEFAULT,
         use_pgo = args.DEFAULT,
+        gs_bucket_override = None,
+        gs_bucket_path_override = None,
+        profdata_platform_override = None,
         coverage_exclude_sources = args.DEFAULT,
         coverage_test_types = args.DEFAULT,
         export_coverage_to_zoss = args.DEFAULT,
@@ -573,8 +560,18 @@ def builder(
             coverage should be enabled. If True the 'use_javascript_coverage'
             field will be set in the '$build/code_coverage' property. By
             default, considered False.
+        use_orderfile: a boolean indicating whether orderfile should be
+            generated. If True, the 'use_orderfile' will be set in the
+            '$build/orderfile' property. Defaults to False.
+        upload_orderfile: A boolean indicating whether the orderfile should be
+            uploaded.
         use_pgo: a boolean indicating whether PGO should be used. If True, the
             'use_pgo' will be set in '$build/pgo' property. Defaults to False.
+        gs_bucket_override: Override bucket to upload PGO profiles to.
+        gs_bucket_path_override: Override path within the bucket to upload PGO
+            profiles to.
+        profdata_platform_override: Value to use as the profdata platform for
+            PGO profiles instead of the value computed from the target platform.
         coverage_exclude_sources: a string as the key to find the source file
             exclusion pattern in code_coverage recipe module. Will be copied to
             '$build/code_coverage' property if set. By default, considered None.
@@ -689,6 +686,9 @@ def builder(
     if "$build/pgo" in properties:
         fail('Setting "$build/pgo" property is not supported: ' +
              "use use_pgo and skip_profile_upload instead")
+    if "$build/orderfile" in properties:
+        fail('Setting "$build/orderfile" property is not supported: ' +
+             "use use_orderfile and upload_orderfile instead")
     properties = dict(properties)
 
     shadow_properties = dict(defaults.get_value("shadow_properties", shadow_properties))
@@ -698,6 +698,8 @@ def builder(
     # dimension, but it shouldn't matter because the call to luci.builder will
     # fail without bucket being set
     bucket = defaults.get_value("bucket", bucket)
+    project_settings = _chromium_luci.project_settings()
+    library_settings = _chromium_luci.builders_settings()
 
     experiments = experiments or {}
 
@@ -732,13 +734,14 @@ def builder(
         if auto_builder_dimension:
             fully_qualified_builder_dimension = defaults.get_value("fully_qualified_builder_dimension", fully_qualified_builder_dimension)
             if fully_qualified_builder_dimension:
-                dimensions["builder"] = "{}/{}/{}".format(settings.project, bucket, name)
+                dimensions["builder"] = "{}/{}/{}".format(project_settings.name, bucket, name)
             else:
                 dimensions["builder"] = name
 
-    if not kwargs.get("description_html", "").strip() and name not in exempted_from_description_builders.get(bucket, []) and not mirrors:
+    exempted_from_description = name in library_settings.exempted_from_description_builders.get(bucket, [])
+    if not kwargs.get("description_html", "").strip() and exempted_from_description and not mirrors:
         fail("Builder " + name + " must have a description_html. All new builders must specify a description.")
-    elif kwargs.get("description_html", "").strip() and name in exempted_from_description_builders.get(bucket, []):
+    elif kwargs.get("description_html", "").strip() and exempted_from_description:
         fail("Need to remove builder " + bucket + "/" + name + " from exempted_from_description_builders")
 
     cores = defaults.get_value("cores", cores)
@@ -758,7 +761,8 @@ def builder(
         dimensions["pool"] = pool
 
     gardener_rotations = defaults.get_value("gardener_rotations", gardener_rotations, merge = args.MERGE_LIST)
-    gardener_rotation_names = [rotation.name for rotation in gardener_rotations]
+    gardener_rotations = args.listify([rotation.get() for rotation in gardener_rotations])
+    gardener_rotation_names = list({rotation.name: None for rotation in gardener_rotations})
     if gardener_rotations:
         # TODO(343503161): Remove gardener_rotations after SoM is updated.
         properties["sheriff_rotations"] = gardener_rotation_names
@@ -843,9 +847,19 @@ def builder(
             shadow_siso["project"] = shadow_rbe_project
             shadow_properties["$build/siso"] = shadow_siso
 
+    orderfile = _orderfile_property(
+        use_orderfile = use_orderfile,
+        upload_orderfile = upload_orderfile,
+    )
+    if orderfile != None:
+        properties["$build/orderfile"] = orderfile
+
     pgo = _pgo_property(
         use_pgo = use_pgo,
         skip_profile_upload = skip_profile_upload,
+        profdata_platform_override = profdata_platform_override,
+        gs_bucket_override = gs_bucket_override,
+        gs_bucket_path_override = gs_bucket_path_override,
     )
     if pgo != None:
         properties["$build/pgo"] = pgo
@@ -961,7 +975,7 @@ def builder(
 
     # Define a node to ensure there's only one builder using the
     # (builder_group, builder)
-    if builder_group != None and bucket not in _BUILDER_GROUP_REUSE_BUCKET_ALLOWLIST:
+    if builder_group != None and bucket not in library_settings.builder_group_reuse_bucket_allowlist:
         _BUILDER_GROUP_ID_NODE.add("{}:{}".format(builder_group, name))
 
     register_gardener_builder(bucket, name, gardener_rotation_names)
@@ -1031,7 +1045,7 @@ def builder(
                 console_view,
                 entry.category,
                 entry.short_name,
-                settings.project,
+                project_settings.name,
                 bucket,
                 builder_group,
                 name,
@@ -1066,7 +1080,5 @@ builders = struct(
     cpu = cpu,
     defaults = defaults,
     os = os,
-    gardener_rotations = gardener_rotations,
-    rotation = _rotation,
     free_space = free_space,
 )

@@ -20,10 +20,9 @@ load("//bootstrap.star", "register_bootstrap")  # @unused
 load("//branches.star", "branches")  # @unused
 load("//builder_config.star", "builder_config")  # @unused
 load("//builder_health_indicators.star", "health_spec")  # @unused
+load("//builders.star", "builders")  # @unused
 
 # Loads project.star
-# load("//builders.star", "builders")  # @unused
-# Loads project.star, builders.star
 # load("//ci.star", "ci")  # @unused
 
 load("//consoles.star", "consoles")  # @unused
@@ -37,7 +36,7 @@ load("//nodes.star", "nodes")  # @unused
 load("//notifiers.star", "notifiers")  # @unused
 load("//orchestrator.star", "register_orchestrator")  # @unused
 
-# Loads project.star, builders.star
+# Loads project.star
 # load("//polymorphic.star", "polymorphic")  # @unused
 
 load("//recipe_experiments.star", "register_recipe_experiments")  # @unused
@@ -46,7 +45,7 @@ load("//swarming.star", "swarming")  # @unused
 load("//targets-internal/targets-specs-generation.star", "get_targets_spec_generator")  # @unused
 load("//targets.star", "targets")  # @unused
 
-# Loads project.star, builders.star
+# Loads project.star
 # load("//try.star", "try_")  # @unused
 
 load("//xcode.star", "xcode")  # @unused

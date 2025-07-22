@@ -1,0 +1,28 @@
+# Copyright 2025 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+"""Internal library for defining gardener rotations."""
+
+load("//branches.star", _branches = "branches")
+
+def _rotation(name, console_name, tree_closer_console, *, main_only = False):
+    if not name:
+        fail("Rotations must be created with a name")
+
+    def get():
+        val = struct(
+            name = name,
+            console_name = console_name,
+            tree_closer_console = tree_closer_console,
+        )
+        return _branches.value(
+            branch_selector = _branches.selector.MAIN if main_only else _branches.selector.ALL_BRANCHES,
+            value = val,
+        )
+
+    return struct(get = get)
+
+gardener_rotations = struct(
+    rotation = _rotation,
+)

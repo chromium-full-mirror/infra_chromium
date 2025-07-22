@@ -7,11 +7,21 @@
 load("@stdlib//internal/graph.star", "graph")
 load("@stdlib//internal/luci/common.star", "keys")
 load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
+load("./internal/gardener_rotations.star", _gardener_rotations = "gardener_rotations")
 load("./nodes.star", "nodes")
 
 _SHERIFF_ROTATION = nodes.create_unscoped_node_type("sheriff_rotation")
 
 _SHERIFFED_BUILDER = nodes.create_bucket_scoped_node_type("sheriffed_builder")
+
+gardener_rotations = struct(
+    rotation = lambda name, console_name, tree_closer_console: _gardener_rotations.rotation(
+        name = name,
+        console_name = console_name,
+        tree_closer_console = tree_closer_console,
+        main_only = True,
+    ),
+)
 
 def register_gardener_builder(bucket, builder, gardener_rotations):
     """Register a builder with its sheriff rotations.
