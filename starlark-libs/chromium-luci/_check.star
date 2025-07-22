@@ -26,11 +26,10 @@ load("//branches.star", "branches")  # @unused
 # Generator fails because there is no cr-buildbucket.cfg
 # load("//builder_config.star", "builder_config")  # @unused
 
-# Loads project.star
-# load("//builder_health_indicators.star", "builder_health_indicators")  # @unused
+load("//builder_health_indicators.star", "health_spec")  # @unused
 
 # Loads project.star, bootstrap.star, builder_config.star,
-# builder_health_indicators.star, recipe_experiments.star
+# recipe_experiments.star
 # load("//builders.star", "builders")  # @unused
 
 load("//chrome_settings.star", "chrome_settings")  # @unused

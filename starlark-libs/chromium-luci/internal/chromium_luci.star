@@ -73,6 +73,51 @@ def _project_settings():
     """
     return _PROJECT_SETTINGS.get()
 
+_BUILDER_HEALTH_INDICATORS_SETTINGS = _settings(
+    "builder_health_indicators-settings",
+    required_configure = "chromium_luci.configure_builder_health_indicators",
+)
+
+def _configure_builder_health_indicators(
+        *,
+        unhealthy_period_days,
+        pending_time_p50_min,
+        exempted_from_contact_builders = {}):
+    """Configure the builder_health_indicators library.
+
+    Args:
+        unhealthy_period_days: The period in days to take data from to compute
+            health metrics in the default health specs.
+        pending_time_p50_min: The threshold above which the P50 pending time
+            will be considered unhealthy in the default health specs.
+        exempted_from_contact_builders: A dict mapping bucket name to a list of
+            builders within that bucket which do not need to specify
+            contact_email.
+    """
+    _BUILDER_HEALTH_INDICATORS_SETTINGS.set(
+        unhealthy_period_days = unhealthy_period_days,
+        pending_time_p50_min = pending_time_p50_min,
+        exempted_from_contact_builders = exempted_from_contact_builders,
+    )
+
+def _builder_health_indicators_settings():
+    """Get the builder_health_indicators settings.
+
+    chromium_luci.configure_builder_health_indicators must be called before
+    calling this.
+
+    Returns:
+        A struct with the following attributes:
+            unhealthy_period_days: The period in days to take data from to
+                compute health metrics.
+            pending_time_p50_min: The threshold above which the P50 pending time
+                will be considered unhealthy.
+            exempted_from_contact_builders: A dict mapping bucket name to a list
+                of builders within that bucket which do not need to specify
+                contact_email.
+    """
+    return _BUILDER_HEALTH_INDICATORS_SETTINGS.get()
+
 _GN_ARGS_SETTINGS = _settings("gn_args-settings", default = struct(
     enable_siso_defaults = True,
 ))
@@ -144,6 +189,8 @@ chromium_luci = struct(
     project_settings = _project_settings,
 
     # library-specific configuration
+    configure_builder_health_indicators = _configure_builder_health_indicators,
+    builder_health_indicators_settings = _builder_health_indicators_settings,
     configure_gardener_rotations = _configure_gardener_rotations,
     gardener_rotations_settings = _gardener_rotations_settings,
     configure_gn_args = _configure_gn_args,

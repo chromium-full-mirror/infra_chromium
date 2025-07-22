@@ -9,46 +9,47 @@ See chromium/src -- //docs/infra/builder_health_indicators.md for more info.
 
 load("@stdlib//internal/graph.star", "graph")
 load("@stdlib//internal/luci/common.star", "keys")
-load("./builder_exemptions.star", "exempted_from_contact_builders")
+load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 load("./nodes.star", "nodes")
 load("./structs.star", "structs")
-load("//project.star", "settings")
 
 _HEALTH_SPEC = nodes.create_bucket_scoped_node_type("health_spec")
 
 # See https://source.chromium.org/chromium/infra/infra/+/main:go/src/infra/cr_builder_health/src_config.go
 # for all configurable thresholds.
-_default_specs = {
-    "Unhealthy": struct(
-        score = 5,
-        period_days = 7 if settings.project.startswith("chromium") else 14,
-        # If any of these thresholds are exceeded, the builder will be deemed
-        # unhealthy.
-        # Setting a value of None will ignore that threshold
-        infra_fail_rate = struct(
-            average = 0.05,
+def _default_specs():
+    settings = _chromium_luci.builder_health_indicators_settings()
+    return {
+        "Unhealthy": struct(
+            score = 5,
+            period_days = settings.unhealthy_period_days,
+            # If any of these thresholds are exceeded, the builder will be
+            # deemed unhealthy.
+            # Setting a value of None will ignore that threshold
+            infra_fail_rate = struct(
+                average = 0.05,
+            ),
+            fail_rate = struct(
+                average = 0.2,
+            ),
+            build_time = struct(
+                p50_mins = None,
+            ),
+            pending_time = struct(
+                p50_mins = settings.pending_time_p50_min,
+            ),
         ),
-        fail_rate = struct(
-            average = 0.2,
+        "Low Value": struct(
+            score = 1,
+            period_days = 90,
+            # If any of these thresholds are met, the builder will be deemed
+            # low-value and will be considered for deletion.
+            # Setting a value of None will ignore that threshold
+            fail_rate = struct(
+                average = 0.99,
+            ),
         ),
-        build_time = struct(
-            p50_mins = None,
-        ),
-        pending_time = struct(
-            p50_mins = 20 if settings.project.startswith("chromium") else 60,
-        ),
-    ),
-    "Low Value": struct(
-        score = 1,
-        period_days = 90,
-        # If any of these thresholds are met, the builder will be deemed
-        # low-value and will be considered for deletion.
-        # Setting a value of None will ignore that threshold
-        fail_rate = struct(
-            average = 0.99,
-        ),
-    ),
-}
+    }
 
 _blank_unhealthy_thresholds = struct(
     infra_fail_rate = struct(
@@ -71,18 +72,20 @@ blank_low_value_thresholds = struct(
     ),
 )
 
-DEFAULT = {
-    "Unhealthy": struct(
-        score = 5,
-        period_days = 7 if settings.project.startswith("chromium") else 14,
-        _default = "_default",
-    ),
-    "Low Value": struct(
-        score = 1,
-        period_days = 90,
-        _default = "_default",
-    ),
-}
+def _default():
+    settings = _chromium_luci.builder_health_indicators_settings()
+    return {
+        "Unhealthy": struct(
+            score = 5,
+            period_days = settings.unhealthy_period_days,
+            _default = "_default",
+        ),
+        "Low Value": struct(
+            score = 1,
+            period_days = 90,
+            _default = "_default",
+        ),
+    }
 
 # Users define the specs as {problem_name -> problem_spec} for aesthetic reasons
 # So all user-exposed functions expect a dictionary.
@@ -111,7 +114,7 @@ def fail_if_any_none_val(vals):
             fail(k + " threshold was None. Thresholds can't be None. Use an empty struct() instead")
 
 def modified_default(modifications):
-    return _merge_mods(_default_specs, modifications)
+    return _merge_mods(_default_specs(), modifications)
 
 def _merge_mods(base, modifications):
     spec = dict(base)
@@ -128,9 +131,6 @@ def _merge_mods(base, modifications):
 
     return spec
 
-def _exempted_from_contact(bucket, builder):
-    return builder in exempted_from_contact_builders.get(bucket, [])
-
 def register_health_spec(bucket, name, specs, contact_team_email):
     """Register the health spec for a builder.
 
@@ -140,9 +140,11 @@ def register_health_spec(bucket, name, specs, contact_team_email):
         specs: The health specs to apply to the builder.
         contact_team_email: The email to notify when the builder is unhealthy.
     """
-    if not contact_team_email and not _exempted_from_contact(bucket, name):
+    settings = _chromium_luci.builder_health_indicators_settings()
+    exempted = name in settings.exempted_from_contact_builders.get(bucket, [])
+    if not contact_team_email and not exempted:
         fail("Builder " + name + " must have a contact_team_email. All new builders must specify a team email for contact in case the builder stops being healthy or providing value.")
-    elif contact_team_email and _exempted_from_contact(bucket, name):
+    elif contact_team_email and exempted:
         fail("Need to remove builder " + bucket + "/" + name + " from exempted_from_contact_builders")
 
     if specs:
@@ -182,22 +184,26 @@ def _convert_specs(specs):
     return converted_specs
 
 def _generate_health_specs(ctx):
+    health_spec_nodes = graph.children(keys.project(), _HEALTH_SPEC.kind)
+    if not health_spec_nodes:
+        return
+
     specs = {}
 
-    for node in graph.children(keys.project(), _HEALTH_SPEC.kind):
+    for node in health_spec_nodes:
         bucket = node.key.container.id
         builder = node.key.id
         specs.setdefault(bucket, {})[builder] = node.props
 
     result = {
-        "_default_specs": _convert_specs(_default_specs),
+        "_default_specs": _convert_specs(_default_specs()),
         "specs": specs,
     }
 
     ctx.output["health-specs/health-specs.json"] = json.indent(json.encode(result), indent = "  ")
 
 health_spec = struct(
-    DEFAULT = DEFAULT,
+    default = _default,
     unhealthy_thresholds = unhealthy_thresholds,
     low_value_thresholds = low_value_thresholds,
     modified_default = modified_default,
