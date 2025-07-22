@@ -22,7 +22,7 @@ load("//args.star", "args")  # @unused
 
 load("//branches.star", "branches")  # @unused
 
-# Loads project.star, sheriff_rotations.star
+# Loads project.star
 # Generator fails because there is no cr-buildbucket.cfg
 # load("//builder_config.star", "builder_config")  # @unused
 
@@ -30,8 +30,7 @@ load("//branches.star", "branches")  # @unused
 # load("//builder_health_indicators.star", "builder_health_indicators")  # @unused
 
 # Loads project.star, bootstrap.star, builder_config.star,
-# builder_health_indicators.star, recipe_experiments.star,
-# sheriff_rotations.star
+# builder_health_indicators.star, recipe_experiments.star
 # load("//builders.star", "builders")  # @unused
 
 load("//chrome_settings.star", "chrome_settings")  # @unused
@@ -42,6 +41,7 @@ load("//chrome_settings.star", "chrome_settings")  # @unused
 load("//consoles.star", "consoles")  # @unused
 load("//dimensions.star", "dimensions")  # @unused
 load("//enums.star", "enums")  # @unused
+load("//gardener_rotations.star", "get_gardener_rotations")  # @unused
 load("//gn_args.star", "gn_args")  # @unused
 load("//headers.star", "headers")  # @unused
 load("//html.star", "linkify")  # @unused
@@ -56,9 +56,6 @@ load("//notifiers.star", "notifiers")  # @unused
 
 # Generator fails because there is no cr-buildbucket.cfg
 # load("//recipe_experiments.star", "register_recipe_experiments")  # @unused
-
-# Loads project.star
-# load("//sheriff_rotations.star", "sheriff_rotations")  # @unused
 
 load("//structs.star", "structs")  # @unused
 load("//swarming.star", "swarming")  # @unused

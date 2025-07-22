@@ -103,11 +103,49 @@ def _gn_args_settings():
     """
     return _GN_ARGS_SETTINGS.get()
 
+_GARDENER_ROTATIONS_SETTINGS = _settings("gardener_rotations-settings")
+
+def _configure_gardener_rotations(*, rotation_files_path):
+    """Configure the gardener_rotations library.
+
+    This will result in rotation files being generated for each gardener
+    rotation that contains the list of builders that are part of the rotation.
+    These files can have restricted ownership to prevent builders from being
+    added to or removed from a rotation without the rotation owners being
+    informed.
+
+    project.configure must also be called. Rotation files are only generated if
+    is_main is true.
+
+    Args:
+        rotation_files_path: A non-empty relative path within the generated
+            directory to generate the rotation files into.
+    """
+    if not rotation_files_path:
+        fail("rotation_files_path must be a non-empty string")
+    _GARDENER_ROTATIONS_SETTINGS.set(
+        rotation_files_path = rotation_files_path,
+    )
+
+def _gardener_rotations_settings():
+    """Get the gardener_rotations settings.
+
+    Returns:
+        If chromium_luci.configure_gardener_rotations was called, a struct with
+        the following attributes:
+            rotations_file_path: The relative path within the generated
+            directory to generate the rotation files into.
+        Otherwise, None.
+    """
+    return _GARDENER_ROTATIONS_SETTINGS.get()
+
 chromium_luci = struct(
     configure_project = _configure_project,
     project_settings = _project_settings,
 
     # library-specific configuration
+    configure_gardener_rotations = _configure_gardener_rotations,
+    gardener_rotations_settings = _gardener_rotations_settings,
     configure_gn_args = _configure_gn_args,
     gn_args_settings = _gn_args_settings,
 )
