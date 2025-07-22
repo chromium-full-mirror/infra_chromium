@@ -10,8 +10,8 @@ More details can be found in design doc: go/gn-args-in-starlark-dd
 load("@stdlib//internal/graph.star", "graph")
 load("@stdlib//internal/luci/common.star", "keys")
 load("./chrome_settings.star", "per_builder_outputs_config")
+load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 load("./nodes.star", "nodes")
-load("//project.star", "settings")
 
 _GN_CONFIG = nodes.create_unscoped_node_type("gn_config")
 _PHASED_CONFIG = nodes.create_unscoped_node_type("phased_config")
@@ -210,8 +210,8 @@ def register_gn_args(builder_group, bucket, builder, gn_args, use_siso):
 
     defaults = {}
 
-    # TODO: jwata - Re-enable this logic for Chrome after the GN args config migration.
-    if not settings.project.startswith("chrome"):
+    settings = _chromium_luci.gn_args_settings()
+    if settings.enable_siso_defaults:
         if use_siso:
             defaults["use_siso"] = True
             defaults["use_reclient"] = False
@@ -269,12 +269,16 @@ def _generate_gn_args(ctx):
     Args:
         ctx: the context object.
     """
+    config_nodes = graph.children(keys.project(), _GN_CONFIG.kind)
+    if not config_nodes:
+        return
+
     args_gn_locations = {}
     root_out_dir = per_builder_outputs_config().root_dir
     resolve_gn_args = _get_gn_args_resolver()
 
     # Builders with non-phased GN configs
-    for node in graph.children(keys.project(), _GN_CONFIG.kind):
+    for node in config_nodes:
         gn_args_dict = resolve_gn_args(node)
         _validate_gn_args(node, gn_args_dict)
         _gen_args_gn_json(ctx, node, gn_args_dict, root_out_dir, args_gn_locations)

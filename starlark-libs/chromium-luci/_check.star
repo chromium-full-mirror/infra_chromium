@@ -30,7 +30,7 @@ load("//branches.star", "branches")  # @unused
 # load("//builder_health_indicators.star", "builder_health_indicators")  # @unused
 
 # Loads project.star, bootstrap.star, builder_config.star,
-# builder_health_indicators.star, gn_args.star, recipe_experiments.star,
+# builder_health_indicators.star, recipe_experiments.star,
 # sheriff_rotations.star
 # load("//builders.star", "builders")  # @unused
 
@@ -42,10 +42,7 @@ load("//chrome_settings.star", "chrome_settings")  # @unused
 load("//consoles.star", "consoles")  # @unused
 load("//dimensions.star", "dimensions")  # @unused
 load("//enums.star", "enums")  # @unused
-
-# Loads project.star
-# load("//gn_args.star", "gn_args")  # @unused
-
+load("//gn_args.star", "gn_args")  # @unused
 load("//headers.star", "headers")  # @unused
 load("//html.star", "linkify")  # @unused
 load("//nodes.star", "nodes")  # @unused
