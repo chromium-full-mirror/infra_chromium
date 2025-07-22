@@ -391,6 +391,9 @@ def _gpu_webgl_runtime_file(_, settings, spec_value):
 _MAGIC_SUBSTITUTION_PREFIX = "$$MAGIC_SUBSTITUTION_"
 
 # LINT.ThenChange(//testing/buildbot/buildbot_json_magic_substitutions.py)
+# buildbot_json_magic_substitutions.py is located in chromium/src, so a separate
+# CL will be needed. Use NO_IFTTT=... to pass the AyeAye check and create a
+# chromium/src CL to update buildbot_json_magic_substitutions.py to match.
 
 def _placeholder(*, pyl_arg_value, function):
     """Define a placeholder argument that computes programattic replacements.
