@@ -22,8 +22,8 @@ def _create_singleton_node_type(kind):
             within the chromium namespace.
 
     Returns:
-        A node type that can be used for creating and getting a node of
-        the given kind.
+        A node type that can be used for creating and getting a node of the
+        given kind.
 
         The type has the following properties:
         * kind: The kind of node of the type.
@@ -74,8 +74,8 @@ def _create_unscoped_node_type(kind, allow_empty_id = False):
             generated.
 
     Returns:
-        A node type that can be used for creating and getting nodes of
-        the given kind.
+        A node type that can be used for creating and getting nodes of the given
+        kind.
 
         The type has the following properties:
         * kind: The kind of nodes of the type.
@@ -130,13 +130,13 @@ def _create_scoped_node_type(kind, scope_kind):
     code to assign meaning to the key values and enforce validity.
 
     Args:
-        kind: (str) An identifier for the kind of the node. Must be unique within
-            the chromium namespace.
+        kind: (str) An identifier for the kind of the node. Must be unique
+            within the chromium namespace.
         scope_kind: (str) An identifier for the scope kind.
 
     Returns:
-        A node type that can be used for creating and getting nodes of
-        the given kind.
+        A node type that can be used for creating and getting nodes of the given
+        kind.
 
         The type has the following properties:
         * kind: The kind of nodes of the type.
@@ -186,8 +186,8 @@ def _create_node_type_with_builder_ref(kind):
             within the chromium namespace.
 
     Returns:
-        A node type that can be used for creating and getting nodes of
-        the given kind.
+        A node type that can be used for creating and getting nodes of the given
+        kind.
 
         The type has the following properties:
         * kind: The kind of nodes of the type.

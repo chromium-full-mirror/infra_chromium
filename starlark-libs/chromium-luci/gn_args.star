@@ -9,9 +9,9 @@ More details can be found in design doc: go/gn-args-in-starlark-dd
 
 load("@stdlib//internal/graph.star", "graph")
 load("@stdlib//internal/luci/common.star", "keys")
-load("//project.star", "settings")
 load("./chrome_settings.star", "per_builder_outputs_config")
 load("./nodes.star", "nodes")
+load("//project.star", "settings")
 
 _GN_CONFIG = nodes.create_unscoped_node_type("gn_config")
 _PHASED_CONFIG = nodes.create_unscoped_node_type("phased_config")
@@ -24,9 +24,9 @@ def _get_gn_args_resolver():
     def merge_gn_args_into_dict(dst, args_file = "", gn_args = {}):
         """Merge imported GN file and GN args into the specified dict.
 
-        The function modifies the dst dict and has no return values.
-        The entries from the input parameters will take priority and overwrite
-        those duplicated entries in the dst dict as the result of the merge.
+        The function modifies the dst dict and has no return values. The
+        entries from the input parameters will take priority and overwrite those
+        duplicated entries in the dst dict as the result of the merge.
 
         Args:
             dst: (dict) The dict into which the rest of the inputs will be
@@ -50,8 +50,8 @@ def _get_gn_args_resolver():
         Essentially, this function traverses the graph by DFS with memoization.
 
         Args:
-            gn_config_node: (node of "gn_config" kind) The node to resolve
-                GN args for; typically a node representing a builder.
+            gn_config_node: (node of "gn_config" kind) The node to resolve GN
+                args for; typically a node representing a builder.
 
         Returns:
             A dict representing the GN args of the input node, with entries:
@@ -114,13 +114,12 @@ def _create_gn_config_node(*, name, gn_args = {}, configs = [], args_file = "", 
         configs: ([string]) A list of GN config name strings.
         args_file: (string) The string path of an imported GN file.
         builder_group: (string) The builder group of a builder node.
-        builder_defaults: (dict) A dict of GN arg key-value pairs. In
-            contrast to `gn_args`, arguments specified here are only to
-            the builder that they are specified and not included when
-            the config is referenced by another builder and will be
-            overridden by the expanded configs specified in `configs`.
-            This is used for implementing automatic GN args based on
-            non-gn-arg builder configuration values.
+        builder_defaults: (dict) A dict of GN arg key-value pairs. In contrast
+            to `gn_args`, arguments specified here are only to the builder that
+            they are specified and not included when the config is referenced by
+            another builder and will be overridden by the expanded configs
+            specified in `configs`. This is used for implementing automatic GN
+            args based on non-gn-arg builder configuration values.
 
     Returns:
         The node key of the created node.
@@ -146,10 +145,10 @@ def _create_gn_config_node(*, name, gn_args = {}, configs = [], args_file = "", 
 def _config(*, name = None, args = {}, configs = [], args_file = ""):
     """Define a GN config.
 
-    This method can be used to create commonly used GN config by setting
-    the "name" parameter, see //gn_args.star for more examples.
-    It can also be used without setting a "name" to specify the gn_args
-    property within a builder definition.
+    This method can be used to create commonly used GN config by setting the
+    "name" parameter, see //gn_args.star for more examples. It can also be used
+    without setting a "name" to specify the gn_args property within a builder
+    definition.
 
     Args:
         name: (string) The name of the GN config.
@@ -158,8 +157,8 @@ def _config(*, name = None, args = {}, configs = [], args_file = ""):
         args_file: (string) The string path of an imported GN file.
 
     Returns:
-        None if the "name" parameter is set; otherwise, the input for
-        the "gn_args" field within a builder definition.
+        None if the "name" parameter is set; otherwise, the input for the
+        "gn_args" field within a builder definition.
     """
     if name:
         _create_gn_config_node(
@@ -183,22 +182,22 @@ gn_args = struct(
 def register_gn_args(builder_group, bucket, builder, gn_args, use_siso):
     """Register GN args for a builder.
 
-    Internally creates a node of gn_config kind for a builder.
-    The builder ID ("bucket/builder") will be used as the name of the node.
+    Internally creates a node of gn_config kind for a builder. The builder ID
+    ("bucket/builder") will be used as the name of the node.
 
     Args:
         builder_group: (string) The builder group name.
         bucket: (string) The bucket name.
         builder: (string) The builder name.
-        gn_args: The string name of a GN config, a dict of phased GN config,
-            or the return value of a gn_args.config method call without setting
-            the "name" parameter.
+        gn_args: The string name of a GN config, a dict of phased GN config, or
+            the return value of a gn_args.config method call without setting the
+            "name" parameter.
         use_siso: (boolean) if True, configs will automatically set the use_siso
             GN arg to true unless it is set by the config.
 
     Returns:
         A list of generated GN args file paths relative to the per-builder
-            output root dir if gn_args is set; None otherwise.
+        output root dir if gn_args is set; None otherwise.
     """
 
     defaults = {}

@@ -4,25 +4,23 @@
 
 """Library for defining consoles in a distributed fashion.
 
-The `console_view`, `console_view_entry`, `ordering` and
-`overview_console_view` functions defined in this module enable defining
-console views in a distributed manner with the order of the entries
-being customizable and ignoring declaration order of the builders. They
-can also be accessed through `consoles.console_view`,
-`consoles.console_view_entry`, `consoles.ordering` and
+The `console_view`, `console_view_entry`, `ordering` and `overview_console_view`
+functions defined in this module enable defining console views in a distributed
+manner with the order of the entries being customizable and ignoring declaration
+order of the builders. They can also be accessed through
+`consoles.console_view`, `consoles.console_view_entry`, `consoles.ordering` and
 `consoles.overview_console_view`, respectively.
 
-The `list_view` function defined in this module enables defining a list
-view in a distributed manner with the order of the entries being
-deterministic and ignoring declaration order of the builders. It can
-also be accessed through `consoles.list_view`.
+The `list_view` function defined in this module enables defining a list view in
+a distributed manner with the order of the entries being deterministic and
+ignoring declaration order of the builders. It can also be accessed through
+`consoles.list_view`.
 
-The `defaults` struct provides module-level defaults for the arguments
-to `console_view` and `overview_console_view`. Calling `defaults.set`
-with keyword argument corresponding to the parameters that support
-module-level defaults will set the values use when no explicit values
-are provided in a declaration. Can also be accessed through
-`consoles.defaults`.
+The `defaults` struct provides module-level defaults for the arguments to
+`console_view` and `overview_console_view`. Calling `defaults.set` with keyword
+argument corresponding to the parameters that support module-level defaults will
+set the values use when no explicit values are provided in a declaration. Can
+also be accessed through `consoles.defaults`.
 """
 
 load("@stdlib//internal/graph.star", "graph")
@@ -68,8 +66,8 @@ def _category_join(parent, category):
 def _level_sort_key(category, ordering):
     """Compute the key for a single level of ordering.
 
-    A key that can be used to sort categories/short names at the same
-    category nesting level.
+    A key that can be used to sort categories/short names at the same category
+    nesting level.
     """
     for i, c in enumerate(ordering):
         if c == category:
@@ -88,15 +86,14 @@ def _builder_sort_key(console_ordering, category, short_name, name):
     """Compute the key for a builder.
 
     Builders are sorted lexicographically by the sequence of category
-    components, then lexicographically by the short name, then by the
-    builder names. The ordering for the console_view modifies the sorting
-    for category components and short names for given prefixes of the
-    category component sequence. Builders with no short name will sort
-    before builders with a short name for a given category, which cannot
-    be modified by the ordering.
+    components, then lexicographically by the short name, then by the builder
+    names. The ordering for the console_view modifies the sorting for category
+    components and short names for given prefixes of the category component
+    sequence. Builders with no short name will sort before builders with a short
+    name for a given category, which cannot be modified by the ordering.
 
     Returns:
-      A key that can be used to sort builder entries within the same console.
+        A key that can be used to sort builder entries within the same console.
     """
     current_category = None
 
@@ -130,9 +127,9 @@ def _get_console_ordering(console_name):
     """Get the ordering dict used for sorting entries of a console_view.
 
     Returns:
-      The ordering dict used to sort entries of the console_view with the
-      given name or None if the name does not refer to a console_view with
-      an ordering.
+        The ordering dict used to sort entries of the console_view with the
+        given name or None if the name does not refer to a console_view with an
+        ordering.
     """
     node = _CONSOLE_VIEW_ORDERING.get(console_name)
     return node.props.ordering if node != None else None
@@ -141,9 +138,9 @@ def _get_console_view_key_fn(console_name):
     """Get the key function for sorting entries of a console_view.
 
     Returns:
-      The key function used to sort entries of the console_view with the
-      given name or None if the name does not refer to a console_view with
-      an ordering.
+        The key function used to sort entries of the console_view with the given
+        name or None if the name does not refer to a console_view with an
+        ordering.
     """
     ordering = _get_console_ordering(console_name)
     if ordering == None:
@@ -158,9 +155,9 @@ def _get_overview_console_view_key_fn(console_name):
     """Get the key function for sorting overview_console_view entries.
 
     Returns:
-      The key function used to sort entries of the overview_console_view
-      with the given name or None if the name does not refer to an
-      overview_console_view.
+        The key function used to sort entries of the overview_console_view with
+        the given name or None if the name does not refer to an
+        overview_console_view.
     """
     overview_console_ordering = _OVERVIEW_CONSOLE_ORDERING.get(console_name)
     if overview_console_ordering == None:
@@ -200,19 +197,19 @@ def ordering(*, short_names = None, categories = None):
     """Specifies the sorting behavior for a category.
 
     Args:
-      short_names - A list of strings that specifies the order short names
-        should appear for builders in the same category. Builders without
-        short names will appear before all others and builders with short
-        names that do not appear in the list will be sorted
-        lexicographically after short names that do appear in the list. By
-        default, short names are sorted lexicographically.
-      categories - A list of strings that specifies the order the next
-        category component should appear for builders with matching
-        category prefix. Builders without any additional category
-        components will appear before all others and builders whose next
-        category component do not appear in the list will be sorted
-        lexicographically by the next category component. By default, the
-        next category components are sorted lexicographically.
+        short_names: A list of strings that specifies the order short names
+            should appear for builders in the same category. Builders without
+            short names will appear before all others and builders with short
+            names that do not appear in the list will be sorted
+            lexicographically after short names that do appear in the list. By
+            default, short names are sorted lexicographically.
+        categories: A list of strings that specifies the order the next category
+            component should appear for builders with matching category prefix.
+            Builders without any additional category components will appear
+            before all others and builders whose next category component do not
+            appear in the list will be sorted lexicographically by the next
+            category component. By default, the next category components are
+            sorted lexicographically.
     """
     return struct(
         short_names = short_names or [],
@@ -229,38 +226,36 @@ def console_view(
     """Create a console view, optionally providing an entry ordering.
 
     Args:
-      name - The name of the console view.
-      branch_selector - A branch selector value controlling whether the
-        console view definition is executed. See branches.star for
-        more information.
-      ordering - A dictionary defining the ordering of categories for the
-        console. If not provided, the console will not be sorted.
+        name: The name of the console view.
+        branch_selector: A branch selector value controlling whether the console
+            view definition is executed. See branches.star for more information.
+        ordering: A dictionary defining the ordering of categories for the
+            console. If not provided, the console will not be sorted.
 
-        The keys of the dictionary indicate the category that the values
-        applies the sorting to and can take one of two forms:
-        1.  None: Controls the ordering of the top-level categories and/or
-            the short names of builders that have no category.
-        2.  str: Category string to apply the ordering to the next nested
-            level of categories and/or the short names of builders with
-            that category. Arbitrary strings can be used also, which can
-            be used as aliases for other entries to refer to.
+            The keys of the dictionary indicate the category that the values
+            applies the sorting to and can take one of two forms:
+            1.  None: Controls the ordering of the top-level categories and/or
+                the short names of builders that have no category.
+            2.  str: Category string to apply the ordering to the next nested
+                level of categories and/or the short names of builders with that
+                category. Arbitrary strings can be used also, which can be used
+                as aliases for other entries to refer to.
 
-        The value for each entry defines the ordering to be applied to
-        builders that have matched the sequence of category components
-        identified by the key and can take one of two forms:
-        1.  struct created using `consoles.ordering`: See
-            `consoles.ordering` for details.
-        2.  list of category components: Equivalent to a
-            `consoles.ordering` call that only specifies `categories`
-            with the given list.
-        3.  str: An alias for another category. The string must be another
-            key in the dict. The ordering will be looked up by that key
-            instead.
-      record_json - A boolean indicating whether to generate a json file that
-        lists all builders included in this console view.
-      kwargs - Additional keyword arguments to forward on to
-        `luci.console_view`. The header, repo and refs arguments support
-        module-level defaults.
+            The value for each entry defines the ordering to be applied to
+            builders that have matched the sequence of category components
+            identified by the key and can take one of two forms:
+            1.  struct created using `consoles.ordering`: See
+                `consoles.ordering` for details.
+            2.  list of category components: Equivalent to a `consoles.ordering`
+                call that only specifies `categories` with the given list.
+            3.  str: An alias for another category. The string must be another
+                key in the dict. The ordering will be looked up by that key
+                instead.
+        record_json: A boolean indicating whether to generate a json file that
+            lists all builders included in this console view.
+        **kwargs: Additional keyword arguments to forward on to
+            `luci.console_view`. The header, repo and refs arguments support
+            module-level defaults.
     """
     if not branches.matches(branch_selector):
         return
@@ -288,25 +283,23 @@ def console_view(
 def overview_console_view(*, name, top_level_ordering, **kwargs):
     """Create an overview console view.
 
-    An overview console view is a console view that contains a subset of
-    entries from other consoles. The entries from each console will have
-    that console's name prepended to the entries' categories and will
-    appear in the same order as they do in that console. The ordering of
-    entries from different consoles is controlled by the
-    `top_level_ordering` parameter.
+    An overview console view is a console view that contains a subset of entries
+    from other consoles. The entries from each console will have that console's
+    name prepended to the entries' categories and will appear in the same order
+    as they do in that console. The ordering of entries from different consoles
+    is controlled by the `top_level_ordering` parameter.
 
     Args:
-      name - The name of the console view.
-      top_level_ordering - A list of strings defining the order that
-        entries from different consoles will appear. Entries will be
-        sorted by the name of the console they come from, appearing in the
-        same order as in top_level_ordering. Entries from consoles whose
-        name does not appear in the list will be sorted lexicographically
-        by the console name and appear after entries whose console does
-        appear in the list.
-      kwargs - Additional keyword arguments to forward on to
-        `luci.console_view`. The header and repo arguments support
-         module-level defaults.
+        name: The name of the console view.
+        top_level_ordering: A list of strings defining the order that entries
+            from different consoles will appear. Entries will be sorted by the
+            name of the console they come from, appearing in the same order as
+            in top_level_ordering. Entries from consoles whose name does not
+            appear in the list will be sorted lexicographically by the console
+            name and appear after entries whose console does appear in the list.
+        **kwargs: Additional keyword arguments to forward on to
+            `luci.console_view`. The header and repo arguments support
+            module-level defaults.
     """
     kwargs["header"] = defaults.get_value_from_kwargs("header", kwargs)
     kwargs["repo"] = defaults.get_value_from_kwargs("repo", kwargs)
@@ -332,24 +325,24 @@ def console_view_entry(
     for more details on the arguments.
 
     Args:
-      branch_selector - A branch selector value controlling whether
-        console view entry definition is executed. The console view
-        entry is only defined if the associated builder is defined based
-        on its branch selector value. By default, the console view entry
-        will be defined whenever the associated builder is defined. See
-        branches.star for more information.
-      console_view - The console view to add an entry for the associated
-        builder to. By default, the entry will be for a console with the
-        same name as the builder's builder group, which the builder must
-        have. At most one `console_view_entry` for a builder can omit
-        the `console_view` value.
-      category - The category of the builder in the console.
-      short_name - The short name of the builder in the console.
+        branch_selector: A branch selector value controlling whether console
+            view entry definition is executed. The console view entry is only
+            defined if the associated builder is defined based on its branch
+            selector value. By default, the console view entry will be defined
+            whenever the associated builder is defined. See branches.star for
+            more information.
+        console_view: The console view to add an entry for the associated
+            builder to. By default, the entry will be for a console with the
+            same name as the builder's builder group, which the builder must
+            have. At most one `console_view_entry` for a builder can omit the
+            `console_view` value.
+        category: The category of the builder in the console.
+        short_name: The short name of the builder in the console.
 
     Returns:
-      A struct that can be passed to the `console_view_entry` argument
-      of `builders.builder` in order to create a console view entry for
-      the builder.
+        A struct that can be passed to the `console_view_entry` argument of
+        `builders.builder` in order to create a console view entry for the
+        builder.
     """
     return struct(
         branch_selector = branch_selector,
@@ -370,8 +363,8 @@ def register_builder_to_console_view(
 
     Args:
         console_view: (string) The console view name.
-        category - (string) The category of the builder in the console.
-        short_name - (string) The short name of the builder in the console.
+        category: (string) The category of the builder in the console.
+        short_name: (string) The short name of the builder in the console.
         project: (string) The project name.
         bucket: (string) The bucket name.
         group: (string) The builder group name.
@@ -417,12 +410,11 @@ def list_view(*, name, branch_selector = branches.selector.MAIN, **kwargs):
     The entries in the list view will be sorted by the builder's name.
 
     Args:
-      name - The name of the list view.
-      branch_selector - A branch selector value controlling whether the
-        console view definition is executed. See branches.star for
-        more information.
-      kwargs - Additional keyword arguments to forward on to
-        `luci.list_view`.
+        name: The name of the list view.
+        branch_selector: A branch selector value controlling whether the console
+            view definition is executed. See branches.star for more information.
+        **kwargs: Additional keyword arguments to forward on to
+            `luci.list_view`.
     """
     if not branches.matches(branch_selector):
         return
@@ -454,10 +446,10 @@ def _sort_consoles(ctx):
 def _console_view_json(ctx):
     """Generator callback for generating "{console_view_name}.json" files.
 
-    Each console with "record_json = True" will have a json file inside
-    the _GEN_JSON_ROOT_DIR directory. The format of the jason is:
+    Each console with "record_json = True" will have a json file inside the
+    _GEN_JSON_ROOT_DIR directory. The format of the json is:
     'project_name/bucket_name': {
-      'builder_group': ['builder1', ..]
+        'builder_group': ['builder1', ..]
     }
 
     Args:

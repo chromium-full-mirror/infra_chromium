@@ -6,7 +6,7 @@ def _enum(**kwargs):
     """Create an enum struct.
 
     Args:
-        **kwargs - The enum values to create. A field will be added the struct
+        **kwargs: The enum values to create. A field will be added the struct
             with the key for the name of the field and the value for the value
             of the field. It is an error if there is an enum value named
             `values`.

@@ -73,22 +73,22 @@ def _get_dimensions(spec_value):
     return dimensions
 
 def _is_android_desktop(spec_value, settings):
-    """Helper function to determine if the test will be running on Android Desktop."""
+    """Determine if the test will be running on Android Desktop."""
     is_android = settings.os_type == common.os_type.ANDROID
     return is_android and _get_android_desktop_board_name(spec_value)
 
 def _is_skylab(settings):
-    """Helper function to determine if the test will be running on skylab."""
+    """Determine if the test will be running on skylab."""
     return (settings.browser_config == common.browser_config.CROS_CHROME and
             not settings.use_swarming)
 
 def _get_android_desktop_board_name(spec_value):
-    """Helper function to determine what Android Desktop board is being used."""
+    """Determine what Android Desktop board is being used."""
     dimensions = _get_dimensions(spec_value)
     return dimensions.get("label-board")
 
 def _get_cros_board_name(spec_value):
-    """Helper function to determine what ChromeOS board is being used."""
+    """Determine what ChromeOS board is being used."""
     dimensions = _get_dimensions(spec_value)
     pool = dimensions.get("pool")
     if not pool:
@@ -108,7 +108,7 @@ def _android_desktop_force_main_user(_, settings, spec_value):
     return ["--force-main-user"]
 
 def _android_desktop_telemetry_remote(_, settings, spec_value):
-    """Substitutes the correct Android Desktop remote Telemetry arguments."""
+    """Substitute the correct Android Desktop remote Telemetry arguments."""
     if settings.os_type != common.os_type.ANDROID:
         fail("Ran an Android Desktop-specific substitution on a non-Android builder")
     if not _get_android_desktop_board_name(spec_value):
@@ -119,7 +119,7 @@ def _android_desktop_telemetry_remote(_, settings, spec_value):
     ]
 
 def _cros_telemetry_remote(_, settings, spec_value):
-    """Substitutes the correct CrOS remote Telemetry arguments.
+    """Substitute the correct CrOS remote Telemetry arguments.
 
     VMs use a hard-coded remote address and port, while physical hardware use
     a magic hostname.
@@ -140,7 +140,7 @@ def _cros_telemetry_remote(_, settings, spec_value):
     ]
 
 def _cros_gtest_filter_file(_, settings, spec_value):
-    """Substitutes the correct CrOS filter file for gtests."""
+    """Substitute the correct CrOS filter file for gtests."""
     if _is_skylab(settings):
         board = spec_value["cros_board"]
     else:
@@ -158,7 +158,7 @@ def _cros_gtest_filter_file(_, settings, spec_value):
     ]
 
 def _get_gpus(spec_value):
-    """Generates all GPU dimension strings from a spec value.
+    """Generate all GPU dimension strings from a spec value.
 
     Returns:
         A list of strings where each string is of the form
@@ -177,7 +177,7 @@ def _get_android_vulkan_device(settings, spec_value):
     return None
 
 def _gpu_expected_vendor_id(_, settings, spec_value):
-    """Substitutes the correct expected GPU vendor for certain GPU tests.
+    """Substitute the correct expected GPU vendor for certain GPU tests.
 
     We only ever trigger tests on a single vendor type per builder definition,
     so multiple found vendors is an error.
@@ -226,7 +226,7 @@ def _gpu_expected_vendor_id_skylab(spec_value):
     return ["--expected-vendor-id", vendor_id]
 
 def _gpu_expected_device_id(_, settings, spec_value):
-    """Substitutes the correct expected GPU(s) for certain GPU tests.
+    """Substitute the correct expected GPU(s) for certain GPU tests.
 
     Most configurations only need one expected GPU, but heterogeneous pools
     (e.g. HD 630 and UHD 630 machines) require multiple.
@@ -279,7 +279,7 @@ def _gpu_expected_device_id_skylab(spec_value):
     return ["--expected-device-id", device_id]
 
 def _gpu_parallel_jobs(builder_name, settings, spec_value):
-    """Substitutes the correct number of jobs for GPU tests.
+    """Substitute the correct number of jobs for GPU tests.
 
     Linux/Mac/Windows can run tests in parallel since multiple windows can be
     open but other platforms cannot.
@@ -343,7 +343,7 @@ def _gpu_parallel_jobs(builder_name, settings, spec_value):
     return ["--jobs=1"]
 
 def _gpu_telemetry_no_root_for_unrooted_devices(_, settings, spec_value):
-    """Disables Telemetry's root requests for unrootable Android devices."""
+    """Disable Telemetry's root requests for unrootable Android devices."""
     if not settings.os_type:
         fail("os_type must be specified")
     if settings.os_type != common.os_type.ANDROID:
@@ -365,7 +365,7 @@ def _gpu_telemetry_no_root_for_unrooted_devices(_, settings, spec_value):
     return []
 
 def _gpu_webgl_runtime_file(_, settings, spec_value):
-    """Gets the correct WebGL runtime file for a tester."""
+    """Get the correct WebGL runtime file for a tester."""
     if not settings.os_type:
         fail("os_type must be specified")
     suite = spec_value.get("telemetry_test_name")

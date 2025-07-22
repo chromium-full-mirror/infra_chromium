@@ -44,42 +44,42 @@ def ci_builder(
     """Define a CI builder.
 
     Args:
-      name: name of the builder, will show up in UIs and logs. Required.
-      branch_selector: A branch selector value controlling whether the
-        builder definition is executed. See branches.star for more
-        information.
-      console_view_entry: A `consoles.console_view_entry` struct or a list of
-        them describing console view entries to create for the builder.
-        See `consoles.console_view_entry` for details.
-      main_console_view: A string identifying the ID of the main console
-        view to add an entry to. Supports a module-level default that
-        defaults to None. An entry will be added only if
-        `console_view_entry` is provided and the first entry's branch
-        selector causes the entry to be defined. On branches, the provided
-        value is ignored; all CI builders will be added to the `main` console.
-      cq_mirrors_console_view: A string identifying the ID of the CQ
-        mirrors console view to add an entry to. Supports a module-level
-        default that defaults to None. An entry will be added only if
-        `console_view_entry` is provided and the first entry's branch
-        selector causes the entry to be defined.
-      gardener_rotations: The name(s) of any gardener rotations that the builder
-        should be added to. On branches, all CI builders will be added to the
-        `chrome_browser_release` gardener rotation.
-      tree_closing: If true, failed builds from this builder that meet certain
-        criteria will close the tree and email the gardener. See the
-        'chromium-tree-closer' config in notifiers.star for the full criteria.
-      tree_closing_notifiers: A list of notifiers that will be notified when
-        tree closing criteria are met by a build of this builder. Supports a
-        module-level default that will be merged with the provided value.
-      notifies: Any extra notifiers to attach to this builder.
-      resultdb_bigquery_exports: a list of resultdb.export_test_results(...)
-        specifying additional parameters for exporting test results to BigQuery.
-        Will always upload to the following tables in addition to any tables
-        specified by the list's elements:
-          chrome-luci-data.chromium.ci_test_results
-          chrome-luci-data.chromium.gpu_ci_test_results
-      **kwargs: Additional keyword arguments that will be forwarded on to
-        `builders.builder`.
+        name: name of the builder, will show up in UIs and logs. Required.
+        branch_selector: A branch selector value controlling whether the builder
+            definition is executed. See branches.star for more information.
+        console_view_entry: A `consoles.console_view_entry` struct or a list of
+            them describing console view entries to create for the builder. See
+            `consoles.console_view_entry` for details.
+        main_console_view: A string identifying the ID of the main console view
+            to add an entry to. Supports a module-level default that defaults to
+            None. An entry will be added only if `console_view_entry` is
+            provided and the first entry's branch selector causes the entry to
+            be defined. On branches, the provided value is ignored; all CI
+            builders will be added to the `main` console.
+        cq_mirrors_console_view: A string identifying the ID of the CQ mirrors
+            console view to add an entry to. Supports a module-level default
+            that defaults to None. An entry will be added only if
+            `console_view_entry` is provided and the first entry's branch
+            selector causes the entry to be defined.
+        gardener_rotations: The name(s) of any gardener rotations that the
+            builder should be added to. On branches, all CI builders will be
+            added to the `chrome_browser_release` gardener rotation.
+        tree_closing: If true, failed builds from this builder that meet certain
+            criteria will close the tree and email the gardener. See the
+            'chromium-tree-closer' config in notifiers.star for the full
+            criteria.
+        tree_closing_notifiers: A list of notifiers that will be notified when
+            tree closing criteria are met by a build of this builder. Supports a
+            module-level default that will be merged with the provided value.
+        notifies: Any extra notifiers to attach to this builder.
+        resultdb_bigquery_exports: a list of resultdb.export_test_results(...)
+            specifying additional parameters for exporting test results to
+            BigQuery. Will always upload to the following tables in addition to
+            any tables specified by the list's elements:
+                chrome-luci-data.chromium.ci_test_results
+                chrome-luci-data.chromium.gpu_ci_test_results
+        **kwargs: Additional keyword arguments that will be forwarded on to
+            `builders.builder`.
     """
     if not branches.matches(branch_selector):
         return
@@ -252,15 +252,15 @@ def thin_tester(
     machines.
 
     Args:
-      name: The name of the builder.
-      parent: Reference to the parent builder.
-      cores: See `builders.builder` for more information. The `thin_tester_core`
-        module-level default in `ci.defaults` will be used as the default if it
-        is set.
-      **kwargs: Additional keyword arguments to forward on to `ci.builder`.
+        name: The name of the builder.
+        parent: Reference to the parent builder.
+        cores: See `builders.builder` for more information. The
+            `thin_tester_core` module-level default in `ci.defaults` will be
+            used as the default if it is set.
+        **kwargs: Additional keyword arguments to forward on to `ci.builder`.
 
     Returns:
-      The `luci.builder` keyset.
+        The `luci.builder` keyset.
     """
     builder_spec = kwargs.get("builder_spec")
     if (builder_spec and not builder_config.is_copy_from(builder_spec) and

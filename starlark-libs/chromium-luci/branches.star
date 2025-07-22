@@ -71,15 +71,15 @@ def _matches(branch_selector, *, platform = None):
     """Returns whether `branch_selector` matches the project settings.
 
     Args:
-      * branch_selector: A single branch selector or a list of branch selectors.
-      * platform: A single platform name or a list of platform names to match
-        against. If not provided, the branch selectors will be matched against
-        the project's platforms.
+        branch_selector: A single branch selector or a list of branch selectors.
+        platform: A single platform name or a list of platform names to match
+            against. If not provided, the branch selectors will be matched
+            against the project's platforms.
 
     Returns:
-      True if any of the specified branch selectors matches, False otherwise.
-      The main project will match any branch selector iff platform is not
-      specified.
+        True if any of the specified branch selectors matches, False otherwise.
+        The main project will match any branch selector iff platform is not
+        specified.
     """
     if type(platform) == type(""):
         platforms = [platform]
@@ -102,11 +102,12 @@ def _value(*, branch_selector, value):
     """Provide a value that varies depending on the project settings.
 
     Args:
-      * branch_selector: A single branch selector or a list of branch selectors.
-      * value: The value if the project's settings match the branch selector(s).
+        branch_selector: A single branch selector or a list of branch selectors.
+        value: The value if the project's settings match the branch selector(s).
 
     Returns:
-      `value` if `branch_selector` matches the project settings, None otherwise.
+        `value` if `branch_selector` matches the project settings, None
+        otherwise.
     """
     if _matches(branch_selector):
         return value

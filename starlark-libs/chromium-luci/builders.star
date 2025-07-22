@@ -444,10 +444,11 @@ def builder(
     prevent the emission of any dimensions or property fields associated with
     that parameter.
 
-    All parameters defined by this function except for `name` and `kwargs` support
-    module-level defaults. The `defaults` struct defined in this module has an
-    attribute with a `lucicfg.var` for all of the fields defined here as well as
-    all of the parameters of `luci.builder` that support module-level defaults.
+    All parameters defined by this function except for `name` and `kwargs`
+    support module-level defaults. The `defaults` struct defined in this module
+    has an attribute with a `lucicfg.var` for all of the fields defined here as
+    well as all of the parameters of `luci.builder` that support module-level
+    defaults.
 
     See https://chromium.googlesource.com/infra/luci/luci-go/+/HEAD/lucicfg/doc/README.md#luci.builder
     for more information.
@@ -473,24 +474,25 @@ def builder(
         builderless: a boolean indicating whether the builder runs on
             builderless machines. If True, emits a 'builderless:1' dimension. By
             default, considered True iff `os` refers to a linux OS.
-        free_space: an enum that indicates the amount of free disk space reserved
-            in a machine for incoming build tasks. This value is used to create
-            a "free_space" dimension, and this dimension is appended to only
-            builderless builders.
-        builder_cache_name: The name of a cache to mount as the builder cache. Emits
-            a cache declaration of the form
+        free_space: an enum that indicates the amount of free disk space
+            reserved in a machine for incoming build tasks. This value is used
+            to create a "free_space" dimension, and this dimension is appended
+            to only builderless builders.
+        builder_cache_name: The name of a cache to mount as the builder cache.
+            Emits a cache declaration of the form
             ```{
-              name: <builder_cache>
-              path: "builder"
-            }```. By default, the default buildbucket builder cache will be used,
-            which uses a cache name based on a hash of the builder's project, bucket
-            and name. This can be used to share the builder cache between multiple
-            builders, but care must be taken that the builders can effectively share
-            the cache (use same gclient config, use the same GN args or a separate
-            output directory, etc.). Sharing a cache between builders limits
-            swarming ability to clear space because it only operates at a cache
-            level, so if it needs to remove the cache, it will affect multiple
-            builders.
+                name: <builder_cache>
+                path: "builder"
+            }```
+            By default, the default buildbucket builder cache will be used,
+            which uses a cache name based on a hash of the builder's project,
+            bucket and name. This can be used to share the builder cache between
+            multiple builders, but care must be taken that the builders can
+            effectively share the cache (use same gclient config, use the same
+            GN args or a separate output directory, etc.). Sharing a cache
+            between builders limits swarming ability to clear space because it
+            only operates at a cache level, so if it needs to remove the cache,
+            it will affect multiple builders.
         override_builder_dimension: a string to assign to the "builder"
             dimension. Ignores any other "builder" and "builderless" dimensions
             that would have been assigned.
@@ -543,9 +545,9 @@ def builder(
         xcode: a member of the `xcode` enum indicating the xcode version the
             builder requires. Emits a cache declaration of the form
             ```{
-              name: <xcode.cache_name>
-              path: <xcode.cache_path>
-            }```.
+                name: <xcode.cache_name>
+                path: <xcode.cache_path>
+            }```
             Also emits a 'xcode_build_version:<xcode.version>' property if the
             property is not already set.
         console_view_entry: A `consoles.console_view_entry` struct or a list of
@@ -601,23 +603,24 @@ def builder(
             be used at compile step.
         siso_project: a string indicating the GCP project hosting the RBE
             instance and Cloud logging/trace/profile for Siso to use.
-        siso_configs: a list of siso configs to enable. available values are defined in
-            //build/config/siso/config.star.
+        siso_configs: a list of siso configs to enable. available values are
+            defined in //build/config/siso/config.star.
         siso_enable_cloud_profiler: If True, enable cloud profiler in Siso.
         siso_enable_cloud_trace: If True, enable cloud trace in Siso.
         siso_enable_cloud_monitoring: If true, enable cloud monitoring in Siso.
         siso_experiments: a list of experiment flags for siso.
-        siso_remote_jobs: an integer indicating the number of concurrent remote jobs
-            to run when building with Siso.
-        siso_fail_if_reapi_used: If True, check siso_metrics.json to see if the build
-            used remote execution and fail the build if any step used it.
+        siso_remote_jobs: an integer indicating the number of concurrent remote
+            jobs to run when building with Siso.
+        siso_fail_if_reapi_used: If True, check siso_metrics.json to see if the
+            build used remote execution and fail the build if any step used it.
         siso_output_local_strategy: a string indicating the output strategy
             for `--output_local_strategy`. full, greedy or minimum.
         siso_remote_linking: If True, enable remote linking. Relevant configs
             and GN args will be adjusted accordingly.
         siso_limits: a string to override sito limits.
         siso_keep_going: Bool flag whether to pass '-k 0' or not.
-        siso_disable_batch_mode: Bool flag whether to pass `-batch=false` or not.
+        siso_disable_batch_mode: Bool flag whether to pass `-batch=false` or
+            not.
         health_spec: a health spec instance describing the threshold for when
             the builder should be considered unhealthy.
         shadow_builderless: If set to True, then led builds created for this

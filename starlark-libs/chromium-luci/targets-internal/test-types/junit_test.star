@@ -13,15 +13,15 @@ _junit_test_spec_handler = create_isolated_script_test_spec_handler("junit test"
 def junit_test(*, name, label, skip_usage_check = False):
     """Define a junit test.
 
-    A junit test is a test using the JUnit test framework. A junit test
-    can be included in a basic suite to run the test for any builder
-    that includes that basic suite.
+    A junit test is a test using the JUnit test framework. A junit test can be
+    included in a basic suite to run the test for any builder that includes that
+    basic suite.
 
     Args:
-        name: The name that can be used to refer to the test in other
-            starlark declarations. The step name of the test will be
-            based on this name (additional components may be added by
-            the recipe or when generating a test with a variant).
+        name: The name that can be used to refer to the test in other starlark
+            declarations. The step name of the test will be based on this name
+            (additional components may be added by the recipe or when generating
+            a test with a variant).
         label: The GN label for the ninja target.
         skip_usage_check: Disables checking that the target is actually
             referenced in a targets spec for some builder.

@@ -152,10 +152,12 @@ def register_health_spec(bucket, name, specs, contact_team_email):
         graph.add_edge(keys.project(), health_spec_key)
 
 def _convert_specs(specs):
-    """Users define the specs as {problem_name -> problem_spec} for aesthetic reasons,
+    """Convert a dict of specs to a list of specs.
 
-    So all user-exposed functions expect a dictionary.
-    We then convert that into a list of [problem_specs] so the object encapsulates its own name, for ease of processing
+    Users define the specs as {problem_name -> problem_spec} for aesthetic
+    reasons. So all user-exposed functions expect a dictionary. We then convert
+    that into a list of [problem_specs] so the object encapsulates its own name,
+    for ease of processing
     """
     converted_specs = []
     for name, spec in specs.items():

@@ -3,12 +3,11 @@
 # found in the LICENSE file.
 """Library for configuring global defaults for CBI libs.
 
-Generators can't access lucicfg vars, so in order to provide
-configuration for generators, the information must be present in the
-lucicfg graph. This file provides the chrome_settings struct that
-can be used to configure project-wide defaults. For generators to access
-this information, separate functions are provided for reading the
-information from the graph.
+Generators can't access lucicfg vars, so in order to provide configuration for
+generators, the information must be present in the lucicfg graph. This file
+provides the chrome_settings struct that can be used to configure project-wide
+defaults. For generators to access this information, separate functions are
+provided for reading the information from the graph.
 """
 
 load("./nodes.star", "nodes")
@@ -37,8 +36,8 @@ def per_builder_outputs_config():
 
     Returns:
         A struct with the following attributes:
-        * root_dir: The name of the root directory to generate
-            per-builder outputs to.
+        * root_dir: The name of the root directory to generate per-builder
+            outputs to.
     """
     node = _PER_BUILDER_OUTPUTS.get()
     if node == None:

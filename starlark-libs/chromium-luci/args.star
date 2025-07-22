@@ -29,31 +29,33 @@ def defaults(extends = None, **vars):
     """Define a structure provides a group of module-level defaults.
 
     Args:
-      extends: A struct containing `lucicfg.var` attributes to add to the
-        resulting struct.
-      **vars: Defaults to define. Each entry results in a `lucicfg.var` attribute
-        being added to the resulting struct. The name of the attribute is the
-        keyword and the default value of the `lucicfg.var` is the keyword's value.
+        extends: A struct containing `lucicfg.var` attributes to add to the
+            resulting struct.
+        **vars: Defaults to define. Each entry results in a `lucicfg.var`
+            attribute being added to the resulting struct. The name of the
+            attribute is the keyword and the default value of the `lucicfg.var`
+            is the keyword's value.
 
     Returns:
-      A struct containing `lucicfg.var` attributes providing the module level
-      defaults and the following methods:
-      * get_value(name, value, merge=None) - Gets the value of an argument. The
-        behavior of the function depends on the value of the `merge` argument:
-        * None (default) - If `value` is not `DEFAULT`, `value` is returned.
-          Otherwise, the module-level default for `name` is returned.
-        * MERGE_LIST - If `value` is wrapped using `ignore_defaults`, the result
-          of calling `listify(value.value)` is returned. Otherwise, the result
-          of calling `listify` with the module-level default for `name` and
-          `value` is returned.
-        * MERGE_DICT - If `value` is wrapped using `ignore_defaults`,
-          `value.value` is returned. Otherwise, the returned value will be the
-          module-level default for `name` updated with `value`.
-      * get_value_from_kwargs(name, kwargs, merge=None) - Gets the value of a keyword
-        argument.
-      * set(**kwargs) - Sets module-level defaults. For each keyword, sets the
-        module-level default with the keyword as the name to the value of the
-        keyword.
+        A struct containing `lucicfg.var` attributes providing the module level
+        defaults and the following methods:
+        * get_value(name, value, merge=None) - Gets the value of an argument.
+            The behavior of the function depends on the value of the `merge`
+            argument:
+            * None (default) - If `value` is not `DEFAULT`, `value` is returned.
+                Otherwise, the module-level default for `name` is returned.
+            * MERGE_LIST - If `value` is wrapped using `ignore_defaults`, the
+                result of calling `listify(value.value)` is returned. Otherwise,
+                the result of calling `listify` with the module-level default
+                for `name` and `value` is returned.
+            * MERGE_DICT - If `value` is wrapped using `ignore_defaults`,
+                `value.value` is returned. Otherwise, the returned value will be
+                the module-level default for `name` updated with `value`.
+        * get_value_from_kwargs(name, kwargs, merge=None) - Gets the value of a
+            keyword argument.
+        * set(**kwargs) - Sets module-level defaults. For each keyword, sets the
+            module-level default with the keyword as the name to the value of
+            the keyword.
     """
     methods = ["get_value", "get_value_from_kwargs", "set"]
     for m in methods:
@@ -139,10 +141,10 @@ def listify(*args):
     list.
 
     Args:
-      *args: The arguments to merge into a list.
+        *args: The arguments to merge into a list.
 
     Returns:
-      A list composed of the pased in arguments.
+        A list composed of the pased in arguments.
     """
     wrap_in_ignore_default = False
     l = []

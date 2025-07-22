@@ -68,16 +68,17 @@ def _get_orchestrator(bucket_name, builder):
     """Get orchestrator details for a buildbucket Builder message.
 
     Returns:
-      If the builder is a orchestrator, a struct with the attributes:
-        * name: The bucket-qualified name of the builder (e.g. "try/linux-rel").
-        * builder: The buildbucket Builder message.
-        * compilator_name: The bucket-qualified name of the associated
-          compilator (e.g. "try/linux-rel-compilator").
-        * builder_group: The group of the orchestrator.
-        * bucket: The name of the LUCI bucket of the orchestrator.
-        * simple_name: The non-bucket-qualified name of the orchestrator (e.g.
-          "linux-rel").
-      Otherwise, None.
+        If the builder is a orchestrator, a struct with the attributes:
+            * name: The bucket-qualified name of the builder (e.g.
+                "try/linux-rel").
+            * builder: The buildbucket Builder message.
+            * compilator_name: The bucket-qualified name of the associated
+                compilator (e.g. "try/linux-rel-compilator").
+            * builder_group: The group of the orchestrator.
+            * bucket: The name of the LUCI bucket of the orchestrator.
+            * simple_name: The non-bucket-qualified name of the orchestrator
+                (e.g. "linux-rel").
+        Otherwise, None.
     """
     node = _ORCHESTRATOR.get(bucket_name, builder.name)
     if not node:
@@ -104,17 +105,17 @@ def _get_compilator(bucket_name, builder):
     """Get compilator details for a buildbucket Builder message.
 
     Returns:
-      If the builder is a compilator, a struct with the attributes:
-        * name: The bucket-qualified name of the builder (e.g.
-          "try/linux-rel-compilator").
-        * builder: The buildbucket Builder message.
-        * bucket: The name of the LUCI bucket of the compilator.
-        * simple_name: The non-bucket-qualified name of the orchestrator (e.g.
-          "linux-rel-compilator").
-      Otherwise, None.
+        If the builder is a compilator, a struct with the attributes:
+            * name: The bucket-qualified name of the builder (e.g.
+                "try/linux-rel-compilator").
+            * builder: The buildbucket Builder message.
+            * bucket: The name of the LUCI bucket of the compilator.
+            * simple_name: The non-bucket-qualified name of the orchestrator
+                (e.g. "linux-rel-compilator").
+        Otherwise, None.
 
     Fails:
-      If the number of orchestrators referring to the compilator is not 1.
+        If the number of orchestrators referring to the compilator is not 1.
     """
     node = _COMPILATOR.get(bucket_name, builder.name)
     if not node:
@@ -159,16 +160,16 @@ def _get_orchestrators_and_compilators(ctx):
     fail will be called if they don't satisfy the necessary constraints.
 
     Returns:
-      A list where each element is a struct for a compilator with the
-      attributes:
-        * compilator: The details for the compilator. See the return
-          value of _get_compilator for more information.
-        * orchestrator: The details for the non-experimental orchestrator
-          associated with the compilator. See the return value of
-          _get_orchestrator for more information.
-        * experimental_orchestrators: A list of details for any experimental
-          orchestrators associated with the compilator. See the return value of
-          _get_orchestrator for more information.
+        A list where each element is a struct for a compilator with the
+        attributes:
+            * compilator: The details for the compilator. See the return value
+                of _get_compilator for more information.
+            * orchestrator: The details for the non-experimental orchestrator
+                associated with the compilator. See the return value of
+                _get_orchestrator for more information.
+            * experimental_orchestrators: A list of details for any experimental
+                orchestrators associated with the compilator. See the return
+                value of _get_orchestrator for more information.
     """
     cfg = None
     for f in ctx.output:

@@ -131,14 +131,14 @@ def gpu_telemetry_test(
         mixins = None):
     """Define a GPU telemetry test.
 
-    A GPU telemetry test can be included in a basic suite to run the
-    test for any builder that includes that basic suite.
+    A GPU telemetry test can be included in a basic suite to run the test for
+    any builder that includes that basic suite.
 
     Args:
-        name: The name that can be used to refer to the test in other
-            starlark declarations. The step name of the test will be
-            based on this name (additional components may be added by
-            the recipe or when generating a test with a variant).
+        name: The name that can be used to refer to the test in other starlark
+            declarations. The step name of the test will be based on this name
+            (additional components may be added by the recipe or when generating
+            a test with a variant).
         telemetry_test_name: The name of the telemetry benchmark to run.
         mixins: Mixins to apply when expanding the test.
     """

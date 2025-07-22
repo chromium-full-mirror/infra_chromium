@@ -135,16 +135,15 @@ def _create_label_mapping(
 def _binary_test_config(*, results_handler = None, merge = None, resultdb = None):
     """The details for a test provided by the test's binary.
 
-    When test_suites.pyl is generated, tests that are using the binary
-    will have these values written into the test's entry in the basic suite.
+    When test_suites.pyl is generated, tests that are using the binary will have
+    these values written into the test's entry in the basic suite.
 
     Args:
-        results_handler: The name of the results handler to use for the
+        results_handler: The name of the results handler to use for the test.
+        merge: A targets.merge describing the invocation to merge the results
+            from the test's tasks.
+        resultdb: A targets.resultdb describing the ResultDB integration for the
             test.
-        merge: A targets.merge describing the invocation to merge the
-            results from the test's tasks.
-        resultdb: A targets.resultdb describing the ResultDB integration
-            for the test.
     """
     return struct(
         results_handler = results_handler,
@@ -208,16 +207,16 @@ def _basic_suite_test_config(
         non_precommit_args = None):
     """The details for the test included when included in a basic suite.
 
-    When generating test_suites.pyl, these values will be written out
-    for a test in any basic suite that includes it.
+    When generating test_suites.pyl, these values will be written out for a test
+    in any basic suite that includes it.
 
     Args:
-        script: The name of the file within the //testing/scripts
-            directory to run as the test. Only applicable to script tests.
-        binary: The name of the binary to run as the test. Only
-            applicable to gtests, isolated script tests and junit tests.
-        telemetry_test_name: The telemetry test to run. Only applicable
-            to telemetry test types.
+        script: The name of the file within the //testing/scripts directory to
+            run as the test. Only applicable to script tests.
+        binary: The name of the binary to run as the test. Only applicable to
+            gtests, isolated script tests and junit tests.
+        telemetry_test_name: The telemetry test to run. Only applicable to
+            telemetry test types.
         args: Arguments to be passed to the test binary.
     """
     return struct(
@@ -397,10 +396,10 @@ def _spec_handler(*, type_name, init, finalize):
     Args:
         type_name: The name of the test type. This will be used in error
             messages.
-        init: The function to create the initial value of the spec. The
-            function will be called with the test node (type _target_nodes.TEST)
-            and should return a dict with all keys populated that are supported
-            by the type.
+        init: The function to create the initial value of the spec. The function
+            will be called with the test node (type _target_nodes.TEST) and
+            should return a dict with all keys populated that are supported by
+            the type.
         finalize: The function that produces the (mostly-)final value of a spec
             for a target. The function will be passed the name of the builder,
             the name of the test and the spec value (dict) that has been
@@ -445,14 +444,13 @@ def _merge(
     """Define a merge script to be used for a swarmed test.
 
     Args:
-        script: GN-format path (e.g. //foo/bar/script.py) to the script
-            to use to merge results from the shard tasks.
-        args: Any args to pass to the merge script, in addition to any
-            arguments supplied by the recipe.
+        script: GN-format path (e.g. //foo/bar/script.py) to the script to use
+            to merge results from the shard tasks.
+        args: Any args to pass to the merge script, in addition to any arguments
+            supplied by the recipe.
 
     Returns:
-        A struct that can be passed to the merge argument of
-        `targets.mixin`.
+        A struct that can be passed to the merge argument of `targets.mixin`.
     """
     return struct(
         script = script,
@@ -481,37 +479,34 @@ def _swarming(
         named_caches = None):
     """Define the swarming details for a test.
 
-    When specified as a mixin, fields will overwrites the test's values
-    unless otherwise indicated.
+    When specified as a mixin, fields will overwrites the test's values unless
+    otherwise indicated.
 
     Args:
         enable: Whether swarming should be enabled for the test.
-        dimensions: A dict of dimensions to apply to all dimension sets
-            for the test. This can only be specified in a mixin. After
-            any dimension sets from the mixin are added to the test, the
-            dimensions will be applied to all of the dimension sets on
-            the test. If there are no dimension sets on the test, a
-            single dimension set with these dimensions will be added.
-        optional_dimensions: Optional dimensions to add to each
-            dimension set.
-        containment_type: The containment type to use for the swarming
-            task(s). See ContainmentType enum in
+        dimensions: A dict of dimensions to apply to all dimension sets for the
+            test. This can only be specified in a mixin. After any dimension
+            sets from the mixin are added to the test, the dimensions will be
+            applied to all of the dimension sets on the test. If there are no
+            dimension sets on the test, a single dimension set with these
+            dimensions will be added.
+        optional_dimensions: Optional dimensions to add to each dimension set.
+        containment_type: The containment type to use for the swarming task(s).
+            See ContainmentType enum in
             https://source.chromium.org/chromium/infra/infra/+/main:go/src/go.chromium.org/luci/swarming/proto/api/swarming.proto
-        cipd_packages: A list of targets.cipd_package that detail CIPD
-            packages to be downloaded for the test.
-        expiration_sec: The time that each task for the test should wait
-            to be scheduled.
-        hard_timeout_sec: The maximum time each task for the test can
-            take after starting.
-        io_timeout_sec: The maximum time that can elapse between output
-            from tasks for the test.
+        cipd_packages: A list of targets.cipd_package that detail CIPD packages
+            to be downloaded for the test.
+        expiration_sec: The time that each task for the test should wait to be
+            scheduled.
+        hard_timeout_sec: The maximum time each task for the test can take after
+            starting.
+        io_timeout_sec: The maximum time that can elapse between output from
+            tasks for the test.
         shards: The number of tasks to split the test into.
-        idempotent: Whether the test task should be considered
-            idempotent.
-        service_account: The service account used to run the test's
-            tasks.
-        named_caches: A list of swarming.cache that detail the named
-            caches that should be mounted for the test's tasks.
+        idempotent: Whether the test task should be considered idempotent.
+        service_account: The service account used to run the test's tasks.
+        named_caches: A list of swarming.cache that detail the named caches that
+            should be mounted for the test's tasks.
     """
     return struct(
         enable = enable,
@@ -610,26 +605,22 @@ def _skylab(
 
     Args:
         cros_board: The CrOS DUT board name, e.g. "eve", "kevin".
-        cros_build_target: The CrOS build target name, e.g. "eve-arc-t".
-            If unspecified, the build target equals to cros_board will be used.
-        cros_img: ChromeOS image version to be deployed to DUT.
-            Must be empty when use_lkgm is true.
-            For example, "brya-release/R118-15604.42.0"
+        cros_build_target: The CrOS build target name, e.g. "eve-arc-t". If
+            unspecified, the build target equals to cros_board will be used.
+        cros_img: ChromeOS image version to be deployed to DUT. Must be empty
+            when use_lkgm is true. For example, "brya-release/R118-15604.42.0"
         use_lkgm: If True, use a ChromeOS image version derived from
             chromeos/CHROMEOS_LKGM file.
         cros_model: Optional ChromeOS DUT model.
-        autotest_name: The name of the autotest to be executed in
-            Skylab.
-        bucket: Optional Google Storage bucket where the specified
-            image(s) are stored.
-        dut_pool: The skylab device pool to run the test. By default the
-            quota pool, shared by all CrOS tests.
-        public_builder: Optional Public CTP Builder.
-            The public_builder and public_builder_bucket fields can be
-            used when default CTP builder is not sufficient/advised
-            (ex: chromium cq, satlab for partners).
-        public_builder_bucket: Optional luci bucket. See public_builder
-            above.
+        autotest_name: The name of the autotest to be executed in Skylab.
+        bucket: Optional Google Storage bucket where the specified image(s) are
+            stored.
+        dut_pool: The skylab device pool to run the test. By default the quota
+            pool, shared by all CrOS tests.
+        public_builder: Optional Public CTP Builder. The public_builder and
+            public_builder_bucket fields can be used when default CTP builder is
+            not sufficient/advised (ex: chromium cq, satlab for partners).
+        public_builder_bucket: Optional luci bucket. See public_builder above.
         tast_expr: The tast expression to run.
         test_level_retries: The number of times to retry tests. Only applicable
             to skylab tests.

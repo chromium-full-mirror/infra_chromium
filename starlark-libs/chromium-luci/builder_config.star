@@ -495,7 +495,8 @@ def register_builder_config(
         additional_exclusions: A list of paths that are excluded when analyzing
             the change to determine affected targets. The paths should be
             relative to the per-builder output root dir.
-        description_html: A string of html representing the description of the builder.
+        description_html: A string of html representing the description of the
+            builder.
     """
     if not builder_spec and not mirrors:
         if bc_settings:

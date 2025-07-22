@@ -35,12 +35,12 @@ def script_test(*, name, script, args = None, precommit_args = None, non_precomm
     //testing/scripts directory.
 
     Args:
-        name: The name that can be used to refer to the test in other
-            starlark declarations. The step name of the test will be
-            based on this name (additional components may be added by
-            the recipe or when generating a test with a variant).
-        script: The name of the file within the //testing/scripts
-            directory to run as the test.
+        name: The name that can be used to refer to the test in other starlark
+            declarations. The step name of the test will be based on this name
+            (additional components may be added by the recipe or when generating
+            a test with a variant).
+        script: The name of the file within the //testing/scripts directory to
+            run as the test.
     """
     _targets_common.create_legacy_test(
         name = name,

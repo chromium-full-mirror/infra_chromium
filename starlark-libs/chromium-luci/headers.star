@@ -28,13 +28,13 @@ def oncall(
     """Define an oncall rotation to appear in a console header.
 
     Args:
-      name - The name to display the oncall as.
-      url - The URL to read the oncall rotation from.
-      show_primary_secondary_labels - Whether to show labels indicating the
-        primary and secondary next to the current primary and secondary for the
-        oncall.
-      branch_selector - A branch selector value controlling whether the
-        oncall definition is executed. See branches.star for more information.
+        name: The name to display the oncall as.
+        url: The URL to read the oncall rotation from.
+        show_primary_secondary_labels: Whether to show labels indicating the
+            primary and secondary next to the current primary and secondary for
+            the oncall.
+        branch_selector: A branch selector value controlling whether the oncall
+            definition is executed. See branches.star for more information.
     """
     if not branches.matches(branch_selector):
         return None
@@ -51,12 +51,12 @@ def link_group(*, name, links, branch_selector = branches.selector.MAIN):
     heading.
 
     Args:
-      name - The name of the link group, used as the heading for the group.
-      links - A list of objects returned from `link` defining the links
-        belonging to the group.
-      branch_selector - A branch selector value controlling whether the
-        link group definition is executed. See branches.star for more
-        information.
+        name: The name of the link group, used as the heading for the group.
+        links: A list of objects returned from `link` defining the links
+            belonging to the group.
+        branch_selector: A branch selector value controlling whether the link
+            group definition is executed. See branches.star for more
+            information.
     """
     if not branches.matches(branch_selector):
         return None
@@ -72,14 +72,14 @@ def link(*, url, text, alt = None, branch_selector = branches.selector.MAIN):
     """Define a link to appear in a console header.
 
     Args:
-      url - The URL to link to.
-      text - The display text for the link.
-      alt - The alt text for the link. This is supposed to be the hover text
-        according to the proto
-        https://chromium.googlesource.com/infra/luci/luci-go/+/HEAD/milo/api/config/project.proto,
-        but doesn't appear to produce any hover text.
-      branch_selector - A branch selector value controlling whether the
-        link definition is executed. See branches.star for more information.
+        url: The URL to link to.
+        text: The display text for the link.
+        alt: The alt text for the link. This is supposed to be the hover text
+            according to the proto
+            https://chromium.googlesource.com/infra/luci/luci-go/+/HEAD/milo/api/config/project.proto,
+            but doesn't appear to produce any hover text.
+        branch_selector: A branch selector value controlling whether the link
+            definition is executed. See branches.star for more information.
     """
     if not branches.matches(branch_selector):
         return None
@@ -102,10 +102,10 @@ def console_group(
     according to the status of the last completed build for the builder.
 
     Args:
-      console_ids - A list of IDs of the consoles to display in the group.
-      title - An optional title to apply to the console group, returned from
-        `link`. If provided, the console group will have a box drawn around it
-        with the title appearing at the top of the box.
+        console_ids: A list of IDs of the consoles to display in the group.
+        title: An optional title to apply to the console group, returned from
+            `link`. If provided, the console group will have a box drawn around
+            it with the title appearing at the top of the box.
     """
     if not branches.matches(branch_selector):
         return None
@@ -130,19 +130,19 @@ def header(
     view.
 
     Args:
-      oncalls - Optional list of oncalls returned from `oncall` to to display in
-        the header.
-      links - Optional list of link groups returned from `link_group` to display
-        in the header.
-      console_groups - Optional list of console groups returned from
-        `console_group` to display in the header.
-      tree_status_host - DEPRECATED: Use tree_name instead.
-        Optional URL of the tree status host.
-        If provided, the current tree status is displayed at the top of the header,
-        colored according to the status of the tree.
-      tree_name - Name of the tree in LUCI Tree Status app.
-        If provided, the current tree status is displayed at the top of the header,
-        colored according to the status of the tree.
+        oncalls: Optional list of oncalls returned from `oncall` to to display
+            in the header.
+        links: Optional list of link groups returned from `link_group` to
+            display in the header.
+        console_groups: Optional list of console groups returned from
+            `console_group` to display in the header.
+        tree_status_host: DEPRECATED: Use tree_name instead. Optional URL of the
+            tree status host. If provided, the current tree status is displayed
+            at the top of the header, colored according to the status of the
+            tree.
+        tree_name: Name of the tree in LUCI Tree Status app. If provided, the
+            current tree status is displayed at the top of the header, colored
+            according to the status of the tree.
     """
     return _remove_none_values(dict(
         oncalls = _remove_none(oncalls or []),

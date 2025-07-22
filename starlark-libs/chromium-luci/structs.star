@@ -29,8 +29,8 @@ def _convert_to_dict(s):
     Returns:
         A 2-tuple:
             * A dict of converted attributes.
-            * A sequence of 3-tuples for each attribute that needs to be recursively
-            converted:
+            * A sequence of 3-tuples for each attribute that needs to be
+                recursively converted:
                 * The dictionary to add the converted value to.
                 * The name of the key to set with the converted value.
                 * The value to convert.
@@ -87,8 +87,8 @@ def _evolve(s, **kwargs):
         **kwargs: The attributes to update the struct with.
 
     Returns:
-        A new struct with the value of each attribute specified in `kwargs`
-        is set to the corresponding value.
+        A new struct with the value of each attribute specified in `kwargs` is
+        set to the corresponding value.
 
     Fails:
         If `kwargs` contains an item for an attribute not present on `s`.
@@ -109,8 +109,8 @@ def _extend(s, **kwargs):
             element can either be a single value or a list of values.
 
     Returns:
-        A new struct where the value of each attribute specified in `kwargs`
-        is set to the combination of the existing list of values if any and the
+        A new struct where the value of each attribute specified in `kwargs` is
+        set to the combination of the existing list of values if any and the
         values specified for the attribute in `kwargs`.
 
     Fails:
@@ -136,8 +136,8 @@ def _remove(s, **kwargs):
             element can either be a single value or a list of values.
 
     Returns:
-        A new struct where the value of each attribute specified in `kwargs`
-        has the given values removed.
+        A new struct where the value of each attribute specified in `kwargs` has
+        the given values removed.
 
     Fails:
         If `kwargs` contains an item for an attribute not present on `s`.

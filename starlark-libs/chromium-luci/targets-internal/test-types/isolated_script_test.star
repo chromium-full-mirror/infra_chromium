@@ -43,17 +43,17 @@ _isolated_script_test_spec_handler = create_isolated_script_test_spec_handler("i
 def isolated_script_test(*, name, binary = None, mixins = None, args = None):
     """Define an isolated script test.
 
-    An isolated script test can be included in a basic suite to run the
-    test for any builder that includes that basic suite.
+    An isolated script test can be included in a basic suite to run the test for
+    any builder that includes that basic suite.
 
     Args:
-        name: The name that can be used to refer to the test in other
-            starlark declarations. The step name of the test will be
-            based on this name (additional components may be added by
-            the recipe or when generating a test with a variant).
-        binary: The test binary to use. There must be a defined binary
-            with the given name. If none is provided, then an binary
-            with the same name as the test must be defined.
+        name: The name that can be used to refer to the test in other starlark
+            declarations. The step name of the test will be based on this name
+            (additional components may be added by the recipe or when generating
+            a test with a variant).
+        binary: The test binary to use. There must be a defined binary with the
+            given name. If none is provided, then an binary with the same name
+            as the test must be defined.
         mixins: Mixins to apply when expanding the test.
         args: Arguments to be passed to the test binary.
     """

@@ -42,17 +42,17 @@ _gtest_test_spec_handler = _targets_common.spec_handler(
 def gtest_test(*, name, binary = None, mixins = None, args = None):
     """Define a gtest-based test.
 
-    A gtest test can be included in a basic suite to run the test for
-    any builder that includes that basic suite.
+    A gtest test can be included in a basic suite to run the test for any
+    builder that includes that basic suite.
 
     Args:
-        name: The name that can be used to refer to the test in other
-            starlark declarations. The step name of the test will be
-            based on this name (additional components may be added by
-            the recipe or when generating a test with a variant).
-        binary: The test binary to use. There must be a defined binary
-            with the given name. If none is provided, then an binary
-            with the same name as the test must be defined.
+        name: The name that can be used to refer to the test in other starlark
+            declarations. The step name of the test will be based on this name
+            (additional components may be added by the recipe or when generating
+            a test with a variant).
+        binary: The test binary to use. There must be a defined binary with the
+            given name. If none is provided, then an binary with the same name
+            as the test must be defined.
         mixins: Mixins to apply when expanding the test.
         args: Arguments to be passed to the test binary.
     """

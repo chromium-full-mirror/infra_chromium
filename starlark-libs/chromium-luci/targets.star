@@ -22,12 +22,12 @@ register_pyl_generators()
 def _compile_target(*, name, label = None, skip_usage_check = False):
     """Define a compile target to use in targets specs.
 
-    A compile target provides a mapping to any ninja target that will
-    only be built, not executed.
+    A compile target provides a mapping to any ninja target that will only be
+    built, not executed.
 
     Args:
-        name: The ninja target name. This is the name that can be used
-            to refer to the target in other starlark declarations.
+        name: The ninja target name. This is the name that can be used to refer
+            to the target in other starlark declarations.
         label: The GN label for the ninja target.
         skip_usage_check: Disables checking that the target is actually
             referenced in a targets spec for some builder.
@@ -58,23 +58,21 @@ def _console_test_launcher(
         args = None):
     """Define a console test launcher target to use in targets specs.
 
-    A console test launcher is a gtest-based test that uses the
-    parallelizing TestLauncher from //base/test:test_support but does
-    not need Xvfb.
+    A console test launcher is a gtest-based test that uses the parallelizing
+    TestLauncher from //base/test:test_support but does not need Xvfb.
 
     Args:
-        name: The ninja target name. This is the name that can be used
-            to refer to the target/binary in other starlark
-            declarations.
+        name: The ninja target name. This is the name that can be used to refer
+            to the target/binary in other starlark declarations.
         label: The GN label for the ninja target.
-        label_type: The type of the label. This is used by MB to find
-            the generated runtime files in the correct place if the
-            target uses the test_launcher command-line conventions but
-            the label refers to a different type of target.
+        label_type: The type of the label. This is used by MB to find the
+            generated runtime files in the correct place if the target uses the
+            test_launcher command-line conventions but the label refers to a
+            different type of target.
         skip_usage_check: Disables checking that the target is actually
             referenced in a targets spec for some builder.
-        args: The arguments to the test. These arguments will be
-            included when the test is run using "mb try"
+        args: The arguments to the test. These arguments will be included when
+            the test is run using "mb try"
     """
     _targets_common.create_binary(
         name = name,
@@ -96,26 +94,23 @@ def _generated_script(
         resultdb = None):
     """Define a generated script target to use in targets specs.
 
-    A generated script target is a test that is executed via a script
-    generated at build time. The script must be in
-    output_dir/bin/run_$target (or output_dir\bin\run_$target.bat on
-    Windows).
+    A generated script target is a test that is executed via a script generated
+    at build time. The script must be in output_dir/bin/run_$target (or
+    output_dir\bin\run_$target.bat on Windows).
 
     Args:
-        name: The ninja target name. This is the name that can be used
-            to refer to the target/binary in other starlark
-            declarations.
+        name: The ninja target name. This is the name that can be used to refer
+            to the target/binary in other starlark declarations.
         label: The GN label for the ninja target.
         skip_usage_check: Disables checking that the target is actually
             referenced in a targets spec for some builder.
-        args: The arguments to the test. These arguments will be
-            included when the test is run using "mb try"
-        results_handler: The name of the results handler to use for the
+        args: The arguments to the test. These arguments will be included when
+            the test is run using "mb try"
+        results_handler: The name of the results handler to use for the test.
+        merge: A targets.merge describing the invocation to merge the results
+            from the test's tasks.
+        resultdb: A targets.resultdb describing the ResultDB integration for the
             test.
-        merge: A targets.merge describing the invocation to merge the
-            results from the test's tasks.
-        resultdb: A targets.resultdb describing the ResultDB integration
-            for the test.
     """
     _targets_common.create_binary(
         name = name,
@@ -144,20 +139,19 @@ def _script(
     A script target is a test that is executed via a python script.
 
     Args:
-        name: The ninja target name. This is the name that can be used
-            to refer to the target/binary in other starlark
-            declarations.
+        name: The ninja target name. This is the name that can be used to refer
+            to the target/binary in other starlark declarations.
         label: The GN label for the ninja target.
-        script: The GN path (e.g. //testing/scripts/foo.py" to the python
-            script to run.
+        script: The GN path (e.g. //testing/scripts/foo.py" to the python script
+            to run.
         skip_usage_check: Disables checking that the target is actually
             referenced in a targets spec for some builder.
-        args: The arguments to the test. These arguments will be
-            included when the test is run using "mb try"
-        merge: A targets.merge describing the invocation to merge the
-            results from the test's tasks.
-        resultdb: A targets.resultdb describing the ResultDB integration
-            for the test.
+        args: The arguments to the test. These arguments will be included when
+            the test is run using "mb try"
+        merge: A targets.merge describing the invocation to merge the results
+            from the test's tasks.
+        resultdb: A targets.resultdb describing the ResultDB integration for the
+            test.
     """
     _targets_common.create_binary(
         name = name,
@@ -183,28 +177,26 @@ def _windowed_test_launcher(
         args = None):
     """Define a windowed test launcher target to use in targets specs.
 
-    A windowed test launcher is a gtest-based test that uses the
-    parallelizing TestLauncher from //base/test:test_support and needs
-    to run under Xvfb if run on some platforms (eg. Linux Desktop and
-    Ozone CrOS).
+    A windowed test launcher is a gtest-based test that uses the parallelizing
+    TestLauncher from //base/test:test_support and needs to run under Xvfb if
+    run on some platforms (eg. Linux Desktop and Ozone CrOS).
 
     Args:
-        name: The ninja target name. This is the name that can be used
-            to refer to the target/binary in other starlark
-            declarations.
+        name: The ninja target name. This is the name that can be used to refer
+            to the target/binary in other starlark declarations.
         label: The GN label for the ninja target.
-        label_type: The type of the label. This is used by MB to find
-            the generated runtime files in the correct place if the
-            target uses the test_launcher command-line conventions but
-            the label refers to a different type of target.
-        executable: The binary to run. By default, the ninja target name
-            will be used. On Windows, .exe will be appended, so it
-            should not appear in the executable name.
+        label_type: The type of the label. This is used by MB to find the
+            generated runtime files in the correct place if the target uses the
+            test_launcher command-line conventions but the label refers to a
+            different type of target.
+        executable: The binary to run. By default, the ninja target name will be
+            used. On Windows, .exe will be appended, so it should not appear in
+            the executable name.
         executable_suffix: The suffix to append to the executable name.
         skip_usage_check: Disables checking that the target is actually
             referenced in a targets spec for some builder.
-        args: The arguments to the test. These arguments will be
-            included when the test is run using "mb try"
+        args: The arguments to the test. These arguments will be included when
+            the test is run using "mb try"
     """
     _targets_common.create_binary(
         name = name,
@@ -231,8 +223,8 @@ def _cipd_package(
         revision: The revision of the package to download.
 
     Returns:
-        A struct that can be passed as an element of the cipd_packages
-        argument of targets.swarming.
+        A struct that can be passed as an element of the cipd_packages argument
+        of targets.swarming.
     """
     return struct(
         package = package,
@@ -251,16 +243,15 @@ def _resultdb(
 
     Args:
         enable: Whether or not ResultDB is enabled for the test.
-        has_native_resultdb_integration: Whether or not the test has
-            native integration with resultdb. If not, result_adapter
-            will be used, which parses output to determine results to
-            upload results to ResultDB.
+        has_native_resultdb_integration: Whether or not the test has native
+            integration with resultdb. If not, result_adapter will be used,
+            which parses output to determine results to upload results to
+            ResultDB.
         result_format: The format of the test results.
         result_file: The file to write out test results to.
 
     Return:
-        A struct that can be passed to the resultdb argument of
-        `target.mixin`
+        A struct that can be passed to the resultdb argument of `target.mixin`
     """
     return struct(
         enable = enable,
@@ -297,88 +288,80 @@ def _mixin_values(
         experiment_percentage = None):
     """Define values to be mixed into a target.
 
-    Unless otherwise specified, each field will overwrite an existing
-    value on a test.
+    Unless otherwise specified, each field will overwrite an existing value on a
+    test.
 
     Args:
-        description: A description to attach to the test. If specified,
-            it will be appended to any description already present on
+        description: A description to attach to the test. If specified, it will
+            be appended to any description already present on the test.
+        args: Arguments to be passed to the test binary. Will be appended to any
+            existing args for the test.
+        precommit_args: Arguments to be passed to the test binary when running
+            on a try builder. Will be appended to any existing precommit_args
+            for the test. These are applied at build-time, so they will always
+            be emitted into the test spec if present.
+        android_args: Arguments to be passed to the test when the builder is
+            targeting android. Will be appended to any existing android_args for
             the test.
-        args: Arguments to be passed to the test binary. Will be
-            appended to any existing args for the test.
-        precommit_args: Arguments to be passed to the test binary when
-            running on a try builder. Will be appended to any existing
-            precommit_args for the test. These are applied at
-            build-time, so they will always be emitted into the test
-            spec if present.
-        android_args: Arguments to be passed to the test when the
-            builder is targeting android. Will be appended to any
-            existing android_args for the test.
-        chromeos_args: Arguments to be passed to the test when the
-            builder is targeting chromeos. Will be appended to any
-            existing chromeos_args for the test.
-        desktop_args: Arguments to be passed to the test when the
-            builder is targeting linux, mac or windows. Will be appended
-            to any existing desktop_args for the test.
-        linux_args: Arguments to be passed to the test when the builder
-            is targeting linux. Will be appended to any existing
-            linux_args for the test.
-        lacros_args: Arguments to be passed to the test when the
-            builder is targeting lacros. Will be appended to any
-            existing lacros_args for the test.
-        mac_args: Arguments to be passed to the test when the builder is
-            targeting mac. Will be appended to any existing mac_args for
-            the test.
-        win_args: Arguments to be passed to the test when the builder
-            is targeting win. Will be appended to any existing
-            win_args for the test.
-        win64_args: Arguments to be passed to the test when the builder
-            is targeting win64. Will be appended to any existing
-            win64_args for the test.
-        swarming: A targets.swarming to be applied to the test. See
-            targets.swarming for details about how each field is applied
-            to the test's swarming details.
-        android_swarming: A targets.swarming to be applied to the test
-            when the builder is targeting android.
-        chromeos_swarming: A targets.swarming to be applied to the test
-            when the builder is targeting chromeos.
-        skylab: A targets.skylab to be applied to the test. See
-            targets.skylab for details about how each field is applied
-            to the test.
-        use_isolated_scripts_api: A bool indicating whether to use the
-            isolated scripts interface to run the test. Only
-            applicable to gtests.
-        expand_as_isolated_script: A bool indicating that the test
-            should be expanded as an isolated script. Only applicable to
-            gtests. Note this is different from
-            use_isolated_scripts_api; expand_as_isolated_script is not
-            part of the resultant spec and causes the spec to be output
-            as an isolated script, whereas use_isolated_scripts_api
-            is part of the expanded spec and tells the recipe to treat
-            it as an isolated script but the expanded spec is still that
-            of a gtest.
-        ci_only: A bool indicating whether the test should only be run
-            in CI by default.
-        check_flakiness_for_new_tests: A bool indicating whether try
-            builders running the test should rerun new tests additional
-            times to check for flakiness.
-        retry_only_failed_tests: A bool indicating whether retrying the
-            failing test will limit execution to only the failed test
-            cases. By default, the entire shards that contain failing
-            test cases will be rerun. Applies only to swarmed tests.
-        resultdb: A targets.resultdb describing the ResultDB integration
+        chromeos_args: Arguments to be passed to the test when the builder is
+            targeting chromeos. Will be appended to any existing chromeos_args
             for the test.
-        isolate_profile_data: A bool indicating whether profile data for
-            the test should be included in the test tasks' output
-            isolates.
-        merge: A targets.merge describing the invocation to merge the
-            results from the test's tasks.
-        shards: The number of shards to use for running the test on
-            skylab.
-        experiment_percentage: An integer in the range [0, 100]
-            indicating the percentage chance that the test will be run,
-            with failures in the test not resulting in failures in the
-            build.
+        desktop_args: Arguments to be passed to the test when the builder is
+            targeting linux, mac or windows. Will be appended to any existing
+            desktop_args for the test.
+        linux_args: Arguments to be passed to the test when the builder is
+            targeting linux. Will be appended to any existing linux_args for the
+            test.
+        lacros_args: Arguments to be passed to the test when the builder is
+            targeting lacros. Will be appended to any existing lacros_args for
+            the test.
+        mac_args: Arguments to be passed to the test when the builder is
+            targeting mac. Will be appended to any existing mac_args for the
+            test.
+        win_args: Arguments to be passed to the test when the builder is
+            targeting win. Will be appended to any existing win_args for the
+            test.
+        win64_args: Arguments to be passed to the test when the builder is
+            targeting win64. Will be appended to any existing win64_args for the
+            test.
+        swarming: A targets.swarming to be applied to the test. See
+            targets.swarming for details about how each field is applied to the
+            test's swarming details.
+        android_swarming: A targets.swarming to be applied to the test when the
+            builder is targeting android.
+        chromeos_swarming: A targets.swarming to be applied to the test when the
+            builder is targeting chromeos.
+        skylab: A targets.skylab to be applied to the test. See targets.skylab
+            for details about how each field is applied to the test.
+        use_isolated_scripts_api: A bool indicating whether to use the isolated
+            scripts interface to run the test. Only applicable to gtests.
+        expand_as_isolated_script: A bool indicating that the test should be
+            expanded as an isolated script. Only applicable to gtests. Note this
+            is different from use_isolated_scripts_api;
+            expand_as_isolated_script is not part of the resultant spec and
+            causes the spec to be output as an isolated script, whereas
+            use_isolated_scripts_api is part of the expanded spec and tells the
+            recipe to treat it as an isolated script but the expanded spec is
+            still that of a gtest.
+        ci_only: A bool indicating whether the test should only be run in CI by
+            default.
+        check_flakiness_for_new_tests: A bool indicating whether try builders
+            running the test should rerun new tests additional times to check
+            for flakiness.
+        retry_only_failed_tests: A bool indicating whether retrying the failing
+            test will limit execution to only the failed test cases. By default,
+            the entire shards that contain failing test cases will be rerun.
+            Applies only to swarmed tests.
+        resultdb: A targets.resultdb describing the ResultDB integration for the
+            test.
+        isolate_profile_data: A bool indicating whether profile data for the
+            test should be included in the test tasks' output isolates.
+        merge: A targets.merge describing the invocation to merge the results
+            from the test's tasks.
+        shards: The number of shards to use for running the test on skylab.
+        experiment_percentage: An integer in the range [0, 100] indicating the
+            percentage chance that the test will be run, with failures in the
+            test not resulting in failures in the build.
 
     Returns:
         A dict containing the values to be mixed in.
@@ -416,23 +399,21 @@ _IGNORE_UNUSED = "ignore_unused"
 def _mixin(*, name = None, generate_pyl_entry = None, **kwargs):
     """Define a mixin used for defining tests.
 
-    //infra/config/generated/testing/mixins.pyl will be generated from
-    the declared mixins to be copied to //testing/buildbot and consumed
-    by //testing/buildbot/generate_buildbot_json.py.
+    //infra/config/generated/testing/mixins.pyl will be generated from the
+    declared mixins to be copied to //testing/buildbot and consumed by
+    //testing/buildbot/generate_buildbot_json.py.
 
     Args:
         name: The name of the mixin.
-        generate_pyl_entry: If true, the generated mixin.pyl will
-            contain an entry allowing the mixin to be used by
-            generate_buildbot_json.py. If set to targets.IGNORE_UNUSED,
-            then an entry will be generated that
-            generate_buildbot_json.py which won't cause an error if it
-            isn't used. This enables mixins to be generated to the pyl
-            file that are only used by the angle repo, which reuses the
-            generated mixins.pyl. By default, this will be True if name
-            is provided.
-        **kwargs: The mixin values, see _mixin_values for allowed
-            keywords and their meanings.
+        generate_pyl_entry: If true, the generated mixin.pyl will contain an
+            entry allowing the mixin to be used by generate_buildbot_json.py. If
+            set to targets.IGNORE_UNUSED, then an entry will be generated that
+            generate_buildbot_json.py which won't cause an error if it isn't
+            used. This enables mixins to be generated to the pyl file that are
+            only used by the angle repo, which reuses the generated mixins.pyl.
+            By default, this will be True if name is provided.
+        **kwargs: The mixin values, see _mixin_values for allowed keywords and
+            their meanings.
     """
     if generate_pyl_entry not in (None, False, True, _IGNORE_UNUSED):
         fail("unexpected value for generate_pyl_entry: {}".format(generate_pyl_entry))
@@ -459,26 +440,23 @@ def _variant(
         **kwargs):
     """Define a variant used for defining tests.
 
-    //infra/config/generated/testing/variants.pyl will be generated from
-    the declared variants to be copied to //testing/buildbot and consumed
-    by //testing/buildbot/generate_buildbot_json.py.
+    //infra/config/generated/testing/variants.pyl will be generated from the
+    declared variants to be copied to //testing/buildbot and consumed by
+    //testing/buildbot/generate_buildbot_json.py.
 
     Args:
         name: The name of the variant.
-        identifier: A string suitable for display to users that
-            identifies the variant of the test being run. When tests are
-            expanded with the variant, this will be appended to the test
-            name.
-        generate_pyl_entry: If true, the generated variants.pyl will
-            contain an entry allowing the mixin to be used by
-            generate_buildbot_json.py.
-        enabled: Whether or not the variant is enabled. By default, a
-            variant is enabled. If a variant is not enabled, then it
-            will be ignored when expanding a test suite with variants.
-        mixins: Names of mixins to apply when expanding a test with the
-            variant.
-        **kwargs: The mixin values, see _mixin_values for allowed
-            keywords and their meanings.
+        identifier: A string suitable for display to users that identifies the
+            variant of the test being run. When tests are expanded with the
+            variant, this will be appended to the test name.
+        generate_pyl_entry: If true, the generated variants.pyl will contain an
+            entry allowing the mixin to be used by generate_buildbot_json.py.
+        enabled: Whether or not the variant is enabled. By default, a variant is
+            enabled. If a variant is not enabled, then it will be ignored when
+            expanding a test suite with variants.
+        mixins: Names of mixins to apply when expanding a test with the variant.
+        **kwargs: The mixin values, see _mixin_values for allowed keywords and
+            their meanings.
     """
     if enabled == None:
         enabled = True
@@ -504,8 +482,8 @@ def _bundle(*, name = None, additional_compile_targets = None, targets = None, m
 
     Args:
         name: The name of the bundle.
-        targets: A list of targets, bundles or legacy basic suites to
-            include in the bundle.
+        targets: A list of targets, bundles or legacy basic suites to include in
+            the bundle.
     """
     return graph.keyset(_targets_common.create_bundle(
         name = name,
@@ -588,8 +566,8 @@ def _legacy_test_config(
             their meanings.
 
     Returns:
-        An object that can be used as a value in the dict passed to the
-        tests argument of targets.legacy_basic_suite.
+        An object that can be used as a value in the dict passed to the tests
+        argument of targets.legacy_basic_suite.
     """
     return struct(
         mixins = mixins,

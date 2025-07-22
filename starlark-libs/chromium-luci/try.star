@@ -27,14 +27,15 @@ def default_location_filters(builder_name = None):
     """Get the default location filters for a builder.
 
     Args:
-      builder_name: The qualified-name of the builder to get the location
-        filters for. May be a bucket-qualified name (e.g. try/linux-rel) or a
-        project-qualified name (e.g. chromium/try/linux-rel). If specified,
-        the builder's config files at //infra/config/generated/builders/ are
-        added to the default include-filters returned.
+        builder_name: The qualified-name of the builder to get the location
+            filters for. May be a bucket-qualified name (e.g. try/linux-rel) or
+            a project-qualified name (e.g. chromium/try/linux-rel). If
+            specified, the builder's config files at
+            //infra/config/generated/builders/ are added to the default
+            include-filters returned.
 
     Returns:
-      A list of cq.location_filter objects to use for the builder.
+        A list of cq.location_filter objects to use for the builder.
     """
 
     def location_filter(*, path_regexp, exclude = False):
@@ -152,37 +153,38 @@ def tryjob(
     for details on the most of the arguments.
 
     Args:
-      disable_reuse: See cq.tryjob_verifier.
-      experiment_percentage: See cq.tryjob_verifier.
-      includable_only: See cq.tryjob_verifier.
-      location_filters: A list of cq.location_filter objects and/or strings.
-        This is the same as the location_filters value of cq.tryjob_verifier
-        except that strings can be provided, which will be converted to a
-        cq.location_filter with path_regexp set to the provided string.
-      disable_reuse_footers: A list of footer names to disable reuse for the
-        builder for. This ensures that changes to those footer values will cause
-        the builder to rerun with the footer change applied.
-      cancel_stale: See cq.tryjob_verifier.
-      add_default_filters: A bool indicating whether to add default filters that
-        exclude certain directories that would have no impact when building
-        chromium with the patch applied (docs, config files that don't take
-        effect until landing, etc., see default_location_filters). This arg has
-        no effect when includable_only=True, and will instead be set to False.
-      add_default_disable_reuse_footers: A bool indicating whether to add
-        default footers that should disable reuse for the builder
-        (Include-Ci-Only-Tests, etc., see _DEFAULT_DISABLE_REUSE_FOOTERS).
-      equivalent_builder: See cq.tryjob_verifier.
-      equivalent_builder_percentage: See cq.tryjob_verifier.
-      equivalent_builder_whitelist: See cq.tryjob_verifier.
-      omit_from_luci_cv: A bool indicating whether the tryjob will be
-        added to luci verifier. This is useful for the equivalent_builder which
-        can't be added twice.
-      custom_cq_run_modes: List of cq.run_mode names that will trigger this
-        tryjob. Uses cq.MODE_DRY_RUN, cq.MODE_FULL_RUN if not specified.
+        disable_reuse: See cq.tryjob_verifier.
+        experiment_percentage: See cq.tryjob_verifier.
+        includable_only: See cq.tryjob_verifier.
+        location_filters: A list of cq.location_filter objects and/or strings.
+            This is the same as the location_filters value of cq.tryjob_verifier
+            except that strings can be provided, which will be converted to a
+            cq.location_filter with path_regexp set to the provided string.
+        disable_reuse_footers: A list of footer names to disable reuse for the
+            builder for. This ensures that changes to those footer values will
+            cause the builder to rerun with the footer change applied.
+        cancel_stale: See cq.tryjob_verifier.
+        add_default_filters: A bool indicating whether to add default filters
+            that exclude certain directories that would have no impact when
+            building chromium with the patch applied (docs, config files that
+            don't take effect until landing, etc., see
+            default_location_filters). This arg has no effect when
+            includable_only=True, and will instead be set to False.
+        add_default_disable_reuse_footers: A bool indicating whether to add
+            default footers that should disable reuse for the builder
+            (Include-Ci-Only-Tests, etc., see _DEFAULT_DISABLE_REUSE_FOOTERS).
+        equivalent_builder: See cq.tryjob_verifier.
+        equivalent_builder_percentage: See cq.tryjob_verifier.
+        equivalent_builder_whitelist: See cq.tryjob_verifier.
+        omit_from_luci_cv: A bool indicating whether the tryjob will be added to
+            luci verifier. This is useful for the equivalent_builder which can't
+            be added twice.
+        custom_cq_run_modes: List of cq.run_mode names that will trigger this
+            tryjob. Uses cq.MODE_DRY_RUN, cq.MODE_FULL_RUN if not specified.
 
     Returns:
-      A struct that can be passed to the `tryjob` argument of `try_.builder` to
-      enable the builder for CQ.
+        A struct that can be passed to the `tryjob` argument of `try_.builder`
+        to enable the builder for CQ.
     """
 
     def normalize_location_filter(f):
@@ -229,40 +231,38 @@ def try_builder(
         **kwargs):
     """Define a try builder.
 
-    Arguments:
-      name - name of the builder, will show up in UIs and logs. Required.
-      branch_selector - A branch selector value controlling whether the
-        builder definition is executed. See branches.star for more
-        information.
-      check_for_flakiness - If True, it checks for new tests in a given try
-        build and reruns them multiple times to ensure that they are not
-        flaky.
-      # TODO(crbug.com/40273153) - Once we've migrated to the ResultDB-based solution
-      # this should be deprecated in favor for the original check_for_flakiness
-      # argument.
-      check_for_flakiness_with_resultdb - If True, it checks for new tests in a
-        given try build using resultdb as the data source, instead of the
-        previous mechanism which utilized a pregenerated test history. New tests
-        are rerun multiple times to ensure that they are not flaky.
-      cq_group - The CQ group to add the builder to. If tryjob is None, it will
-        be added as includable_only.
-      list_view - A string or list of strings identifying the ID(s) of the list
-        view to add an entry to. Supports a module-level default that defaults
-        to the group of the builder, if provided.
-      main_console_view - A string identifying the ID of the main list
-        view to add an entry to. Supports a module-level default that
-        defaults to None.
-      subproject_list_view - A string identifying the ID of the
-        subproject list view to add an entry to. Suppoers a module-level
-        default that defaults to None.
-      tryjob - A struct containing the details of the tryjob verifier for the
-        builder, obtained by calling the `tryjob` function.
-      resultdb_bigquery_exports - a list of resultdb.export_test_results(...)
-        specifying additional parameters for exporting test results to BigQuery.
-        Will always upload to the following tables in addition to any tables
-        specified by the list's elements:
-          chrome-luci-data.chromium.try_test_results
-          chrome-luci-data.gpu_try_test_results
+    Args:
+        name: name of the builder, will show up in UIs and logs. Required.
+        branch_selector: A branch selector value controlling whether the builder
+            definition is executed. See branches.star for more information.
+        check_for_flakiness: If True, it checks for new tests in a given try
+            build and reruns them multiple times to ensure that they are not
+            flaky.
+        # TODO(crbug.com/40273153) - Once we've migrated to the ResultDB-based
+        # solution this should be deprecated in favor for the original
+        # check_for_flakiness argument.
+        check_for_flakiness_with_resultdb: If True, it checks for new tests in a
+            given try build using resultdb as the data source, instead of the
+            previous mechanism which utilized a pregenerated test history. New
+            tests are rerun multiple times to ensure that they are not flaky.
+        cq_group: The CQ group to add the builder to. If tryjob is None, it will
+            be added as includable_only.
+        list_view: A string or list of strings identifying the ID(s) of the list
+            view to add an entry to. Supports a module-level default that
+            defaults to the group of the builder, if provided.
+        main_list_view: A string identifying the ID of the main list view to add
+            an entry to. Supports a module-level default that defaults to None.
+        subproject_list_view: A string identifying the ID of the subproject list
+            view to add an entry to. Supports a module-level default that
+            defaults to None.
+        tryjob: An optional try_.job controlling when the builder is added to
+            the CQ.
+        resultdb_bigquery_exports: a list of resultdb.export_test_results(...)
+            specifying additional parameters for exporting test results to
+            BigQuery. Will always upload to the following tables in addition to
+            any tables specified by the list's elements:
+                chrome-luci-data.chromium.try_test_results
+                chrome-luci-data.gpu_try_test_results
     """
     if not branches.matches(branch_selector):
         return None
@@ -449,20 +449,20 @@ def _orchestrator_builder(
 
 
     Args:
-      name: The name of the orchestrator.
-      compilator: A string identifying the associated compilator. Compilators
-        can be defined using try_.compilator_builder.
-      use_orchestrator_pool: Whether to use the bots in
-        luci.chromium.try.orchestrator pool. This kwarg should be taken out
-        once all CQ builders are migrated to be srcless (crbug/1287228)
-      **kwargs: Additional kwargs to be forwarded to try_.builder.
-        The following kwargs will have defaults applied if not set:
-        * builderless: True on branches, False on main
-        * cores: The orchestrator_cores module-level default.
-        * executable: "recipe:chromium/orchestrator"
-        * os: os.LINUX_DEFAULT
-        * service_account: "chromium-orchestrator@chops-service-accounts.iam.gserviceaccount.com"
-        * ssd: None
+        name: The name of the orchestrator.
+        compilator: A string identifying the associated compilator. Compilators
+            can be defined using try_.compilator_builder.
+        use_orchestrator_pool: Whether to use the bots in
+            luci.chromium.try.orchestrator pool. This kwarg should be taken out
+            once all CQ builders are migrated to be srcless (crbug/1287228)
+        **kwargs: Additional kwargs to be forwarded to try_.builder. The
+            following kwargs will have defaults applied if not set:
+            * builderless: True on branches, False on main
+            * cores: The orchestrator_cores module-level default.
+            * executable: "recipe:chromium/orchestrator"
+            * os: os.LINUX_DEFAULT
+            * service_account: "chromium-orchestrator@chops-service-accounts.iam.gserviceaccount.com"
+            * ssd: None
     """
     builder_group = defaults.get_value_from_kwargs("builder_group", kwargs)
     if not builder_group:
@@ -513,16 +513,16 @@ def _compilator_builder(*, name, **kwargs):
     added to the orchestrator.
 
     Args:
-      name: The name of the compilator.
-      **kwargs: Additional kwargs to be forwarded to try_.builder.
-        With the exception of builder_group, kwargs that would normally cause
-        properties to be set will result in an error. Properties should instead
-        be configured on the orchestrator.
-        The following kwargs will have defaults applied if not set:
-        * builderless: True on branches, False on main
-        * cores: The compilator_cores module-level default.
-        * executable: "recipe:chromium/compilator"
-        * ssd: True
+        name: The name of the compilator.
+        **kwargs: Additional kwargs to be forwarded to try_.builder. With the
+            exception of builder_group, kwargs that would normally cause
+            properties to be set will result in an error. Properties should
+            instead be configured on the orchestrator. The following kwargs will
+            have defaults applied if not set:
+            * builderless: True on branches, False on main
+            * cores: The compilator_cores module-level default.
+            * executable: "recipe:chromium/compilator"
+            * ssd: True
     """
     builder_group = defaults.get_value_from_kwargs("builder_group", kwargs)
     if not builder_group:
