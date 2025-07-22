@@ -67,8 +67,7 @@ load("//notifiers.star", "notifiers")  # @unused
 # load("//sheriff_rotations.star", "sheriff_rotations")  # @unused
 
 load("//structs.star", "structs")  # @unused
-
-# load("//swarming.star", "swarming")  # @unused
+load("//swarming.star", "swarming")  # @unused
 
 # Generates output files
 # load("//targets.star", "targets")  # @unused

@@ -6,11 +6,17 @@
 
 load("//branches.star", "branches")
 
-def root_permissions():
+def root_permissions(*, owner_group, viewer_group):
     """Sets up permissions that apply to all Chromium pools.
 
     Noop on a non-main branch, since Swarming pools are owned by the primary
     Chromium project defined on the main branch.
+
+    Args:
+        owner_group: Group to give the "swarming.poolOwner" role to in all
+            pools.
+        viewer_group: Group to give the "swarming.poolViewer" role to in all
+            pools.
     """
     if not branches.matches(branches.selector.MAIN):
         return
@@ -19,14 +25,14 @@ def root_permissions():
     luci.binding(
         realm = "@root",
         roles = "role/swarming.poolOwner",
-        groups = "project-chromium-admins",
+        groups = owner_group,
     )
 
     # Allow everyone to see all tasks and bots in Chromium pools.
     luci.binding(
         realm = "@root",
         roles = "role/swarming.poolViewer",
-        groups = "all",
+        groups = viewer_group,
     )
 
 def pool_realm(
