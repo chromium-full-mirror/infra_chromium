@@ -17,7 +17,7 @@ load can be uncommented here to ensure they remain loadable.
 
 load("//args.star", "args")  # @unused
 
-# Loads project.star, orchestrator.star
+# Loads project.star
 # load("//bootstrap.star", "bootstrap")  # @unused
 
 load("//branches.star", "branches")  # @unused
@@ -38,8 +38,7 @@ load("//headers.star", "headers")  # @unused
 load("//html.star", "linkify")  # @unused
 load("//nodes.star", "nodes")  # @unused
 load("//notifiers.star", "notifiers")  # @unused
-
-# load("//orchestrator.star", "orchestrator")  # @unused
+load("//orchestrator.star", "register_orchestrator")  # @unused
 
 # Loads project.star, builders.star
 # load("//polymorphic.star", "polymorphic")  # @unused
@@ -52,7 +51,7 @@ load("//swarming.star", "swarming")  # @unused
 load("//targets-internal/targets-specs-generation.star", "get_targets_spec_generator")  # @unused
 load("//targets.star", "targets")  # @unused
 
-# Loads project.star, builders.star, orchestrator.star
+# Loads project.star, builders.star
 # load("//try.star", "try_")  # @unused
 
 load("//xcode.star", "xcode")  # @unused

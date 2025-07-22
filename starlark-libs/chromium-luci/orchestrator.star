@@ -5,6 +5,7 @@
 """Library for defining orchestrators and compilators."""
 
 load("@stdlib//internal/graph.star", "graph")
+load("@stdlib//internal/luci/common.star", "keys")
 load("./html.star", "builder_url")
 load("./nodes.star", "nodes")
 
@@ -50,10 +51,15 @@ def register_orchestrator(bucket, name, builder_group, compilator):
     _COMPILATOR.add_ref(key, compilator)
 
 def register_compilator(bucket, name):
-    _COMPILATOR.add(bucket, name, props = {
+    key = _COMPILATOR.add(bucket, name, props = {
         "bucket": bucket,
         "name": name,
     })
+
+    # Add an edge from the project to the compilators so that the generator can
+    # detect if there's anything to do without having to find the buildbucket
+    # config, which may not exist
+    graph.add_edge(keys.project(), key)
 
 def _builder_name(node):
     return "{}/{}".format(node.props.bucket, node.props.name)
@@ -214,6 +220,11 @@ _ALLOWED_COMPILATOR_PROPERTIES = set([
 ])
 
 def _set_orchestrator_properties(ctx):
+    # Orchestrators have to link to a compilator, so checking for the existence
+    # of compilators is sufficient to know if anything needs to be done
+    if not graph.children(keys.project(), _COMPILATOR.kind):
+        return
+
     details = _get_orchestrators_and_compilators(ctx)
     for d in details:
         orchestrator = d.orchestrator
