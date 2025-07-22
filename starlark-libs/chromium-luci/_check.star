@@ -21,7 +21,7 @@ load("//branches.star", "branches")  # @unused
 load("//builder_config.star", "builder_config")  # @unused
 load("//builder_health_indicators.star", "health_spec")  # @unused
 
-# Loads project.star, recipe_experiments.star
+# Loads project.star
 # load("//builders.star", "builders")  # @unused
 # Loads project.star, builders.star
 # load("//ci.star", "ci")  # @unused
@@ -40,9 +40,7 @@ load("//orchestrator.star", "register_orchestrator")  # @unused
 # Loads project.star, builders.star
 # load("//polymorphic.star", "polymorphic")  # @unused
 
-# Generator fails because there is no cr-buildbucket.cfg
-# load("//recipe_experiments.star", "register_recipe_experiments")  # @unused
-
+load("//recipe_experiments.star", "register_recipe_experiments")  # @unused
 load("//structs.star", "structs")  # @unused
 load("//swarming.star", "swarming")  # @unused
 load("//targets-internal/targets-specs-generation.star", "get_targets_spec_generator")  # @unused

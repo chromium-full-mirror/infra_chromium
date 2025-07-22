@@ -12,6 +12,7 @@ See //recipes.star for information on setting experiments for a recipe.
 """
 
 load("@stdlib//internal/graph.star", "graph")
+load("@stdlib//internal/luci/common.star", "keys")
 load("./nodes.star", "nodes")
 
 _RECIPE_EXPERIMENTS = nodes.create_unscoped_node_type("recipe_experiments")
@@ -26,8 +27,12 @@ def register_recipe_experiments(recipe, experiments):
 def register_recipe_experiments_ref(bucket, builder, recipe):
     key = _RECIPE_EXPERIMENTS_REF.add(bucket, builder)
     graph.add_edge(key, _RECIPE_EXPERIMENTS.key(recipe))
+    graph.add_edge(keys.project(), key)
 
 def _set_recipe_experiments(ctx):
+    if not graph.children(keys.project(), _RECIPE_EXPERIMENTS_REF.kind):
+        return
+
     cfg = None
     for f in ctx.output:
         if f.startswith("luci/cr-buildbucket"):
