@@ -46,7 +46,7 @@ load("//enums.star", "enums")  # @unused
 # Loads project.star
 # load("//gn_args.star", "gn_args")  # @unused
 
-# load("//headers.star", "headers")  # @unused
+load("//headers.star", "headers")  # @unused
 
 # Loads project.star
 # load("//html.star", "html")  # @unused

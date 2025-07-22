@@ -131,6 +131,8 @@ def console_group(
     console_ids = _remove_none(console_ids)
     if not console_ids:
         return None
+    if type(title) == type(""):
+        title = {"text": title}
     return _remove_none_values(dict(
         title = title,
         console_ids = console_ids,
