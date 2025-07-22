@@ -6,9 +6,9 @@
 
 load("@stdlib//internal/graph.star", "graph")
 load("@stdlib//internal/luci/common.star", "keys")
+load("./nodes.star", _targets_nodes = "nodes")
 load("//args.star", args_lib = "args")
 load("//enums.star", "enums")
-load("./nodes.star", _targets_nodes = "nodes")
 
 _builder_defaults = args_lib.defaults(
     mixins = [],
@@ -218,6 +218,10 @@ def _basic_suite_test_config(
         telemetry_test_name: The telemetry test to run. Only applicable to
             telemetry test types.
         args: Arguments to be passed to the test binary.
+        precommit_args: Arguments to be passed to the test binary when running
+            on a try builder.
+        non_precommit_args: Arguments to be passed to the test binary when not
+            running on a try builder.
     """
     return struct(
         script = script,

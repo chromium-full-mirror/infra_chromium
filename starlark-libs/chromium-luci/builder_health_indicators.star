@@ -9,10 +9,10 @@ See chromium/src -- //docs/infra/builder_health_indicators.md for more info.
 
 load("@stdlib//internal/graph.star", "graph")
 load("@stdlib//internal/luci/common.star", "keys")
-load("//project.star", "settings")
 load("./builder_exemptions.star", "exempted_from_contact_builders")
 load("./nodes.star", "nodes")
 load("./structs.star", "structs")
+load("//project.star", "settings")
 
 _HEALTH_SPEC = nodes.create_bucket_scoped_node_type("health_spec")
 
@@ -132,6 +132,14 @@ def _exempted_from_contact(bucket, builder):
     return builder in exempted_from_contact_builders.get(bucket, [])
 
 def register_health_spec(bucket, name, specs, contact_team_email):
+    """Register the health spec for a builder.
+
+    Args:
+        bucket: The builder's bucket.
+        name: The builder's name.
+        specs: The health specs to apply to the builder.
+        contact_team_email: The email to notify when the builder is unhealthy.
+    """
     if not contact_team_email and not _exempted_from_contact(bucket, name):
         fail("Builder " + name + " must have a contact_team_email. All new builders must specify a team email for contact in case the builder stops being healthy or providing value.")
     elif contact_team_email and _exempted_from_contact(bucket, name):

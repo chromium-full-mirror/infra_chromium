@@ -41,6 +41,11 @@ def script_test(*, name, script, args = None, precommit_args = None, non_precomm
             a test with a variant).
         script: The name of the file within the //testing/scripts directory to
             run as the test.
+        args: Arguments to be passed to the test binary.
+        precommit_args: Arguments to be passed to the test binary when running
+            on a try builder.
+        non_precommit_args: Arguments to be passed to the test binary when not
+            running on a try builder.
     """
     _targets_common.create_legacy_test(
         name = name,

@@ -449,8 +449,8 @@ def _generate_test_suites_pyl(ctx):
             test_common_lines = test_common_formatter.lines()
             if test_common_lines:
                 test_formatter.open_scope("'test_common': {")
-                for l in test_common_lines:
-                    test_formatter.add_line(l)
+                for line in test_common_lines:
+                    test_formatter.add_line(line)
                 test_formatter.close_scope("},")
 
             # Generate the other top-level fields in the test dict
@@ -494,8 +494,8 @@ def _generate_test_suites_pyl(ctx):
             test_lines = test_formatter.lines()
             if test_lines:
                 formatter.open_scope("'{}': {{".format(test_name))
-                for l in test_lines:
-                    formatter.add_line(l)
+                for line in test_lines:
+                    formatter.add_line(line)
                 formatter.close_scope("},")
             else:
                 formatter.add_line("'{}': {{}},".format(test_name))

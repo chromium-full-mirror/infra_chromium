@@ -249,6 +249,8 @@ def _resultdb(
             ResultDB.
         result_format: The format of the test results.
         result_file: The file to write out test results to.
+        inv_extended_properties_dir: A path to the directory containing extended
+            properties for the test's invocation.
 
     Return:
         A struct that can be passed to the resultdb argument of `target.mixin`
@@ -358,7 +360,6 @@ def _mixin_values(
             test should be included in the test tasks' output isolates.
         merge: A targets.merge describing the invocation to merge the results
             from the test's tasks.
-        shards: The number of shards to use for running the test on skylab.
         experiment_percentage: An integer in the range [0, 100] indicating the
             percentage chance that the test will be run, with failures in the
             test not resulting in failures in the build.
@@ -450,7 +451,7 @@ def _variant(
             variant of the test being run. When tests are expanded with the
             variant, this will be appended to the test name.
         generate_pyl_entry: If true, the generated variants.pyl will contain an
-            entry allowing the mixin to be used by generate_buildbot_json.py.
+            entry allowing the variant to be used by generate_buildbot_json.py.
         enabled: Whether or not the variant is enabled. By default, a variant is
             enabled. If a variant is not enabled, then it will be ignored when
             expanding a test suite with variants.
@@ -482,8 +483,13 @@ def _bundle(*, name = None, additional_compile_targets = None, targets = None, m
 
     Args:
         name: The name of the bundle.
-        targets: A list of targets, bundles or legacy basic suites to include in
-            the bundle.
+        additional_compile_targets: A list of targets to build but not run.
+        targets: A list of tests, bundles or legacy suites to include in the
+            bundle.
+        mixins: A list of mixins to apply to all tests in the bundle.
+        variants: A list of variants to apply to all tests in the bundle.
+        per_test_modifications: A dict mapping from test name to mixins to apply
+            to that test.
     """
     return graph.keyset(_targets_common.create_bundle(
         name = name,
@@ -493,6 +499,13 @@ def _bundle(*, name = None, additional_compile_targets = None, targets = None, m
         variants = args.listify(variants),
         per_test_modifications = per_test_modifications or {},
     ))
+
+def _per_test_modification(test_config):
+    mixins = args.listify(_mixin(**(test_config.mixin_values or {})), test_config.mixins)
+    return _targets_common.per_test_modification(
+        mixins = mixins,
+        remove_mixins = test_config.remove_mixins,
+    )
 
 def _legacy_basic_suite(*, name, tests):
     """Define a basic suite.
@@ -515,13 +528,6 @@ def _legacy_basic_suite(*, name, tests):
     """
     basic_suite_key = _targets_nodes.LEGACY_BASIC_SUITE.add(name)
     graph.add_edge(keys.project(), basic_suite_key)
-
-    def _per_test_modification(test_config):
-        mixins = args.listify(_mixin(**(test_config.mixin_values or {})), test_config.mixins)
-        return _targets_common.per_test_modification(
-            mixins = mixins,
-            remove_mixins = test_config.remove_mixins,
-        )
 
     _targets_common.create_bundle(
         name = name,

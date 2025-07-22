@@ -179,6 +179,14 @@ gn_args = struct(
     config = _config,
 )
 
+def _normalize_gn_config(config, defaults):
+    if type(config) == "string":
+        d = {"configs": [config]}
+    else:
+        d = {a: getattr(config, a) for a in dir(config)}
+    d["builder_defaults"] = defaults
+    return d
+
 def register_gn_args(builder_group, bucket, builder, gn_args, use_siso):
     """Register GN args for a builder.
 
@@ -208,15 +216,6 @@ def register_gn_args(builder_group, bucket, builder, gn_args, use_siso):
             defaults["use_siso"] = True
             defaults["use_reclient"] = False
 
-    # Function for formating GN config for GN config node creation.
-    def format_gn_config(config):
-        if type(config) == "string":
-            d = {"configs": [config]}
-        else:
-            d = {a: getattr(config, a) for a in dir(config)}
-        d["builder_defaults"] = defaults
-        return d
-
     builder_node_name = "{}/{}".format(bucket, builder)
     if gn_args:
         if type(gn_args) == "dict":
@@ -227,13 +226,13 @@ def register_gn_args(builder_group, bucket, builder, gn_args, use_siso):
             phase_prefix = "{}/{}".format(bucket, builder)
             for phase_name, config in gn_args.items():
                 phase_node_name = "{}:{}".format(phase_prefix, phase_name)
-                formatted_config = format_gn_config(config)
+                formatted_config = _normalize_gn_config(config, defaults)
                 phase_node_key = _create_gn_config_node(name = phase_node_name, **formatted_config)
                 graph.add_edge(builder_node_key, phase_node_key)
 
         else:
             # Non-phased GN config.
-            formatted_config = format_gn_config(gn_args)
+            formatted_config = _normalize_gn_config(gn_args, defaults)
             formatted_config["builder_group"] = builder_group
             builder_node_key = _create_gn_config_node(name = builder_node_name, **formatted_config)
 
@@ -241,6 +240,28 @@ def register_gn_args(builder_group, bucket, builder, gn_args, use_siso):
         return ["{}/{}/{}".format(bucket, builder, _GN_ARGS_FILE_NAME)]
     else:
         return None
+
+# Function for validating special restrictions
+def _validate_gn_args(node, gn_args_dict):
+    # "chromium" group builders build public artifacts and should not
+    # include Chrome proprietary codec.
+    if node.props.builder_group == "chromium":
+        if (gn_args_dict["gn_args"].get("proprietary_codecs", False) or
+            gn_args_dict["gn_args"].get("ffmpeg_branding", "Chromium") != "Chromium"):
+            fail("\"chromium\" group builder " +
+                 "{} should not include Chrome proprietary codec".format(node.key.id))
+
+# Function for generating args-gn.json files
+def _gen_args_gn_json(ctx, node, gn_args_dict, root_out_dir, args_gn_locations):
+    gn_args_file_path = "{}/{}/{}".format(root_out_dir, node.key.id, _GN_ARGS_FILE_NAME)
+    ctx.output[gn_args_file_path] = json.indent(json.encode(gn_args_dict), indent = "  ")
+
+    builder_name = node.key.id.rsplit("/", 1)[-1]
+    builder_group = node.props.builder_group
+    args_gn_locations.setdefault(
+        builder_group,
+        {},
+    )[builder_name] = "{}/{}".format(node.key.id, _GN_ARGS_FILE_NAME)
 
 def _generate_gn_args(ctx):
     """Generator callback for generating "gn-args.json" files.
@@ -252,42 +273,20 @@ def _generate_gn_args(ctx):
     root_out_dir = per_builder_outputs_config().root_dir
     resolve_gn_args = _get_gn_args_resolver()
 
-    # Function for validating special restrictions
-    def validate_gn_args(gn_args_dict):
-        # "chromium" group builders build public artifacts and should not
-        # include Chrome proprietary codec.
-        if node.props.builder_group == "chromium":
-            if (gn_args_dict["gn_args"].get("proprietary_codecs", False) or
-                gn_args_dict["gn_args"].get("ffmpeg_branding", "Chromium") != "Chromium"):
-                fail("\"chromium\" group builder " +
-                     "{} should not include Chrome proprietary codec".format(node.key.id))
-
-    # Function for generating args-gn.json files
-    def gen_args_gn_json(gn_args_dict):
-        gn_args_file_path = "{}/{}/{}".format(root_out_dir, node.key.id, _GN_ARGS_FILE_NAME)
-        ctx.output[gn_args_file_path] = json.indent(json.encode(gn_args_dict), indent = "  ")
-
-        builder_name = node.key.id.rsplit("/", 1)[-1]
-        builder_group = node.props.builder_group
-        args_gn_locations.setdefault(
-            builder_group,
-            {},
-        )[builder_name] = "{}/{}".format(node.key.id, _GN_ARGS_FILE_NAME)
-
     # Builders with non-phased GN configs
     for node in graph.children(keys.project(), _GN_CONFIG.kind):
         gn_args_dict = resolve_gn_args(node)
-        validate_gn_args(gn_args_dict)
-        gen_args_gn_json(gn_args_dict)
+        _validate_gn_args(node, gn_args_dict)
+        _gen_args_gn_json(ctx, node, gn_args_dict, root_out_dir, args_gn_locations)
 
     # Builders with phased GN configs
     for node in graph.children(keys.project(), _PHASED_CONFIG.kind):
         phases_dict = {}
         for phase_node in graph.children(node.key):
             phase_args = resolve_gn_args(phase_node)
-            validate_gn_args(phase_args)
+            _validate_gn_args(node, phase_args)
             phases_dict[phase_node.key.id.split(":")[-1]] = phase_args
-        gen_args_gn_json({"phases": phases_dict})
+        _gen_args_gn_json(ctx, node, {"phases": phases_dict}, root_out_dir, args_gn_locations)
 
     locations_file_path = "{}/gn_args_locations.json".format(root_out_dir)
     ctx.output[locations_file_path] = json.indent(

@@ -5,11 +5,11 @@
 """Implementation of tests for GPU telemetry tests."""
 
 load("@stdlib//internal/graph.star", "graph")
-load("//args.star", args_lib = "args")
-load("//structs.star", "structs")
 load("../common.star", _targets_common = "common")
 load("../nodes.star", _targets_nodes = "nodes")
 load("./isolated_script_test.star", "create_isolated_script_test_spec_handler", "isolated_script_test_details")
+load("//args.star", args_lib = "args")
+load("//structs.star", "structs")
 
 _isolated_script_test_spec_handler = create_isolated_script_test_spec_handler("GPU telemetry test")
 
@@ -140,6 +140,9 @@ def gpu_telemetry_test(
             (additional components may be added by the recipe or when generating
             a test with a variant).
         telemetry_test_name: The name of the telemetry benchmark to run.
+        is_android_webview: A boolean indicating whether the test is targeting
+            WebView on Android.
+        args: Arguments to be passed to the test binary.
         mixins: Mixins to apply when expanding the test.
     """
     if not (name.endswith("test") or name.endswith("tests")):

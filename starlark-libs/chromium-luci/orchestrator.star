@@ -8,6 +8,7 @@ load("@stdlib//internal/graph.star", "graph")
 load("./html.star", "builder_url")
 load("./nodes.star", "nodes")
 
+# buildifier: disable=out-of-order-load
 # The generator in builder_config.star will set the
 # chromium_tests_builder_config property on the orchestrator, so load it first
 # so that when properties get copied to the compilator the

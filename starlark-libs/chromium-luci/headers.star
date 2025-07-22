@@ -13,8 +13,8 @@ All functions can also be accessed via the `headers` struct.
 
 load("//branches.star", "branches")
 
-def _remove_none(l):
-    return [e for e in l if e != None]
+def _remove_none(list_):
+    return [e for e in list_ if e != None]
 
 def _remove_none_values(d):
     return {k: v for k, v in d.items() if v != None}
@@ -35,6 +35,10 @@ def oncall(
             the oncall.
         branch_selector: A branch selector value controlling whether the oncall
             definition is executed. See branches.star for more information.
+
+    Returns:
+        A dict that can be used as an element in the list passed to the oncalls
+        argument of header.header.
     """
     if not branches.matches(branch_selector):
         return None
@@ -57,6 +61,10 @@ def link_group(*, name, links, branch_selector = branches.selector.MAIN):
         branch_selector: A branch selector value controlling whether the link
             group definition is executed. See branches.star for more
             information.
+
+    Returns:
+        A dict that can be used as an element in the list passed to the
+        link_groups argument of header.header.
     """
     if not branches.matches(branch_selector):
         return None
@@ -80,6 +88,10 @@ def link(*, url, text, alt = None, branch_selector = branches.selector.MAIN):
             but doesn't appear to produce any hover text.
         branch_selector: A branch selector value controlling whether the link
             definition is executed. See branches.star for more information.
+
+    Returns:
+        A dict that can be used as an element in the list passed to the links
+        argument of headers.link_group.
     """
     if not branches.matches(branch_selector):
         return None
@@ -106,6 +118,13 @@ def console_group(
         title: An optional title to apply to the console group, returned from
             `link`. If provided, the console group will have a box drawn around
             it with the title appearing at the top of the box.
+        branch_selector: A branch selector value controlling whether the console
+            group definition is executed. See branches.star for more
+            information.
+
+    Returns:
+        A dict that can be used as an element in the list passed to the
+        console_groups argument of headers.header.
     """
     if not branches.matches(branch_selector):
         return None
@@ -132,7 +151,7 @@ def header(
     Args:
         oncalls: Optional list of oncalls returned from `oncall` to to display
             in the header.
-        links: Optional list of link groups returned from `link_group` to
+        link_groups: Optional list of link groups returned from `link_group` to
             display in the header.
         console_groups: Optional list of console groups returned from
             `console_group` to display in the header.
@@ -143,6 +162,10 @@ def header(
         tree_name: Name of the tree in LUCI Tree Status app. If provided, the
             current tree status is displayed at the top of the header, colored
             according to the status of the tree.
+
+    Returns:
+        A dict that can be used as the value for the header argument of a
+        console view.
     """
     return _remove_none_values(dict(
         oncalls = _remove_none(oncalls or []),

@@ -5,8 +5,8 @@
 """Utility library for working with lucicfg graph nodes."""
 
 load("@stdlib//internal/graph.star", "graph")
-load("@stdlib//internal/sequence.star", "sequence")
 load("@stdlib//internal/luci/common.star", "builder_ref", "keys", "kinds")
+load("@stdlib//internal/sequence.star", "sequence")
 
 _CHROMIUM_NS_KIND = "@chromium"
 

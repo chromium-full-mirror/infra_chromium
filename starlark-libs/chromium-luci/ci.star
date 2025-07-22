@@ -13,12 +13,12 @@ corresponding attribute on `defaults` that is a `lucicfg.var` that can be used
 to set the default value. Can also be accessed through `ci.defaults`.
 """
 
-load("//project.star", "settings")
-load("./notifiers.star", "notifiers")
 load("./args.star", "args")
 load("./branches.star", "branches")
 load("./builder_config.star", "builder_config")
 load("./builders.star", "builders", "os")
+load("./notifiers.star", "notifiers")
+load("//project.star", "settings")
 
 defaults = args.defaults(
     extends = builders.defaults,
@@ -71,7 +71,6 @@ def ci_builder(
         tree_closing_notifiers: A list of notifiers that will be notified when
             tree closing criteria are met by a build of this builder. Supports a
             module-level default that will be merged with the provided value.
-        notifies: Any extra notifiers to attach to this builder.
         resultdb_bigquery_exports: a list of resultdb.export_test_results(...)
             specifying additional parameters for exporting test results to
             BigQuery. Will always upload to the following tables in addition to
@@ -245,11 +244,10 @@ def thin_tester(
         **kwargs):
     """Define a thin tester.
 
-    A thin tester is a builder that is triggered by another builder to
-    trigger and wait for tests that were built by the triggering builder.
-    Because these builders do not perform compilation and are performing
-    platform-agnostic operations, they can generally run on small linux
-    machines.
+    A thin tester is a builder that is triggered by another builder to trigger
+    and wait for tests that were built by the triggering builder. Because these
+    builders do not perform compilation and are performing platform-agnostic
+    operations, they can generally run on small linux machines.
 
     Args:
         name: The name of the builder.

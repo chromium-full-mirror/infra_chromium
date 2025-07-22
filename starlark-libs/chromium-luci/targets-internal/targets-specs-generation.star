@@ -17,11 +17,11 @@ targets spec files for the builder.
 
 load("@stdlib//internal/error.star", "error")
 load("@stdlib//internal/graph.star", "graph")
+load("./common.star", _targets_common = "common")
+load("./nodes.star", _targets_nodes = "nodes")
 load("//args.star", args_lib = "args")
 load("//chrome_settings.star", "targets_config")
 load("//structs.star", "structs")
-load("./common.star", _targets_common = "common")
-load("./nodes.star", _targets_nodes = "nodes")
 
 def register_targets(*, parent_key, builder_group, builder_name, name, targets, settings):
     """Register the targets for a builder.
@@ -32,6 +32,8 @@ def register_targets(*, parent_key, builder_group, builder_name, name, targets, 
     Args:
         parent_key: The graph key of the parent node to register the targets
             for.
+        builder_group: The builder group of the builder to register targets for.
+        builder_name: The name of the builder to register targets for.
         name: The name to use for the registered bundle. This will allow for
             other builders to specify their targets in terms of another
             builder's.
@@ -170,6 +172,21 @@ def _get_bundle_resolver():
     def visitor(_, children):
         return [c for c in children if c.key.kind == _targets_nodes.BUNDLE.kind]
 
+    def update_spec_with_mixin(test_expansion_by_name, settings, bundle_node, test_name, test_expansion, mixin, *, ignore_failure = False):
+        if mixin in test_expansion.mixins_to_ignore:
+            return
+        spec = test_expansion.spec
+        new_spec, failure = _apply_mixin(spec, settings, mixin.props.mixin_values)
+        if failure:
+            if ignore_failure:
+                return
+            fail(
+                "modifying {} {} with {} failed: {}"
+                    .format(spec.handler.type_name, test_name, mixin, failure),
+                trace = bundle_node.props.stacktrace,
+            )
+        test_expansion_by_name[test_name] = structs.evolve(test_expansion, spec = new_spec, source = bundle_node.key)
+
     resolved_bundle_by_bundle_node_by_settings = {}
 
     def resolve(bundle_node, settings):
@@ -239,21 +256,6 @@ def _get_bundle_resolver():
                     test_expansion = test_expansion_by_name[name]
                     test_expansion_by_name[name] = structs.evolve(test_expansion, mixins_to_ignore = test_expansion.mixins_to_ignore | set(mixins_to_ignore))
 
-            def update_spec_with_mixin(test_name, test_expansion, mixin, *, ignore_failure = False):
-                if mixin in test_expansion.mixins_to_ignore:
-                    return
-                spec = test_expansion.spec
-                new_spec, failure = _apply_mixin(spec, settings, mixin.props.mixin_values)
-                if failure:
-                    if ignore_failure:
-                        return
-                    fail(
-                        "modifying {} {} with {} failed: {}"
-                            .format(spec.handler.type_name, test_name, mixin, failure),
-                        trace = n.props.stacktrace,
-                    )
-                test_expansion_by_name[test_name] = structs.evolve(test_expansion, spec = new_spec, source = n.key)
-
             for name in n.props.tests_to_remove:
                 test_expansion = test_expansion_by_name.pop(name, None)
                 if test_expansion == None:
@@ -276,9 +278,9 @@ def _get_bundle_resolver():
                         # DEFINITION_ORDER preserves the order that the edges
                         # were added from the parent to the child
                         for mixin in graph.children(variant.key, _targets_nodes.MIXIN.kind, graph.DEFINITION_ORDER):
-                            update_spec_with_mixin(name_with_variant, test_expansion_by_name[name_with_variant], mixin)
+                            update_spec_with_mixin(test_expansion_by_name, settings, n, name_with_variant, test_expansion_by_name[name_with_variant], mixin)
 
-                        update_spec_with_mixin(name_with_variant, test_expansion_by_name[name_with_variant], variant)
+                        update_spec_with_mixin(test_expansion_by_name, settings, n, name_with_variant, test_expansion_by_name[name_with_variant], variant)
                         spec_value = test_expansion_by_name[name_with_variant].spec.value
                         spec_value["name"] = name_with_variant
                         spec_value["variant_id"] = variant.props.identifier
@@ -290,7 +292,7 @@ def _get_bundle_resolver():
                 for name, test_expansion in test_expansion_by_name.items():
                     # We don't care if a mixin applied at bundle level doesn't
                     # apply to every test, so ignore errors
-                    update_spec_with_mixin(name, test_expansion, mixin, ignore_failure = True)
+                    update_spec_with_mixin(test_expansion_by_name, settings, n, name, test_expansion, mixin, ignore_failure = True)
 
             for per_test_modification in per_test_modifications:
                 name = per_test_modification.key.id
@@ -299,7 +301,7 @@ def _get_bundle_resolver():
                 # DEFINITION_ORDER preserves the order that the edges were added
                 # from the parent to the child
                 for mixin in graph.children(per_test_modification.key, _targets_nodes.MIXIN.kind, graph.DEFINITION_ORDER):
-                    update_spec_with_mixin(name, test_expansion_by_name[name], mixin)
+                    update_spec_with_mixin(test_expansion_by_name, settings, n, name, test_expansion_by_name[name], mixin)
 
                 replacements = per_test_modification.props.replacements
                 update = {}

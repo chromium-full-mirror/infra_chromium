@@ -26,6 +26,7 @@ load("./chrome_settings.star", "per_builder_outputs_config")
 load("./nodes.star", "nodes")
 load("//project.star", "settings")
 
+# buildifier: disable=out-of-order-load
 # builder_config.star and orchestrator.star have generators that modify
 # properties, so load them first to ensure that the modified properties get
 # written out to the property files

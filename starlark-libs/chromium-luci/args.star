@@ -147,7 +147,7 @@ def listify(*args):
         A list composed of the pased in arguments.
     """
     wrap_in_ignore_default = False
-    l = []
+    new_list = []
     for a in args:
         should_ignore_default, a = _should_ignore_default(a)
         if should_ignore_default:
@@ -159,10 +159,10 @@ def listify(*args):
             if should_ignore_default:
                 wrap_in_ignore_default = True
             if val != None:
-                l.append(val)
+                new_list.append(val)
     if wrap_in_ignore_default:
-        return ignore_default(l)
-    return l
+        return ignore_default(new_list)
+    return new_list
 
 args = struct(
     COMPUTE = COMPUTE,

@@ -5,10 +5,10 @@
 """Implementation of tests for gtest-based tests."""
 
 load("@stdlib//internal/graph.star", "graph")
-load("//args.star", args_lib = "args")
 load("../common.star", _targets_common = "common")
 load("../nodes.star", _targets_nodes = "nodes")
 load("./isolated_script_test.star", "create_isolated_script_test_spec_handler", "isolated_script_test_details")
+load("//args.star", args_lib = "args")
 
 _isolated_script_test_spec_handler = create_isolated_script_test_spec_handler("gtest")
 
@@ -51,8 +51,8 @@ def gtest_test(*, name, binary = None, mixins = None, args = None):
             (additional components may be added by the recipe or when generating
             a test with a variant).
         binary: The test binary to use. There must be a defined binary with the
-            given name. If none is provided, then an binary with the same name
-            as the test must be defined.
+            given name. If none is provided, then a binary with the same name as
+            the test must be defined.
         mixins: Mixins to apply when expanding the test.
         args: Arguments to be passed to the test binary.
     """

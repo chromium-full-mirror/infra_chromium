@@ -25,7 +25,6 @@ for use with the corresponding arguments to `builder`. Can also be accessed
 through `builders.cpu` and `builders.os` respectively.
 """
 
-load("//project.star", "settings")
 load("./args.star", "args")
 load("./bootstrap.star", "register_bootstrap")
 load("./branches.star", "branches")
@@ -37,6 +36,7 @@ load("./gn_args.star", "register_gn_args")
 load("./nodes.star", "nodes")
 load("./recipe_experiments.star", "register_recipe_experiments_ref")
 load("./sheriff_rotations.star", "register_gardener_builder")
+load("//project.star", "settings")
 
 ################################################################################
 # Constants for use with the builder function                                  #
@@ -621,6 +621,8 @@ def builder(
         siso_keep_going: Bool flag whether to pass '-k 0' or not.
         siso_disable_batch_mode: Bool flag whether to pass `-batch=false` or
             not.
+        skip_profile_upload: A boolean indicating whether the PGO profile should
+            be uploaded when using PGO.
         health_spec: a health spec instance describing the threshold for when
             the builder should be considered unhealthy.
         shadow_builderless: If set to True, then led builds created for this

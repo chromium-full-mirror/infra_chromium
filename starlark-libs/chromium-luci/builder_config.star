@@ -5,7 +5,6 @@
 """Library for defining chromium_tests_builder_config properties."""
 
 load("@stdlib//internal/luci/common.star", "kinds")
-load("//project.star", "settings")
 load("./args.star", "args")
 load("./branches.star", "branches")
 load(
@@ -23,6 +22,7 @@ load("./nodes.star", "nodes")
 load("./sheriff_rotations.star", "get_gardener_rotations")
 load("./structs.star", "structs")
 load("./targets-internal/targets-specs-generation.star", "get_targets_spec_generator", "register_targets")
+load("//project.star", "settings")
 
 _execution_mode = enums.enum(
     # The builder will perform compilation of any targets configured in the
@@ -101,6 +101,7 @@ def _chromium_config(
     Args:
         config: (str) The name of the recipe module config item to use.
         target_platform: (target_platform) The target platform to build for.
+        host_platform: (host_platform) The host platform the build will run on.
         apply_configs: (list[str]|str) Additional configs to apply.
         build_config: (build_config) The build config value to use.
         target_arch: (target_arch) The target architecture to build for.
@@ -799,7 +800,7 @@ def _set_builder_config_property(ctx):
                 def add(node, parent = None):
                     node_id = (node.key.container.id, node.key.id)
                     if node_id not in encountered:
-                        entry = _entry(bc_state, node, parent)
+                        entry = _entry(bc_state, node, parent)  # buildifier: disable=uninitialized
                         entries.append(entry)
                         targets_spec_nodes.append(node)
                         if bc_state.builder_spec(node).execution_mode == _execution_mode.COMPILE_AND_TEST:
@@ -1012,7 +1013,7 @@ def _bc_state():
 
         parent = list(parents)[0] if parents else None
 
-        execution_mode = bc_state.builder_spec(node).execution_mode
+        execution_mode = bc_state.builder_spec(node).execution_mode  # buildifier: disable=uninitialized
 
         if execution_mode == _execution_mode.TEST:
             if not parent:
@@ -1037,7 +1038,7 @@ def _bc_state():
 
         children = _BUILDER_CONFIG_PARENT.parents(node.key)
 
-        execution_mode = bc_state.builder_spec(node).execution_mode
+        execution_mode = bc_state.builder_spec(node).execution_mode  # buildifier: disable=uninitialized
 
         if execution_mode != _execution_mode.COMPILE_AND_TEST and children:
             fail(
@@ -1097,7 +1098,7 @@ def _bc_state():
         nodes = _BUILDER_CONFIG_MIRROR.children(node.key)
 
         for mirror in nodes:
-            if not bc_state.builder_spec(mirror):
+            if not bc_state.builder_spec(mirror):  # buildifier: disable=uninitialized
                 fail("builder {} mirrors builder {} which does not have a builder spec"
                     .format(_builder_name(node), _builder_name(mirror)))
 

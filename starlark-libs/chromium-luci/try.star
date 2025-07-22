@@ -263,6 +263,11 @@ def try_builder(
             any tables specified by the list's elements:
                 chrome-luci-data.chromium.try_test_results
                 chrome-luci-data.gpu_try_test_results
+        **kwargs: Additional keyword args to forward on to builders.builder.
+
+    Returns:
+        The lucicfg keyset for the builder, None if the builder wasn't defined
+        (e.g. branch selector doesn't match current project's settings).
     """
     if not branches.matches(branch_selector):
         return None
@@ -418,6 +423,17 @@ def presubmit_builder(*, name, tryjob, **kwargs):
     building. Their results aren't re-used because they tend to provide guards
     against generated files being out of date, so they MUST run quickly so that
     the submit after a CQ dry run doesn't take long.
+
+    Args:
+        name: The builder to define.
+        tryjob: An optional try_.job controlling when the builder is added to
+            the CQ. If disable_reuse isn't set, it will be set to True. The
+            add_default_filters value will be forced to False.
+        **kwargs: Additional keyword args to forward to try_.builder.
+
+    Returns:
+        The lucicfg keyset for the builder, None if the builder wasn't defined
+        (e.g. branch selector doesn't match current project's settings).
     """
     if tryjob:
         tryjob_args = {a: getattr(tryjob, a) for a in dir(tryjob)}
@@ -455,14 +471,18 @@ def _orchestrator_builder(
         use_orchestrator_pool: Whether to use the bots in
             luci.chromium.try.orchestrator pool. This kwarg should be taken out
             once all CQ builders are migrated to be srcless (crbug/1287228)
-        **kwargs: Additional kwargs to be forwarded to try_.builder. The
-            following kwargs will have defaults applied if not set:
+        **kwargs: Additional kwargs to be forwarded to try_.builder.
+            The following kwargs will have defaults applied if not set:
             * builderless: True on branches, False on main
             * cores: The orchestrator_cores module-level default.
             * executable: "recipe:chromium/orchestrator"
             * os: os.LINUX_DEFAULT
             * service_account: "chromium-orchestrator@chops-service-accounts.iam.gserviceaccount.com"
             * ssd: None
+
+    Returns:
+        The lucicfg keyset for the builder, None if the builder wasn't defined
+        (e.g. branch selector doesn't match current project's settings).
     """
     builder_group = defaults.get_value_from_kwargs("builder_group", kwargs)
     if not builder_group:
@@ -523,6 +543,10 @@ def _compilator_builder(*, name, **kwargs):
             * cores: The compilator_cores module-level default.
             * executable: "recipe:chromium/compilator"
             * ssd: True
+
+    Returns:
+        The lucicfg keyset for the builder, None if the builder wasn't defined
+        (e.g. branch selector doesn't match current project's settings).
     """
     builder_group = defaults.get_value_from_kwargs("builder_group", kwargs)
     if not builder_group:
