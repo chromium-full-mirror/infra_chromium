@@ -344,6 +344,28 @@ defaults = args.defaults(
     custom_metrics = None,
 )
 
+def _with_expiration(value, *, expiration):
+    """Provide a value with an expiration.
+
+    This is used for some arguments to the builder function that control the
+    setting of dimensions to enable preferring some subset of machines and
+    falling back to a larger set if a preferred machine doesn't become
+    available.
+
+    Args:
+        value: The preferred value.
+        expiration: A time value indicating how long to wait for a machine
+            matching the preferred value.
+
+    Returns:
+        A struct that can be passed to the ssd argument of a builder
+        declaration.
+    """
+    return struct(
+        value = value,
+        expiration = expiration,
+    )
+
 # This node won't actually be accessed, but creating it for builders that have
 # builder_group set will enforce that there can't be builders with the same name
 # in different buckets that use the same builder group since lucicfg will check
@@ -525,7 +547,10 @@ def builder(
         ssd: a boolean indicating whether the builder runs on machines with ssd.
             If True, emits a 'ssd:1' dimension. If False, emits a 'ssd:0'
             parameter. By default, considered False if builderless is considered
-            True and otherwise None.
+            True and otherwise None. A builders.with_expiration can be specified
+            instead of a boolean to provide a value with an expiration. This
+            enables preferring or avoiding SSDs and falling back to any machine
+            that matches the other dimensions.
         gardener_rotations: A string or list of strings identifying the gardener
             rotations that the builder should be included in. Will be merged
             with the module-level default.
@@ -775,7 +800,15 @@ def builder(
             os.category not in _EXCLUDE_BUILDERLESS_SSD_OS_CATEGORIES):
             ssd = False
     if ssd != None:
-        dimensions["ssd"] = "1" if ssd else "0"
+        if type(ssd) == type(struct()):
+            if ssd.value == None:
+                fail("None is not a valid value for ssd with expiration")
+            dimensions["ssd"] = swarming.dimension(
+                value = "1" if ssd.value else "0",
+                expiration = ssd.expiration,
+            )
+        else:
+            dimensions["ssd"] = "1" if ssd else "0"
 
     gce = defaults.get_value("gce", gce)
     if gce != None:
@@ -1077,6 +1110,7 @@ def builder(
 
 builders = struct(
     builder = builder,
+    with_expiration = _with_expiration,
     cpu = cpu,
     defaults = defaults,
     os = os,
