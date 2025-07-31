@@ -13,6 +13,7 @@ See //recipes.star for information on setting experiments for a recipe.
 
 load("@stdlib//internal/graph.star", "graph")
 load("@stdlib//internal/luci/common.star", "keys")
+load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 load("./nodes.star", "nodes")
 
 _RECIPE_EXPERIMENTS = nodes.create_unscoped_node_type("recipe_experiments")
@@ -41,15 +42,42 @@ def _set_recipe_experiments(ctx):
     if cfg == None:
         fail("There is no buildbucket configuration file to reformat properties")
 
+    library_settings = _chromium_luci.recipe_experiments_settings()
+
     for bucket in cfg.buckets:
         if not proto.has(bucket, "swarming"):
             continue
         bucket_name = bucket.name
         for builder in bucket.swarming.builders:
             builder_name = builder.name
-            recipe_experiments_nodes = graph.children(_RECIPE_EXPERIMENTS_REF.key(bucket_name, builder_name), _RECIPE_EXPERIMENTS.kind)
+            recipe_experiment_ref_node = _RECIPE_EXPERIMENTS_REF.get(
+                bucket_name,
+                builder_name,
+            )
+
+            # The only way there wouldn't be a recipe experiment ref node is if
+            # the builder was not defined using one of our wrapper functions
+            if not recipe_experiment_ref_node:
+                if not library_settings.require_builder_wrappers:
+                    continue
+
+                # This should be impossible, our wrappers call
+                # register_recipe_experiments_ref
+                fail("internal failure: builder {}/{}")
+
+            recipe_experiments_nodes = graph.children(
+                recipe_experiment_ref_node.key,
+                _RECIPE_EXPERIMENTS.kind,
+            )
             if len(recipe_experiments_nodes) != 1:
-                fail("Each builder should refer to 1 recipe")
+                fail(
+                    ("internal failure: builder {}/{}" +
+                     " should refer to exactly 1 recipe node: {}").format(
+                        bucket_name,
+                        builder_name,
+                        recipe_experiments_nodes,
+                    ),
+                )
             recipe_experiments_node = recipe_experiments_nodes[0]
             for experiment, percentage in recipe_experiments_node.props.experiments.items():
                 builder.experiments.setdefault(experiment, percentage)

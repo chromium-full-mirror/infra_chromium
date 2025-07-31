@@ -462,6 +462,40 @@ def _gardener_rotations_settings():
     """
     return _GARDENER_ROTATIONS_SETTINGS.get()
 
+_RECIPE_EXPERIMENTS_SETTINGS = _settings(
+    "recipe_experiments-settings",
+    default = struct(
+        require_builder_wrappers = True,
+    ),
+)
+
+def _configure_recipe_experiments(*, require_builder_wrappers = True):
+    """Configure the recipe_experiments library.
+
+    Args:
+        require_builder_wrappers: If True, then it will be an error if any
+            builders exist that are not defined via the wrappers in the
+            builders, ci or try libraries. If False, then builders can be
+            defined without one of the wrappers, but the recipes will not have
+            their experiments applied to those builders.
+    """
+    _RECIPE_EXPERIMENTS_SETTINGS.set(
+        require_builder_wrappers = require_builder_wrappers,
+    )
+
+def _recipe_experiments_settings():
+    """Get the recipe_experiments settings.
+
+    Returns:
+        A struct with the following attributes:
+            require_builder_wrappers: If True, then it will be an error if any
+                builders exist that are not defined via the wrappers in the
+                builders, ci or try libraries. If False, then builders can be
+                defined without one of the wrappers, but the recipes will not
+                have their experiments applied to those builders.
+    """
+    return _RECIPE_EXPERIMENTS_SETTINGS.get()
+
 _TARGETS_SETTINGS = _settings("targets-settings", default = struct(
     autoshard_exceptions = {},
 ))
@@ -585,6 +619,8 @@ chromium_luci = struct(
     gardener_rotations_settings = _gardener_rotations_settings,
     configure_gn_args = _configure_gn_args,
     gn_args_settings = _gn_args_settings,
+    configure_recipe_experiments = _configure_recipe_experiments,
+    recipe_experiments_settings = _recipe_experiments_settings,
     configure_targets = _configure_targets,
     targets_settings = _targets_settings,
     configure_try = _configure_try,
