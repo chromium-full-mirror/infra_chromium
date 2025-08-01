@@ -51,6 +51,7 @@ def _console_test_launcher(
         name,
         label,
         label_type = None,
+        module_scheme = None,
         skip_usage_check = False,
         args = None):
     """Define a console test launcher target to use in targets specs.
@@ -66,6 +67,7 @@ def _console_test_launcher(
             generated runtime files in the correct place if the target uses the
             test_launcher command-line conventions but the label refers to a
             different type of target.
+        module_scheme: The module scheme to use for structured test ids.
         skip_usage_check: Disables checking that the target is actually
             referenced in a targets spec for some builder.
         args: The arguments to the test. These arguments will be included when
@@ -76,6 +78,7 @@ def _console_test_launcher(
         type = "console_test_launcher",
         label = label,
         label_type = label_type,
+        module_scheme = module_scheme,
         skip_usage_check = skip_usage_check,
         args = args,
     )
@@ -84,6 +87,7 @@ def _generated_script(
         *,
         name,
         label,
+        module_scheme = None,
         skip_usage_check = False,
         args = None,
         results_handler = None,
@@ -99,6 +103,7 @@ def _generated_script(
         name: The ninja target name. This is the name that can be used to refer
             to the target/binary in other starlark declarations.
         label: The GN label for the ninja target.
+        module_scheme: The module scheme to use for structured test ids.
         skip_usage_check: Disables checking that the target is actually
             referenced in a targets spec for some builder.
         args: The arguments to the test. These arguments will be included when
@@ -113,6 +118,7 @@ def _generated_script(
         name = name,
         type = "generated_script",
         label = label,
+        module_scheme = module_scheme,
         skip_usage_check = skip_usage_check,
         args = args,
         test_config = _targets_common.binary_test_config(
@@ -130,6 +136,7 @@ def _script(
         skip_usage_check = False,
         args = None,
         merge = None,
+        module_scheme = None,
         resultdb = None):
     """Define a script target to use in targets specs.
 
@@ -147,6 +154,7 @@ def _script(
             the test is run using "mb try"
         merge: A targets.merge describing the invocation to merge the results
             from the test's tasks.
+        module_scheme: The module scheme to use for structured test ids.
         resultdb: A targets.resultdb describing the ResultDB integration for the
             test.
     """
@@ -157,6 +165,7 @@ def _script(
         script = script,
         skip_usage_check = skip_usage_check,
         args = args,
+        module_scheme = module_scheme,
         test_config = _targets_common.binary_test_config(
             merge = merge,
             resultdb = resultdb,
@@ -170,6 +179,7 @@ def _windowed_test_launcher(
         label_type = None,
         executable = None,
         executable_suffix = None,
+        module_scheme = None,
         skip_usage_check = False,
         args = None):
     """Define a windowed test launcher target to use in targets specs.
@@ -190,6 +200,7 @@ def _windowed_test_launcher(
             used. On Windows, .exe will be appended, so it should not appear in
             the executable name.
         executable_suffix: The suffix to append to the executable name.
+        module_scheme: The module scheme to use for structured test ids.
         skip_usage_check: Disables checking that the target is actually
             referenced in a targets spec for some builder.
         args: The arguments to the test. These arguments will be included when
@@ -202,6 +213,7 @@ def _windowed_test_launcher(
         label_type = label_type,
         executable = executable,
         executable_suffix = executable_suffix,
+        module_scheme = module_scheme,
         skip_usage_check = skip_usage_check,
         args = args,
     )

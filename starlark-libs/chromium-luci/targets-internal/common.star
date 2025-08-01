@@ -162,7 +162,8 @@ def _create_binary(
         script = None,
         skip_usage_check = False,
         args = None,
-        test_config = None):
+        test_config = None,
+        module_scheme = None):
     _create_label_mapping(
         name = name,
         type = type,
@@ -187,12 +188,15 @@ def _create_binary(
             "see http://crbug.com/1071091 for details"
         ).format(name, label_pieces[1]))
     test_id_prefix = "ninja:{}/".format(label)
+    module_name = "{}/".format(label)
 
     _create_compile_target(
         name = name,
     )
 
     return _targets_nodes.BINARY.add(name, props = dict(
+        module_name = module_name,
+        module_scheme = module_scheme,
         test_id_prefix = test_id_prefix,
         test_config = test_config,
     ))
