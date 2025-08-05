@@ -764,7 +764,7 @@ def builder(
                 dimensions["builder"] = name
 
     exempted_from_description = name in library_settings.exempted_from_description_builders.get(bucket, [])
-    if not kwargs.get("description_html", "").strip() and exempted_from_description and not mirrors:
+    if not kwargs.get("description_html", "").strip() and not exempted_from_description and not mirrors:
         fail("Builder " + name + " must have a description_html. All new builders must specify a description.")
     elif kwargs.get("description_html", "").strip() and exempted_from_description:
         fail("Need to remove builder " + bucket + "/" + name + " from exempted_from_description_builders")
