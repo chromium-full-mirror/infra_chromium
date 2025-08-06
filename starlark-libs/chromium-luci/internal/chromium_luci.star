@@ -41,14 +41,18 @@ _PROJECT_SETTINGS = _settings(
     required_configure = "chromium_luci.configure_project",
 )
 
-def _configure_project(*, name, is_main, platforms = [], ref = "refs/heads/main", relative_path = None):
+def _configure_project(*, name, is_main, platforms = {}, ref = "refs/heads/main", relative_path = None):
     """Configure the project for the chromium-luci libraries.
 
     Args:
         name: The name of the project.
         is_main: Whether the project is for the main branch.
-        platforms: The platforms that the branch is enabled for. It is an error
-            to set this if is_main is true: all platforms are enabled for main.
+        platforms: A dict of platforms that are enabled for the the branch. The
+            keys of the dict should be one of the branches.platform values, with
+            the values being a struct with the gardener_rotation attribute which
+            is either None or a string with the name of the gardener rotation to
+            set for the builder on the branch. It is an error to set this if
+            is_main is true: all platforms are enabled for main.
         ref: The ref of the repo containing the project.
         relative_path: The path of the repo containing the project relative to
             the top-level repo.
