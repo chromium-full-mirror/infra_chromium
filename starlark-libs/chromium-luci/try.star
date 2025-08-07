@@ -369,6 +369,9 @@ def try_builder(
     builder = "{}/{}".format(bucket, name)
     cq_groups = defaults.get_value("cq_group", cq_group)
     if cq_groups != None:
+        default_disable_reuse_footers = _DEFAULT_DISABLE_REUSE_FOOTERS
+        if not library_settings.add_default_disable_reuse_footers:
+            default_disable_reuse_footers = None
         if type(cq_groups) != type([]):
             cq_groups = [cq_groups]
         if tryjob != None:
@@ -381,7 +384,10 @@ def try_builder(
                 # together, so set disable_reuse_footers to None
                 disable_reuse_footers = None
             elif tryjob.add_default_disable_reuse_footers:
-                disable_reuse_footers = args.listify(disable_reuse_footers, _DEFAULT_DISABLE_REUSE_FOOTERS)
+                disable_reuse_footers = args.listify(
+                    disable_reuse_footers,
+                    default_disable_reuse_footers,
+                )
             if not tryjob.omit_from_luci_cv:
                 kwargs = {}
 
@@ -412,16 +418,19 @@ def try_builder(
                         **kwargs
                     )
         else:
+            kwargs = {}
+            if default_disable_reuse_footers:
+                # If someone adds a builder using CQ-Include-Trybots and it has
+                # ci_only tests configured, then we would want it to get rerun
+                # if the Include-Ci-Only-Tests footer gets changed
+                kwargs["disable_reuse_footers"] = default_disable_reuse_footers
             for cq_group in cq_groups:
                 # Allow CQ to trigger this builder if user opts in via CQ-Include-Trybots.
                 luci.cq_tryjob_verifier(
                     builder = builder,
                     cq_group = cq_group,
                     includable_only = True,
-                    # If someone adds a builder using CQ-Include-Trybots and it
-                    # has ci_only tests configured, then we would want it to get
-                    # rerun if the Include-Ci-Only-Tests footer gets changed
-                    disable_reuse_footers = _DEFAULT_DISABLE_REUSE_FOOTERS,
+                    **kwargs
                 )
 
     return ret
