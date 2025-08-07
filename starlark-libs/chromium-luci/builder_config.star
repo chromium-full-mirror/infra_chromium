@@ -972,6 +972,11 @@ def _set_builder_config_property(ctx):
 
             # TODO(crbug.com/40282038): Uncomment the following when CV actually
             # supports custom run modes.
+            # TODO: crbug.com/435249186 - It isn't necessary to account for an
+            # empty allowlist once the generate_default_cq_run_modes argument to
+            # configure_try is removed
+            #if not b.mode_allowlist:
+            #    b.mode_allowlist.extend([cq.MODE_DRY_RUN, cq.MODE_FULL_RUN])
             #if "CQ_MODE_MEGA_DRY_RUN" not in b.mode_allowlist:
             #    b.mode_allowlist.append("CQ_MODE_MEGA_DRY_RUN")
             #if "CQ_MODE_MEGA_FULL_RUN" not in b.mode_allowlist:

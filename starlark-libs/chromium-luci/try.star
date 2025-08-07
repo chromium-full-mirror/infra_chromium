@@ -386,9 +386,16 @@ def try_builder(
                 kwargs = {}
 
                 if not tryjob.includable_only:
-                    # These are the default if includable_only is False, but we list
-                    # them here so we can add additional modes in a later generator.
-                    kwargs["mode_allowlist"] = tryjob.custom_cq_run_modes or [cq.MODE_DRY_RUN, cq.MODE_FULL_RUN]
+                    if tryjob.custom_cq_run_modes:
+                        kwargs["mode_allowlist"] = tryjob.custom_cq_run_modes
+                    elif library_settings.generate_default_cq_run_modes:
+                        # These are the default if includable_only is False, but
+                        # we list them here so we can add additional modes in a
+                        # later generator.
+                        kwargs["mode_allowlist"] = [
+                            cq.MODE_DRY_RUN,
+                            cq.MODE_FULL_RUN,
+                        ]
                 for cq_group in cq_groups:
                     luci.cq_tryjob_verifier(
                         builder = builder,

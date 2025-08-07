@@ -588,7 +588,10 @@ def _configure_try(
         additional_default_exclude_path_regexps = [],
         # TODO: crbug.com/435248194 - Remove this once M139 and lower have been
         # turned down
-        include_headless_shell_wpt_in_blink_web_test_results = True):
+        include_headless_shell_wpt_in_blink_web_test_results = True,
+        # TODO: crbug.com/435249186 - Remove this once M139 and lower have been
+        # turned down
+        generate_default_cq_run_modes = True):
     """Configure the try library.
 
     Args:
@@ -605,11 +608,20 @@ def _configure_try(
             a regex to match tests with an ID ending in headless_shell_wpt/ in
             blink web tests results. This is restricted to existing projects to
             prevent unnecessary changes to the generated config.
+        generate_default_cq_run_modes: Whether to generate the default CQ run
+            modes for tryjobs added to the CV config. This is restricted to
+            existing projects to prevent unnecessary changes to the generated
+            config.
     """
     if not include_headless_shell_wpt_in_blink_web_test_results:
         _restrict_to_projects(
             ["chrome-m132", "chrome-m138", "chrome-m139"],
             "include_headless_shell_wpt_in_blink_web_test_results=False",
+        )
+    if not generate_default_cq_run_modes:
+        _restrict_to_projects(
+            ["chrome-m132", "chrome-m138", "chrome-m139"],
+            "generate_default_cq_run_modes=False",
         )
     return _TRY_SETTINGS.set(
         test_results_bq_dataset_name = test_results_bq_dataset_name,
@@ -617,6 +629,7 @@ def _configure_try(
         additional_default_exclude_path_regexps = additional_default_exclude_path_regexps,
         include_headless_shell_wpt_in_blink_web_test_results =
             include_headless_shell_wpt_in_blink_web_test_results,
+        generate_default_cq_run_modes = generate_default_cq_run_modes,
     )
 
 def _try_settings():
