@@ -670,20 +670,23 @@ def _get_builder_owner_description(description, contact_email):
         description += "<br/>"
     return "{}Builder owner: <a href=mailto:{}>{}</a>".format(description, contact_email, contact_email)
 
-def _get_builder_mirror_description(bucket_name, builder, bc_state):
+def _get_builder_mirror_description(
+        description,
+        bucket_name,
+        builder,
+        bc_state):
     node = _BUILDER_CONFIG.get(bucket_name, builder.name)
     if not node:
-        return builder.description_html
+        return description
     mirrored_builders = bc_state.mirrors(node)
     mirroring_builders = _get_mirroring_builders(bc_state, node)
     if not mirrored_builders and not mirroring_builders:
-        return builder.description_html
+        return description
     elif mirrored_builders and mirroring_builders:
         # Need to change the descriptions below if this assertion no
         # longer holds true.
         fail("A builder can't both mirror and be mirrored:", builder.name)
 
-    description = builder.description_html
     if not description and len(mirrored_builders) == 1:
         m_id = _builder_id(mirrored_builders[0])
         mirror_node = _BUILDER_CONFIG.get(m_id["bucket"], m_id["builder"])
@@ -756,10 +759,24 @@ def _set_builder_config_property(ctx):
         for builder in bucket.swarming.builders:
             builder_name = builder.name
 
-            mirror_description = _get_builder_mirror_description(bucket_name, builder, bc_state)
-            builder.description_html = _get_builder_owner_description(mirror_description, builder.contact_team_email)
-
             node = _BUILDER_CONFIG.get(bucket_name, builder_name)
+
+            description = builder.description_html
+            description = _get_builder_mirror_description(
+                description,
+                bucket_name,
+                builder,
+                bc_state,
+            )
+            if library_settings.add_owner_to_description and (
+                node or library_settings.non_chromium_add_owner_to_description
+            ):
+                description = _get_builder_owner_description(
+                    description,
+                    builder.contact_team_email,
+                )
+            builder.description_html = description
+
             if not node:
                 continue
 

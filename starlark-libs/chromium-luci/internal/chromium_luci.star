@@ -257,6 +257,7 @@ _BUILDER_CONFIG_SETTINGS = _settings("builder_config-settings", default = struct
     mega_cq_excluded_gardener_rotations = {},
     standalone_trybot_excluded_builder_groups = {},
     standalone_trybot_excluded_builders = {},
+    add_owner_to_description = True,
 ))
 
 def _configure_builder_config(
@@ -265,7 +266,13 @@ def _configure_builder_config(
         mega_cq_excluded_builders = {},
         mega_cq_excluded_gardener_rotations = {},
         standalone_trybot_excluded_builder_groups = {},
-        standalone_trybot_excluded_builders = {}):
+        standalone_trybot_excluded_builders = {},
+        # TODO: crbug.com/436943600 - Remove this once M132 and lower have been
+        # turned down
+        add_owner_to_description = True,
+        # TODO: crbug.com/436943526 - Remove this once M138 and lower have been
+        # turned down
+        non_chromium_add_owner_to_description = True):
     """Configure the builder_config library.
 
     Args:
@@ -283,13 +290,33 @@ def _configure_builder_config(
         standalone_trybot_excluded_builders: A list of simple builder names
             (e.g. "linux-rel") of try builders that do not need to declare
             mirrors.
+        add_owner_to_description: A boolean indicating whether the builder owner
+            should be added to its description. This is restricted to existing
+            projects to prevent unnecessary changes to the generated config.
+        non_chromium_add_owner_to_description: A boolean indicating whether the
+            builder owner should be added to its description for builders not
+            using the chromium family of recipes. This is restricted to existing
+            projects to prevent unnecessary changes to the generated config.
     """
+    if not add_owner_to_description:
+        _restrict_to_projects(
+            ["chromium-m132", "chrome-m132"],
+            "add_owner_to_description=False",
+        )
+    if not non_chromium_add_owner_to_description:
+        _restrict_to_projects(
+            ["chrome-m138"],
+            "non_chromium_add_owner_to_description=False",
+        )
     _BUILDER_CONFIG_SETTINGS.set(
         exempted_gardened_mirrors_in_cq_builders = exempted_gardened_mirrors_in_cq_builders,
         mega_cq_excluded_builders = mega_cq_excluded_builders,
         mega_cq_excluded_gardener_rotations = mega_cq_excluded_gardener_rotations,
         standalone_trybot_excluded_builder_groups = standalone_trybot_excluded_builder_groups,
         standalone_trybot_excluded_builders = standalone_trybot_excluded_builders,
+        add_owner_to_description = add_owner_to_description,
+        non_chromium_add_owner_to_description =
+            non_chromium_add_owner_to_description,
     )
 
 def _builder_config_settings():
