@@ -271,6 +271,13 @@ def try_builder(
 
     library_settings = _chromium_luci.try_settings()
     bq_dataset_name = library_settings.test_results_bq_dataset_name
+    blink_web_tests_test_id_regexp = (
+        "(ninja://[^/]*blink_web_tests/.+)|(ninja://[^/]*_wpt_tests/.+)"
+    )
+    if library_settings.include_headless_shell_wpt_in_blink_web_test_results:
+        blink_web_tests_test_id_regexp += (
+            "|(ninja://[^/]*headless_shell_wpt/.+)"
+        )
     merged_resultdb_bigquery_exports = [
         resultdb.export_test_results(
             bq_table = "chrome-luci-data.{}.try_test_results".format(bq_dataset_name),
@@ -290,7 +297,7 @@ def try_builder(
             predicate = resultdb.test_result_predicate(
                 # Match the "blink_web_tests" target and all of its
                 # flag-specific versions, e.g. "vulkan_swiftshader_blink_web_tests".
-                test_id_regexp = "(ninja://[^/]*blink_web_tests/.+)|(ninja://[^/]*_wpt_tests/.+)|(ninja://[^/]*headless_shell_wpt/.+)",
+                test_id_regexp = blink_web_tests_test_id_regexp,
             ),
         ),
     ]
