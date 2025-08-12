@@ -258,6 +258,7 @@ _BUILDER_CONFIG_SETTINGS = _settings("builder_config-settings", default = struct
     standalone_trybot_excluded_builder_groups = {},
     standalone_trybot_excluded_builders = {},
     add_owner_to_description = True,
+    non_chromium_add_owner_to_description = True,
 ))
 
 def _configure_builder_config(
