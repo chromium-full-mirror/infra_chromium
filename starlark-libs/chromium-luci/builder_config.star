@@ -893,6 +893,15 @@ def _set_builder_config_property(ctx):
                         builder_name,
                         builder_group,
                     )
+                    if builder_spec and bc_state.parent(node):
+                        for test_type, tests in contents[builder_name].items():
+                            if test_type == "additional_compile_targets":
+                                fail("additional_compile_targets on", builder_name, "should be set on parent")
+                            elif test_type == "skylab_tests":
+                                continue
+                            for test in tests:
+                                if "swarming" not in test:
+                                    fail(builder_name, "can't have local tests as a child tester: ", test)
                     ctx.output[json_file] = json.indent(json.encode(contents), indent = "  ")
 
             builder_properties = json.decode(builder.properties)
