@@ -731,6 +731,8 @@ def _spec_init(node, settings, *, additional_fields = {}, binary_node = None):
         description = None,
         test = binary_node.key.id,
         test_id_prefix = binary_node.props.test_id_prefix,
+        module_name = binary_node.props.module_name,
+        module_scheme = binary_node.props.module_scheme,
         args = list(node.props.details.args or []),
         ci_only = None,
         experiment_percentage = None,
