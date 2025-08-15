@@ -603,6 +603,7 @@ def _skylab(
         cros_test_names_from_file = None,
         cros_test_names_exclude_from_file = None,
         cros_test_max_in_shard = None,
+        cros_ctp_suite_name = None,
         # TODO(gbeaty) Tast tests should have their own test function defined
         # and this should be removed from this function
         tast_expr = None,
@@ -644,6 +645,8 @@ def _skylab(
             to be excluded for runs under tag criteria filter.
         cros_test_max_in_shard: Maximum number of tests in single shard at
             cros_test_platform test scheduling.
+        cros_ctp_suite_name: The suite name for cros_test_platform builder
+            jobs.
         timeout_sec: The maximum time the test can take to run.
         shards: The number of shards used to run the test.
     """
@@ -658,6 +661,7 @@ def _skylab(
         cros_test_names_from_file = cros_test_names_from_file,
         cros_test_names_exclude_from_file = cros_test_names_exclude_from_file,
         cros_test_max_in_shard = cros_test_max_in_shard,
+        cros_ctp_suite_name = cros_ctp_suite_name,
         use_lkgm = use_lkgm,
         cros_model = cros_model,
         autotest_name = autotest_name,
