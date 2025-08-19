@@ -107,6 +107,17 @@ def _android_desktop_force_main_user(_, settings, spec_value):
         return []
     return ["--force-main-user"]
 
+def _android_desktop_gtest_remote(_, settings, spec_value):
+    """Substitute the correct Android Desktop remote gtest arguments."""
+    if settings.os_type != common.os_type.Android:
+        fail("Ran an Android Desktop-stpecific substitution on a non-Android builder")
+    if not _get_android_desktop_board_name(spec_value):
+        return []
+    return [
+        "--device=variable_lab_dut_hostname",
+        "--connect-over-network",
+    ]
+
 def _android_desktop_telemetry_remote(_, settings, spec_value):
     """Substitute the correct Android Desktop remote Telemetry arguments."""
     if settings.os_type != common.os_type.ANDROID:
@@ -431,6 +442,10 @@ magic_args = struct(
     ANDROID_DESKTOP_FORCE_MAIN_USER = _placeholder(
         pyl_arg_value = "$$MAGIC_SUBSTITUTION_AndroidDesktopForceMainUser",
         function = _android_desktop_force_main_user,
+    ),
+    ANDROID_DESKTOP_GTEST_REMOTE = _placeholder(
+        pyl_arg_value = "$$MAGIC_SUBSTITUTION_AndroidDesktopGtestRemote",
+        function = _android_desktop_gtest_remote,
     ),
     ANDROID_DESKTOP_TELEMETRY_REMOTE = _placeholder(
         pyl_arg_value = "$$MAGIC_SUBSTITUTION_AndroidDesktopTelemetryRemote",
