@@ -80,6 +80,11 @@ _NON_BOOTSTRAPPED_PROPERTIES = [
     # TODO(estaab): When finalized input properties are exported to BQ, remove
     # this.
     "cq",
+
+    # The alerts_enabled property needs to be present in the input properties
+    # exposed on the build proto in order for the custom metric predicate to be
+    # able to evaluate it.
+    "alerts_enabled",
 ]
 
 # Nodes for storing the ability of recipes to be bootstrapped

@@ -261,6 +261,8 @@ def try_builder(
                 chrome-luci-data.chromium.try_test_results
                 chrome-luci-data.gpu_try_test_results
         **kwargs: Additional keyword args to forward on to builders.builder.
+            The alerts_enabled keyword arg will be set to True if the builder
+            will be added to the CQ as non-includeable-only.
 
     Returns:
         The lucicfg keyset for the builder, None if the builder wasn't defined
@@ -323,6 +325,16 @@ def try_builder(
 
     properties = kwargs.pop("properties", {})
     properties = dict(properties)
+
+    builders_library_settings = _chromium_luci.builders_settings()
+
+    # If enable_alerts_configuration isn't true, don't modify alerts_enabled
+    # because that will cause a failure in builders.builder
+    if (builders_library_settings.enable_alerts_configuration and
+        tryjob != None and not tryjob.omit_from_luci_cv):
+        alerts_enabled = defaults.get_value_from_kwargs("alerts_enabled", kwargs)
+        if alerts_enabled == args.COMPUTE:
+            kwargs["alerts_enabled"] = True
 
     # Populate "cq" property if builder is a required or path-based CQ builder.
     # This is useful for bigquery analysis.

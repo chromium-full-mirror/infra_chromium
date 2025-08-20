@@ -275,6 +275,7 @@ defaults = args.defaults(
     luci.builder.defaults,
 
     # Our custom arguments
+    alerts_enabled = args.COMPUTE,
     auto_builder_dimension = args.COMPUTE,
     bootstrap = True,
     builder_cache_name = None,
@@ -375,6 +376,7 @@ _BUILDER_GROUP_ID_NODE = nodes.create_unscoped_node_type("builder-group-id")
 def builder(
         *,
         name,
+        alerts_enabled = args.DEFAULT,
         branch_selector = branches.selector.MAIN,
         bucket = args.DEFAULT,
         executable = args.DEFAULT,
@@ -464,6 +466,9 @@ def builder(
 
     Args:
         name: name of the builder, will show up in UIs and logs. Required.
+        alerts_enabled: A boolean indicating whether the builder should trigger
+            monitoring alerts. Supports a module-level default. By default, will
+            be True if the builder has associated gardener rotations.
         branch_selector: A branch selector value controlling whether the
             builder definition is executed. See branches.star for more
             information.
@@ -793,6 +798,20 @@ def builder(
         properties["sheriff_rotations"] = gardener_rotation_names
         properties["gardener_rotations"] = gardener_rotation_names
 
+    alerts_enabled = defaults.get_value("alerts_enabled", alerts_enabled)
+    if alerts_enabled not in (True, False, args.COMPUTE):
+        fail("unexpected value for alerts_enabled:", repr(alerts_enabled))
+    if library_settings.enable_alerts_configuration:
+        if alerts_enabled == args.COMPUTE:
+            alerts_enabled = bool(gardener_rotations)
+        if alerts_enabled:
+            properties["alerts_enabled"] = True
+    else:
+        if alerts_enabled != args.COMPUTE:
+            fail("enable_alerts_configuration in chromium_luci.configure_builders" +
+                 " must be True in order to set alerts_enabled")
+        alerts_enabled = False
+
     ssd = defaults.get_value("ssd", ssd)
     if ssd == args.COMPUTE:
         ssd = None
@@ -973,6 +992,17 @@ def builder(
             ],
         ),
     ]
+
+    if alerts_enabled:
+        custom_metrics.append(
+            buildbucket.custom_metric(
+                name = "/chrome/infra/browser/builds/alerts_enabled_count",
+                predicates = [
+                    "has(build.input.properties.alerts_enabled)",
+                    'string(build.input.properties.alerts_enabled) == "true"',
+                ],
+            ),
+        )
 
     kwargs["custom_metrics"] = args.listify(
         custom_metrics,

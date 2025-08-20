@@ -215,6 +215,7 @@ def _get_orchestrators_and_compilators(ctx):
     ) for c in compilators]
 
 _ALLOWED_COMPILATOR_PROPERTIES = set([
+    "alerts_enabled",
     "builder_group",
     "recipe",
 ])

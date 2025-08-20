@@ -195,6 +195,7 @@ def _normalize_overrides(overrides):
     return _os_dimension_overrides(default = overrides)
 
 _BUILDERS_SETTINGS = _settings("builders-settings", default = struct(
+    enable_alerts_configuration = False,
     builder_group_reuse_bucket_allowlist = [],
     exempted_from_description_builders = {},
     os_dimension_overrides = _os_dimension_overrides(),
@@ -202,12 +203,16 @@ _BUILDERS_SETTINGS = _settings("builders-settings", default = struct(
 
 def _configure_builders(
         *,
+        enable_alerts_configuration = False,
         builder_group_reuse_bucket_allowlist = [],
         exempted_from_description_builders = {},
         os_dimension_overrides = _os_dimension_overrides()):
     """Configure the builders library.
 
     Args:
+        enable_alerts_configuration: A boolean indicating whether to enable
+            custom metrics and properties that enable turning trooper alerts on
+            or off for builders.
         builder_group_reuse_bucket_allowlist: A list of buckets that are allowed
             to reuse builder groups from other buckets. Ordinarily it is an
             error if a builder group is used within multiple buckets.
@@ -225,6 +230,7 @@ def _configure_builders(
         if os.override_key == None:
             fail("{} is not an overridable os value".format(os.name))
     _BUILDERS_SETTINGS.set(
+        enable_alerts_configuration = enable_alerts_configuration,
         builder_group_reuse_bucket_allowlist = builder_group_reuse_bucket_allowlist,
         exempted_from_description_builders = exempted_from_description_builders,
         os_dimension_overrides = {
