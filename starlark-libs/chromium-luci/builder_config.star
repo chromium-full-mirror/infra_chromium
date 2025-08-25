@@ -918,7 +918,10 @@ def _set_builder_config_property(ctx):
                 any([s.key.id in library_settings.mega_cq_excluded_gardener_rotations for s in rotations])
             )
             if rotations and not mirroring_builders and not is_excluded:
-                fail("{} is on a gardener rotation, but lacks a matching trybot".format(builder.name))
+                fail("{} is on a gardener rotation ({}), but lacks a matching trybot".format(
+                    builder.name,
+                    rotations,
+                ))
 
             # If the builder is part of CQ it must have gardeners for the builders it mirrors
             if branches.matches(branches.selector.MAIN) and bucket_name == "try":
