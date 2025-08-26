@@ -691,7 +691,7 @@ def _get_builder_mirror_description(
         m_id = _builder_id(mirrored_builders[0])
         mirror_node = _BUILDER_CONFIG.get(m_id["bucket"], m_id["builder"])
         if mirror_node.props.description_html:
-            description += "<br>%s<br/>" % mirror_node.props.description_html
+            description = "%s<br/>" % mirror_node.props.description_html
     if description:
         description += "<br/>"
     if mirrored_builders:
@@ -775,6 +775,16 @@ def _set_builder_config_property(ctx):
                     description,
                     builder.contact_team_email,
                 )
+
+            # TODO(crbug.com/396496026): Remove this when max_concurrent_builds is more
+            # clearly indicated in Milo.
+            if builder.max_concurrent_builds:
+                description += (
+                    "<br/><h3>NOTE: This builder only runs {} max concurrent builds.</h3>".format(
+                        builder.max_concurrent_builds,
+                    )
+                )
+
             builder.description_html = description
 
             if not node:
