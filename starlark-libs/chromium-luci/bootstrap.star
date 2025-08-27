@@ -49,42 +49,69 @@ bootstrap = struct(
     set_top_level = _set_top_level,
 )
 
+# Properties that will be retained in cr-buildbucket.cfg. This enables querying
+# the property via buildbucket or bigquery or using it as part of an expression
+# in a custom metric (properties set by the bootstrapper don't appear on the
+# build). Because the value in cr-buildbucket.cfg doesn't take effect until some
+# time after the change lands and buildbucket picks up the new configuration,
+# there will be a lag in when the property changes for these queries.
+#
+# Each element is a 2-tuple containing the name of the property to keep in
+# cr-buildbucket.cfg and a boolean indicating whether the property should also
+# be bootstrapped. If the builder actually consumes the property then the
+# property should be bootstrapped so that the builder gets the up-to-date value.
+# Due to the lag mentioned above, if one of these bootstrapped properties is
+# changed there will be a period of time where the builder running against HEAD
+# will use the updated value of the property while buildbucket still sees the
+# old value. If the property is not actually consumed by the build, not
+# bootstrapping it will prevent unnecessary changes to the properties files,
+# which in unnecessarily triggers builders as part of the CQ attempt.
+#
+# If buildbucket ever exposes input properties set by the bootstrapper, revisit
+# these properties to determine whether they need to be kept in
+# cr-buildbucket.cfg. Properties in cr-buildbucket.cfg will be set before the
+# build runs, so any use that might need to consider pending or expired builds
+# would probably want the property present in cr-buildbucket.cfg.
 _NON_BOOTSTRAPPED_PROPERTIES = [
     # The led_recipes_tester recipe examines the recipe property in the input
     # properties of the build definition retrieved using led to determine which
-    # builders' recipes are affected by the change. Bootstrapped properties
-    # won't appear in the retrieved build definition, so don't bootstrap this.
-    "recipe",
+    # builders' recipes are affected by the change. The recipe engine consumes
+    # the recipe property to determine which recipe to run, so it should also be
+    # bootstrapped.
+    ("recipe", True),
 
     # Sheriff-o-Matic queries for builder_group in the input properties to find
     # builds for the main gardener rotation and Findit reads the builder_group
     # from the input properties of an analyzed build to set the builder group
-    # for the target builder when triggering the rerun builder. Bootstrapped
-    # properties don't appear in the build's input properties, so don't
-    # bootstrap this property.
+    # for the target builder when triggering the rerun builder. The recipe
+    # consumes this property to look up various configs, so it should also be
+    # bootstrapped.
     # TODO(gbeaty) When finalized input properties are exported to BQ, remove
     # this.
-    "builder_group",
+    ("builder_group", True),
 
     # Sheriff-o-Matic will query for sheriff_rotations in the input properties
-    # to determine which gardener rotation a build belongs to. Bootstrapped
-    # properties don't appear in the build's input properties, so don't
-    # bootstrap this property. The same applies to gardener_rotations as
-    # we move to it.
+    # to determine which gardener rotation a build belongs to. The same applies
+    # to gardener_rotations as we move to it. The build does not consume this
+    # property, so it does not need to be bootstrapped, but it is being
+    # bootstrapped to avoid unnecessary churn.
     # TODO(gbeaty) When finalized input properties are exported to BQ, remove
     # this.
-    "gardener_rotations",
-    "sheriff_rotations",
+    ("gardener_rotations", True),
+    ("sheriff_rotations", True),
 
-    # Export a try builder's CQ status (required, path-based) to BQ if set.
+    # Export a try builder's CQ status (required, path-based) to BQ if set. The
+    # build does not consume this property, so it does not need to be
+    # bootstrapped, but it is being bootstrapped to avoid unnecessary churn.
     # TODO(estaab): When finalized input properties are exported to BQ, remove
     # this.
-    "cq",
+    ("cq", True),
 
     # The alerts_enabled property needs to be present in the input properties
     # exposed on the build proto in order for the custom metric predicate to be
-    # able to evaluate it.
-    "alerts_enabled",
+    # able to evaluate it. The build does not consume this property, so it does
+    # not need to be bootstrapped.
+    ("alerts_enabled", False),
 ]
 
 # Nodes for storing the ability of recipes to be bootstrapped
@@ -201,7 +228,7 @@ def _bootstrap_properties(ctx):
 
             else:
                 def get_non_bootstrapped_properties(props):
-                    return {p: props[p] for p in _NON_BOOTSTRAPPED_PROPERTIES if p in props}
+                    return {p: props[p] for p, _ in _NON_BOOTSTRAPPED_PROPERTIES if p in props}
 
                 non_bootstrapped_properties = get_non_bootstrapped_properties(builder_properties)
                 non_bootstrapped_shadow_properties = None
@@ -238,12 +265,20 @@ def _bootstrap_properties(ctx):
                         },
                         "properties_file": "infra/config/generated/{}".format(properties_file),
                     }
+
+                def remove_non_bootstrapped_properties(props):
+                    for p, also_bootstrap in _NON_BOOTSTRAPPED_PROPERTIES:
+                        if not also_bootstrap:
+                            props.pop(p, None)
+
                 if builder_shadow_properties:
                     shadow_properties_file = "{}/shadow-properties.json".format(out_dir)
                     bootstrap_property["shadow_properties_file"] = "infra/config/generated/{}".format(shadow_properties_file)
+                    remove_non_bootstrapped_properties(builder_shadow_properties)
                     ctx.output[shadow_properties_file] = json.indent(json.encode(builder_shadow_properties), indent = "  ")
 
                 non_bootstrapped_properties["$bootstrap/properties"] = bootstrap_property
+                remove_non_bootstrapped_properties(builder_properties)
                 ctx.output[properties_file] = json.indent(json.encode(builder_properties), indent = "  ")
 
             if bootstrap_node.props.bootstrap:
