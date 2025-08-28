@@ -34,6 +34,7 @@ load("./consoles.star", "register_builder_to_console_view")
 load("./enums.star", _enums = "enums")
 load("./gardener_rotations.star", "register_gardener_builder")
 load("./gn_args.star", "register_gn_args")
+load("./internal/builders.star", _builders = "builders")
 load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 load("./nodes.star", "nodes")
 load("./recipe_experiments.star", "register_recipe_experiments_ref")
@@ -1040,6 +1041,12 @@ def builder(
     # (builder_group, builder)
     if builder_group != None and bucket not in library_settings.builder_group_reuse_bucket_allowlist:
         _BUILDER_GROUP_ID_NODE.add("{}:{}".format(builder_group, name))
+
+    _builders.register_alerting(
+        bucket = bucket,
+        name = name,
+        alerts_enabled = alerts_enabled,
+    )
 
     register_gardener_builder(bucket, name, gardener_rotation_names)
 
