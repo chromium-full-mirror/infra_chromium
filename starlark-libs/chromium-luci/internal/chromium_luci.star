@@ -4,37 +4,9 @@
 
 """Library providing project configuration."""
 
-load("//nodes.star", "nodes")
+load("./experiments.star", _experiments = "experiments")
+load("./settings.star", _settings = "settings")
 load("//targets-internal/pyl-generators.star", "register_pyl_generators")
-
-# Store project settings both on a node and in a lucicfg.var so that the
-# settings can be accessed during both the graph construction (var) and the
-# graph traversal phases (node)
-def _settings(node_kind, *, required_configure = None, default = None):
-    if required_configure and default:
-        fail("cannot set both required_configure and default")
-    node_type = nodes.create_singleton_node_type(node_kind)
-    var = lucicfg.var()
-
-    def set(**kwargs):
-        node_type.add(props = kwargs)
-        var.set(struct(**kwargs))
-
-    def get():
-        if __native__.interpreter_context() == "GEN":
-            settings = getattr(node_type.get(), "props", None)
-        else:
-            settings = var.get()
-        if settings:
-            return settings
-        if required_configure:
-            fail("{} must be executed".format(required_configure))
-        return default
-
-    return struct(
-        set = set,
-        get = get,
-    )
 
 def _restrict_to_projects(projects, description):
     project = _project_settings().name
@@ -45,12 +17,19 @@ def _restrict_to_projects(projects, description):
             trace = stacktrace(skip = 2),
         )
 
-_PROJECT_SETTINGS = _settings(
+_PROJECT_SETTINGS = _settings.settings(
     "project-settings",
     required_configure = "chromium_luci.configure_project",
 )
 
-def _configure_project(*, name, is_main, platforms = {}, ref = "refs/heads/main", relative_path = None):
+def _configure_project(
+        *,
+        name,
+        is_main,
+        platforms = {},
+        ref = "refs/heads/main",
+        relative_path = None,
+        experiments = []):
     """Configure the project for the chromium-luci libraries.
 
     Args:
@@ -65,9 +44,13 @@ def _configure_project(*, name, is_main, platforms = {}, ref = "refs/heads/main"
         ref: The ref of the repo containing the project.
         relative_path: The path of the repo containing the project relative to
             the top-level repo.
+        experiments: A list of strings enabling behavior changes in the
+            libraries. Unknown experiments will be ignored and result in a
+            message being printed.
     """
     if is_main and platforms:
         fail("platforms cannot be set when is_main is true")
+    _experiments.enable(experiments)
     _PROJECT_SETTINGS.set(
         name = name,
         is_main = is_main,
@@ -92,7 +75,7 @@ def _project_settings():
     """
     return _PROJECT_SETTINGS.get()
 
-_PER_BUILDER_OUTPUT_SETTINGS = _settings(
+_PER_BUILDER_OUTPUT_SETTINGS = _settings.settings(
     "per_builder_outputs-settings",
     required_configure = "chromium_luci.configure_per_builder_outputs",
 )
@@ -122,7 +105,7 @@ def _per_builder_outputs_settings():
     """
     return _PER_BUILDER_OUTPUT_SETTINGS.get()
 
-_BOOTSTRAP_SETTINGS = _settings("bootstrap-settings", default = struct(
+_BOOTSTRAP_SETTINGS = _settings.settings("bootstrap-settings", default = struct(
     top_level = None,
 ))
 
@@ -194,7 +177,7 @@ def _normalize_overrides(overrides):
 
     return _os_dimension_overrides(default = overrides)
 
-_BUILDERS_SETTINGS = _settings("builders-settings", default = struct(
+_BUILDERS_SETTINGS = _settings.settings("builders-settings", default = struct(
     enable_alerts_configuration = False,
     builder_group_reuse_bucket_allowlist = [],
     exempted_from_description_builders = {},
@@ -257,7 +240,7 @@ def _builders_settings():
     """
     return _BUILDERS_SETTINGS.get()
 
-_BUILDER_CONFIG_SETTINGS = _settings("builder_config-settings", default = struct(
+_BUILDER_CONFIG_SETTINGS = _settings.settings("builder_config-settings", default = struct(
     exempted_gardened_mirrors_in_cq_builders = {},
     mega_cq_excluded_builders = {},
     mega_cq_excluded_gardener_rotations = {},
@@ -350,7 +333,7 @@ def _builder_config_settings():
     """
     return _BUILDER_CONFIG_SETTINGS.get()
 
-_BUILDER_HEALTH_INDICATORS_SETTINGS = _settings(
+_BUILDER_HEALTH_INDICATORS_SETTINGS = _settings.settings(
     "builder_health_indicators-settings",
     required_configure = "chromium_luci.configure_builder_health_indicators",
 )
@@ -395,7 +378,7 @@ def _builder_health_indicators_settings():
     """
     return _BUILDER_HEALTH_INDICATORS_SETTINGS.get()
 
-_CI_SETTINGS = _settings(
+_CI_SETTINGS = _settings.settings(
     "ci-settings",
     required_configure = "chromium.luci.configure_ci",
 )
@@ -457,7 +440,7 @@ def _ci_settings():
     """
     return _CI_SETTINGS.get()
 
-_GN_ARGS_SETTINGS = _settings("gn_args-settings", default = struct(
+_GN_ARGS_SETTINGS = _settings.settings("gn_args-settings", default = struct(
     enable_siso_defaults = True,
 ))
 
@@ -487,7 +470,7 @@ def _gn_args_settings():
     """
     return _GN_ARGS_SETTINGS.get()
 
-_GARDENER_ROTATIONS_SETTINGS = _settings("gardener_rotations-settings")
+_GARDENER_ROTATIONS_SETTINGS = _settings.settings("gardener_rotations-settings")
 
 def _configure_gardener_rotations(*, rotation_files_path):
     """Configure the gardener_rotations library.
@@ -523,7 +506,7 @@ def _gardener_rotations_settings():
     """
     return _GARDENER_ROTATIONS_SETTINGS.get()
 
-_RECIPE_EXPERIMENTS_SETTINGS = _settings(
+_RECIPE_EXPERIMENTS_SETTINGS = _settings.settings(
     "recipe_experiments-settings",
     default = struct(
         require_builder_wrappers = True,
@@ -557,7 +540,7 @@ def _recipe_experiments_settings():
     """
     return _RECIPE_EXPERIMENTS_SETTINGS.get()
 
-_TARGETS_SETTINGS = _settings("targets-settings", default = struct(
+_TARGETS_SETTINGS = _settings.settings("targets-settings", default = struct(
     autoshard_exceptions = {},
 ))
 
@@ -610,7 +593,7 @@ def _targets_settings():
     """
     return _TARGETS_SETTINGS.get()
 
-_TRY_SETTINGS = _settings(
+_TRY_SETTINGS = _settings.settings(
     "try-settings",
     required_configure = "chromium_luci.configure_try",
 )

@@ -4,6 +4,8 @@
 
 """Utility library for working with lucicfg graph nodes."""
 
+# Avoid adding additional loads for files within the package, see note in
+# //internal/experiments.star
 load("@stdlib//internal/graph.star", "graph")
 load("@stdlib//internal/luci/common.star", "builder_ref", "keys", "kinds")
 load("@stdlib//internal/sequence.star", "sequence")
