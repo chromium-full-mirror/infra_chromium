@@ -467,7 +467,8 @@ def register_builder_config(
         targets,
         targets_settings,
         additional_exclusions,
-        description_html):
+        description_html,
+        alerts_enabled):
     """Registers the builder config so the properties can be computed.
 
     At most one of builder_spec or mirrors can be set. If neither builder_spec
@@ -490,6 +491,10 @@ def register_builder_config(
             relative to the per-builder output root dir.
         description_html: A string of html representing the description of the
             builder.
+        alerts_enabled: Whether alerts are enabled for the builder. If None,
+            alerts weren't explicitly set or implictly enabled by any rules. If
+            the builder is mirroring a builder that has alerts enabled, then
+            alerts will also be enabled for the builder.
     """
     if not builder_spec and not mirrors:
         if bc_settings:
@@ -528,6 +533,7 @@ def register_builder_config(
         settings_fields = settings_fields,
         additional_exclusions = additional_exclusions,
         description_html = description_html,
+        alerts_enabled = alerts_enabled,
     ))
     graph.add_edge(keys.project(), builder_config_key)
 
@@ -752,6 +758,8 @@ def _set_builder_config_property(ctx):
     project_node = graph.node(keys.project())
     project = project_node.props.name
 
+    alerting_builders = []
+
     for bucket in cfg.buckets:
         if not proto.has(bucket, "swarming"):
             continue
@@ -787,6 +795,12 @@ def _set_builder_config_property(ctx):
 
             builder.description_html = description
 
+            builder_properties = json.decode(builder.properties)
+
+            if builder_properties.get("alerts_enabled", False):
+                alerting_builders.append("{}/{}".format(bucket_name, builder_name))
+
+            # Builders that don't set src-side builder configs
             if not node:
                 continue
 
@@ -823,18 +837,23 @@ def _set_builder_config_property(ctx):
 
                 entries_to_check_for_consistency = []
 
+                maybe_enable_alerts = node.props.alerts_enabled == None
+
                 def add(node, parent = None):
                     node_id = (node.key.container.id, node.key.id)
                     if node_id not in encountered:
                         entry = _entry(bc_state, node, parent)  # buildifier: disable=uninitialized
                         entries.append(entry)
                         targets_spec_nodes.append(node)
+                        builder_id = _builder_id(node)
                         if bc_state.builder_spec(node).execution_mode == _execution_mode.COMPILE_AND_TEST:
-                            builder_id = _builder_id(node)
                             builder_ids.append(builder_id)
                             entries_to_check_for_consistency.append(entry)
                         else:
-                            builder_ids_in_scope_for_testing.append(_builder_id(node))
+                            builder_ids_in_scope_for_testing.append(builder_id)
+                        if node.props.alerts_enabled and maybe_enable_alerts and "alerts_enabled" not in builder_properties:
+                            builder_properties["alerts_enabled"] = True
+                            alerting_builders.append("{}/{}".format(bucket_name, builder_name))
                         encountered[node_id] = True
 
                 for m in mirrors:
@@ -914,7 +933,6 @@ def _set_builder_config_property(ctx):
                                     fail(builder_name, "can't have local tests as a child tester: ", test)
                     ctx.output[json_file] = json.indent(json.encode(contents), indent = "  ")
 
-            builder_properties = json.decode(builder.properties)
             builder_properties["$build/chromium_tests_builder_config"] = dict(
                 builder_config = builder_config,
             )
@@ -993,6 +1011,9 @@ def _set_builder_config_property(ctx):
                     builder.name,
                 )
                 needs_mega_cq_mode = needs_mega_cq_mode.union([cq_identifier])
+
+    file_name = "{}/alerting-builders.txt".format(_chromium_luci.per_builder_outputs_settings().root_dir)
+    ctx.output[file_name] = "\n".join(sorted(alerting_builders)) + "\n"
 
     cq_config_groups = []
     for f in ctx.output:

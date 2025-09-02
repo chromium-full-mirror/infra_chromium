@@ -34,7 +34,6 @@ load("./consoles.star", "register_builder_to_console_view")
 load("./enums.star", _enums = "enums")
 load("./gardener_rotations.star", "register_gardener_builder")
 load("./gn_args.star", "register_gn_args")
-load("./internal/builders.star", _builders = "builders")
 load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 load("./nodes.star", "nodes")
 load("./recipe_experiments.star", "register_recipe_experiments_ref")
@@ -804,7 +803,13 @@ def builder(
         fail("unexpected value for alerts_enabled:", repr(alerts_enabled))
     if library_settings.enable_alerts_configuration:
         if alerts_enabled == args.COMPUTE:
-            alerts_enabled = bool(gardener_rotations)
+            # Use None instead of False. This will enable distinguishing
+            # between builders that explicitly set alerts_enabled=False and
+            # builders that default to not having them enabled. Builders that
+            # default to them not being enabled will have them enabled in the
+            # builder config generator if they are mirroring a builder that has
+            # them enabled.
+            alerts_enabled = bool(gardener_rotations) or None
         if alerts_enabled:
             properties["alerts_enabled"] = True
     else:
@@ -994,7 +999,18 @@ def builder(
         ),
     ]
 
-    if alerts_enabled:
+    # Add the custom metric if alerts are enabled for the builder or if it
+    # mirrors other builders; alerts should be enabled for a builder if it
+    # mirrors any builders that enable alerts but information about whether the
+    # mirrored builders are alerting isn't accessible at this point. At the
+    # point where it can be determined if the mirrored builders are alerting, it
+    # would be too late to add a metric using buildbucket.custom_metric and
+    # would instead require having to duplicate the logic use for transforming a
+    # buildbucket.custom_metric to its equivalent protobuf. To avoid that, add
+    # the metric if the builder has mirrors: the builder won't be reported by
+    # the metric unless it has the alerts_enabled property set, which the
+    # builder_config generator will do if appropriate.
+    if library_settings.enable_alerts_configuration and (alerts_enabled or mirrors):
         custom_metrics.append(
             buildbucket.custom_metric(
                 name = "/chrome/infra/browser/builds/alerts_enabled_count",
@@ -1042,12 +1058,6 @@ def builder(
     if builder_group != None and bucket not in library_settings.builder_group_reuse_bucket_allowlist:
         _BUILDER_GROUP_ID_NODE.add("{}:{}".format(builder_group, name))
 
-    _builders.register_alerting(
-        bucket = bucket,
-        name = name,
-        alerts_enabled = alerts_enabled,
-    )
-
     register_gardener_builder(bucket, name, gardener_rotation_names)
 
     register_recipe_experiments_ref(bucket, name, executable)
@@ -1073,6 +1083,7 @@ def builder(
         targets_settings,
         additional_exclusions,
         kwargs.get("description_html", "").strip(),
+        alerts_enabled,
     )
 
     bootstrap = defaults.get_value("bootstrap", bootstrap)
