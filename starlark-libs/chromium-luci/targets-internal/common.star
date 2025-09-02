@@ -6,6 +6,7 @@
 
 load("@stdlib//internal/graph.star", "graph")
 load("@stdlib//internal/luci/common.star", "keys")
+load("../internal/experiments.star", _experiments = "experiments")
 load("./nodes.star", _targets_nodes = "nodes")
 load("//args.star", args_lib = "args")
 load("//enums.star", "enums")
@@ -188,7 +189,9 @@ def _create_binary(
             "see http://crbug.com/1071091 for details"
         ).format(name, label_pieces[1]))
     test_id_prefix = "ninja:{}/".format(label)
-    module_name = "{}/".format(label)
+    module_name = label
+    if not _experiments.is_enabled("targets.module_name_without_slash"):
+        module_name += "/"
 
     _create_compile_target(
         name = name,

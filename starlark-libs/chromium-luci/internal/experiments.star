@@ -28,6 +28,7 @@ _SETTINGS = _settings.settings(
 
 _KNOWN_EXPERIMENTS = set([
     # go/keep-sorted start
+    "targets.module_name_without_slash",
     # go/keep-sorted end
 ])
 
