@@ -188,13 +188,14 @@ def _create_binary(
             "see http://crbug.com/1071091 for details"
         ).format(name, label_pieces[1]))
     test_id_prefix = "ninja:{}/".format(label)
+    module_name = "{}/".format(label)
 
     _create_compile_target(
         name = name,
     )
 
     return _targets_nodes.BINARY.add(name, props = dict(
-        module_name = label,
+        module_name = module_name,
         module_scheme = module_scheme,
         test_id_prefix = test_id_prefix,
         test_config = test_config,
