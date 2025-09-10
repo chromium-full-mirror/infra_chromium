@@ -16,6 +16,8 @@ def _script_test_spec_init(node, settings):
         precommit_args = list(node.props.details.precommit_args or []),
         non_precommit_args = list(node.props.details.non_precommit_args or []),
         resultdb = None,
+        module_name = node.key.id,
+        module_scheme = node.props.details.module_scheme,
     )
 
 def _script_test_spec_finalize(_builder_name, test_name, _settings, spec_value):
@@ -28,7 +30,14 @@ _script_test_spec_handler = _targets_common.spec_handler(
     finalize = _script_test_spec_finalize,
 )
 
-def script_test(*, name, script, args = None, precommit_args = None, non_precommit_args = None):
+def script_test(
+        *,
+        name,
+        script,
+        args = None,
+        precommit_args = None,
+        non_precommit_args = None,
+        module_scheme = None):
     """Define a script test.
 
     A script test is a test that runs a python script wihin the
@@ -46,6 +55,7 @@ def script_test(*, name, script, args = None, precommit_args = None, non_precomm
             on a try builder.
         non_precommit_args: Arguments to be passed to the test binary when not
             running on a try builder.
+        module_scheme: The module scheme to use when uploading to resultdb.
     """
     _targets_common.create_legacy_test(
         name = name,
@@ -65,5 +75,6 @@ def script_test(*, name, script, args = None, precommit_args = None, non_precomm
             args = args,
             precommit_args = precommit_args,
             non_precommit_args = non_precommit_args,
+            module_scheme = module_scheme,
         ),
     )
