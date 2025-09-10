@@ -4,11 +4,19 @@
 
 """Implementation of tests for script tests."""
 
+load("../../internal/experiments.star", _experiments = "experiments")
 load("../common.star", _targets_common = "common")
 
 def _script_test_spec_init(node, settings):
     if not settings.allow_script_tests:
         fail("script test being included by builder with allow_script_tests=False")
+
+    module_name = None
+    module_scheme = None
+    if _experiments.is_enabled("targets.module_scheme_script_tests"):
+        module_name = node.key.id
+        module_scheme = node.props.details.module_scheme
+
     return dict(
         name = node.key.id,
         script = node.props.details.script,
@@ -16,8 +24,8 @@ def _script_test_spec_init(node, settings):
         precommit_args = list(node.props.details.precommit_args or []),
         non_precommit_args = list(node.props.details.non_precommit_args or []),
         resultdb = None,
-        module_name = node.key.id,
-        module_scheme = node.props.details.module_scheme,
+        module_name = module_name,
+        module_scheme = module_scheme,
     )
 
 def _script_test_spec_finalize(_builder_name, test_name, _settings, spec_value):
