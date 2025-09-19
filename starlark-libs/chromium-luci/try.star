@@ -21,6 +21,7 @@ load("./args.star", "args")
 load("./branches.star", "branches")
 load("./builders.star", "builders", "os")
 load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
+load("./internal/experiments.star", _experiments = "experiments")
 load("./orchestrator.star", "SOURCELESS_BUILDER_CACHE_NAME", "register_compilator", "register_orchestrator")
 
 def default_location_filters(builder_name = None):
@@ -129,8 +130,15 @@ defaults = args.defaults(
     orchestrator_siso_remote_jobs = args.DEFAULT,
 )
 
-def tryjob(
+# TODO(crbug.com/442860599): Remove this once all tryjob usages are migrated to
+# cq_settings.
+def tryjob(**kwargs):
+    """DEPRECATED: Use cq_settings. Specifies the details of a tryjob verifier."""
+    return cq_settings(**kwargs)
+
+def cq_settings(
         *,
+        on_default_cq = False,
         disable_reuse = None,
         experiment_percentage = None,
         includable_only = False,
@@ -144,12 +152,14 @@ def tryjob(
         equivalent_builder_whitelist = None,
         omit_from_luci_cv = False,
         custom_cq_run_modes = None):
-    """Specifies the details of a tryjob verifier.
+    """Specifies the settings for a builder on CQ.
 
     See https://chromium.googlesource.com/infra/luci/luci-go/+/HEAD/lucicfg/doc/README.md#luci.cq_tryjob_verifier
     for details on the most of the arguments.
 
     Args:
+        on_default_cq: A bool indicating whether the builder should be on the
+            default CQ.
         disable_reuse: See cq.tryjob_verifier.
         experiment_percentage: See cq.tryjob_verifier.
         includable_only: See cq.tryjob_verifier.
@@ -180,9 +190,20 @@ def tryjob(
             tryjob. Uses cq.MODE_DRY_RUN, cq.MODE_FULL_RUN if not specified.
 
     Returns:
-        A struct that can be passed to the `tryjob` argument of `try_.builder`
-        to enable the builder for CQ.
+        A struct that can be passed to the `cq_settings` argument of
+        `try_.builder` to enable the builder for CQ.
     """
+
+    if _experiments.is_enabled("try.enforce_cq_settings_exclusivity"):
+        settings_args = []
+        if on_default_cq:
+            settings_args.append("on_default_cq")
+        if location_filters:
+            settings_args.append("location_filters")
+        if includable_only:
+            settings_args.append("includable_only")
+        if len(settings_args) != 1:
+            fail("exactly one of on_default_cq, location_filters or includable_only must be specified")
 
     def normalize_location_filter(f):
         if type(f) == type(""):
@@ -223,7 +244,8 @@ def try_builder(
         list_view = args.DEFAULT,
         main_list_view = args.DEFAULT,
         subproject_list_view = args.DEFAULT,
-        tryjob = None,
+        cq_settings = None,
+        tryjob = None,  # DEPRECATED in favor of cq_settings
         resultdb_bigquery_exports = args.DEFAULT,
         **kwargs):
     """Define a try builder.
@@ -242,8 +264,8 @@ def try_builder(
             given try build using resultdb as the data source, instead of the
             previous mechanism which utilized a pregenerated test history. New
             tests are rerun multiple times to ensure that they are not flaky.
-        cq_group: The CQ group to add the builder to. If tryjob is None, it will
-            be added as includable_only.
+        cq_group: The CQ group to add the builder to. If cq_settings is None, it
+            will be added as includable_only.
         list_view: A string or list of strings identifying the ID(s) of the list
             view to add an entry to. Supports a module-level default that
             defaults to the group of the builder, if provided.
@@ -252,8 +274,10 @@ def try_builder(
         subproject_list_view: A string identifying the ID of the subproject list
             view to add an entry to. Supports a module-level default that
             defaults to None.
-        tryjob: An optional try_.job controlling when the builder is added to
-            the CQ.
+        cq_settings: An optional try_.cq_settings controlling when the builder is
+            added to the CQ.
+        tryjob: DEPRECATED An optional try_.job controlling when the builder is
+            added to the CQ.
         resultdb_bigquery_exports: a list of resultdb.export_test_results(...)
             specifying additional parameters for exporting test results to
             BigQuery. Will always upload to the following tables in addition to
@@ -268,6 +292,11 @@ def try_builder(
         The lucicfg keyset for the builder, None if the builder wasn't defined
         (e.g. branch selector doesn't match current project's settings).
     """
+    if cq_settings and tryjob:
+        fail("try_builder cannot be called with both cq_settings and tryjob. Use cq_settings.")
+    if tryjob:
+        cq_settings = tryjob
+
     if not branches.matches(branch_selector):
         return None
 
@@ -331,7 +360,7 @@ def try_builder(
     # If enable_alerts_configuration isn't true, don't modify alerts_enabled
     # because that will cause a failure in builders.builder
     if (builders_library_settings.enable_alerts_configuration and
-        tryjob != None and not tryjob.omit_from_luci_cv):
+        cq_settings != None and not cq_settings.omit_from_luci_cv):
         alerts_enabled = defaults.get_value_from_kwargs("alerts_enabled", kwargs)
         if alerts_enabled == args.COMPUTE:
             kwargs["alerts_enabled"] = True
@@ -340,9 +369,9 @@ def try_builder(
     # This is useful for bigquery analysis.
     if "cq" in properties:
         fail("Setting 'cq' property directly is not supported. It is " +
-             "generated automatically based on tryjob and location_filters.")
-    if tryjob != None:
-        cq_reason = "required" if not tryjob.location_filters else "path-based"
+             "generated automatically based on cq_settings and location_filters.")
+    if cq_settings != None:
+        cq_reason = "required" if not cq_settings.location_filters else "path-based"
         properties["cq"] = cq_reason
 
         # TODO(crbug.com/40273153) - Once we've migrated to the ResultDB-based solution
@@ -386,26 +415,26 @@ def try_builder(
             default_disable_reuse_footers = None
         if type(cq_groups) != type([]):
             cq_groups = [cq_groups]
-        if tryjob != None:
-            location_filters = tryjob.location_filters
-            if tryjob.add_default_filters:
+        if cq_settings != None:
+            location_filters = cq_settings.location_filters
+            if cq_settings.add_default_filters:
                 location_filters = (location_filters or []) + default_location_filters(builder)
-            disable_reuse_footers = tryjob.disable_reuse_footers
-            if tryjob.disable_reuse:
+            disable_reuse_footers = cq_settings.disable_reuse_footers
+            if cq_settings.disable_reuse:
                 # disable_reuse and disable_reuse_footers canot be used
                 # together, so set disable_reuse_footers to None
                 disable_reuse_footers = None
-            elif tryjob.add_default_disable_reuse_footers:
+            elif cq_settings.add_default_disable_reuse_footers:
                 disable_reuse_footers = args.listify(
                     disable_reuse_footers,
                     default_disable_reuse_footers,
                 )
-            if not tryjob.omit_from_luci_cv:
+            if not cq_settings.omit_from_luci_cv:
                 kwargs = {}
 
-                if not tryjob.includable_only:
-                    if tryjob.custom_cq_run_modes:
-                        kwargs["mode_allowlist"] = tryjob.custom_cq_run_modes
+                if not cq_settings.includable_only:
+                    if cq_settings.custom_cq_run_modes:
+                        kwargs["mode_allowlist"] = cq_settings.custom_cq_run_modes
                     elif library_settings.generate_default_cq_run_modes:
                         # These are the default if includable_only is False, but
                         # we list them here so we can add additional modes in a
@@ -418,15 +447,15 @@ def try_builder(
                     luci.cq_tryjob_verifier(
                         builder = builder,
                         cq_group = cq_group,
-                        disable_reuse = tryjob.disable_reuse,
+                        disable_reuse = cq_settings.disable_reuse,
                         disable_reuse_footers = disable_reuse_footers,
-                        experiment_percentage = tryjob.experiment_percentage,
-                        includable_only = tryjob.includable_only,
+                        experiment_percentage = cq_settings.experiment_percentage,
+                        includable_only = cq_settings.includable_only,
                         location_filters = location_filters,
-                        cancel_stale = tryjob.cancel_stale,
-                        equivalent_builder = tryjob.equivalent_builder,
-                        equivalent_builder_percentage = tryjob.equivalent_builder_percentage,
-                        equivalent_builder_whitelist = tryjob.equivalent_builder_whitelist,
+                        cancel_stale = cq_settings.cancel_stale,
+                        equivalent_builder = cq_settings.equivalent_builder,
+                        equivalent_builder_percentage = cq_settings.equivalent_builder_percentage,
+                        equivalent_builder_whitelist = cq_settings.equivalent_builder_whitelist,
                         **kwargs
                     )
         else:
@@ -447,7 +476,7 @@ def try_builder(
 
     return ret
 
-def presubmit_builder(*, name, tryjob, **kwargs):
+def presubmit_builder(*, name, cq_settings = None, tryjob = None, **kwargs):
     """Define a presubmit builder.
 
     Presubmit builders are builders that run fast checks that don't require
@@ -457,22 +486,30 @@ def presubmit_builder(*, name, tryjob, **kwargs):
 
     Args:
         name: The builder to define.
-        tryjob: An optional try_.job controlling when the builder is added to
-            the CQ. If disable_reuse isn't set, it will be set to True. The
-            add_default_filters value will be forced to False.
+        cq_settings: An optional try_.cq_settings controlling when the builder is
+            added to the CQ. If disable_reuse isn't set, it will be set to
+            True. The add_default_filters value will be forced to False.
+        tryjob: DEPRECATED An optional try_.job controlling when the builder is
+            added to the CQ. If disable_reuse isn't set, it will be set to
+            True. The add_default_filters value will be forced to False.
         **kwargs: Additional keyword args to forward to try_.builder.
 
     Returns:
         The lucicfg keyset for the builder, None if the builder wasn't defined
         (e.g. branch selector doesn't match current project's settings).
     """
+    if cq_settings and tryjob:
+        fail("presubmit_builder cannot be called with both cq_settings and tryjob. Use cq_settings.")
     if tryjob:
-        tryjob_args = {a: getattr(tryjob, a) for a in dir(tryjob)}
-        if tryjob_args.get("disable_reuse") == None:
-            tryjob_args["disable_reuse"] = True
-        tryjob_args["add_default_filters"] = False
-        tryjob = try_.job(**tryjob_args)
-    return try_builder(name = name, tryjob = tryjob, **kwargs)
+        cq_settings = tryjob
+
+    if cq_settings:
+        cq_settings_args = {a: getattr(cq_settings, a) for a in dir(cq_settings)}
+        if cq_settings_args.get("disable_reuse") == None:
+            cq_settings_args["disable_reuse"] = True
+        cq_settings_args["add_default_filters"] = False
+        cq_settings = try_.cq_settings(**cq_settings_args)
+    return try_builder(name = name, cq_settings = cq_settings, **kwargs)
 
 def _orchestrator_builder(
         *,
@@ -608,7 +645,8 @@ try_ = struct(
     # Functions for declaring try builders
     builder = try_builder,
     presubmit_builder = presubmit_builder,
-    job = tryjob,
+    job = tryjob,  # DEPRECATED in favor of cq_settings
+    cq_settings = cq_settings,
     orchestrator_builder = _orchestrator_builder,
     compilator_builder = _compilator_builder,
 
