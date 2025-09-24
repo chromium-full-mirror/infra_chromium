@@ -5,12 +5,13 @@
 """Implementation of tests for JUnit-based tests."""
 
 load("@stdlib//internal/graph.star", "graph")
+load("../../internal/experiments.star", _experiments = "experiments")
 load("../common.star", _targets_common = "common")
 load("./isolated_script_test.star", "create_isolated_script_test_spec_handler", "isolated_script_test_details")
 
 _junit_test_spec_handler = create_isolated_script_test_spec_handler("junit test")
 
-def junit_test(*, name, label, skip_usage_check = False):
+def junit_test(*, name, label, skip_usage_check = False, module_scheme = None):
     """Define a junit test.
 
     A junit test is a test using the JUnit test framework. A junit test can be
@@ -25,12 +26,18 @@ def junit_test(*, name, label, skip_usage_check = False):
         label: The GN label for the ninja target.
         skip_usage_check: Disables checking that the target is actually
             referenced in a targets spec for some builder.
+        module_scheme: The scheme to use for uploading results to resultdb.
     """
+    if (_experiments.is_enabled("targets.module_scheme_junit_tests") and
+        not module_scheme):
+        module_scheme = "junit"
+
     binary_key = _targets_common.create_binary(
         name = name,
         type = "generated_script",
         label = label,
         skip_usage_check = skip_usage_check,
+        module_scheme = module_scheme,
     )
 
     legacy_test_key = _targets_common.create_legacy_test(
