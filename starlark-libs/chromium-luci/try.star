@@ -323,7 +323,7 @@ def try_builder(
 
         # Regex  matches:
         # ://chrome/test\:telemetry_gpu_integration_test!flat::#gpu_tests.webgl1_test.WebGL1Test.Web_arrays
-        telemetry_gpu_test_regexp += "|(://(chrome|content)/test.:telemetry_gpu_integration_test[^/]*!.+)"
+        telemetry_gpu_test_regexp += r"|(://(chrome|content)/test\\:telemetry_gpu_integration_test[^/]*!.+)"
 
     merged_resultdb_bigquery_exports = [
         resultdb.export_test_results(
