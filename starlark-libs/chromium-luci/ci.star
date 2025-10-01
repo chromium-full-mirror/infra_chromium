@@ -18,6 +18,7 @@ load("./branches.star", "branches")
 load("./builder_config.star", "builder_config")
 load("./builders.star", "builders")
 load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
+load("./internal/experiments.star", _experiments = "experiments")
 load("./internal/gardener_rotations.star", _gardener_rotations = "gardener_rotations")
 load("./notifiers.star", "notifiers")
 
@@ -106,6 +107,22 @@ def ci_builder(
         blink_web_tests_test_id_regexp += (
             "|(ninja://[^/]*headless_shell_wpt/.+)"
         )
+    telemetry_gpu_test_regexp = "(ninja://(chrome|content)/test:telemetry_gpu_integration_test[^/]*/.+)"
+
+    if _experiments.is_enabled("targets.module_scheme_regex"):
+        # Regex matches ://\:blink_web_tests!webtest::accessibility#crash.html
+        blink_web_tests_test_id_regexp += (
+            "|(://[^/]*blink_web_tests!.+)|(://[^/]*_wpt_tests!.+)"
+        )
+        if library_settings.include_headless_shell_wpt_in_blink_web_test_results:
+            blink_web_tests_test_id_regexp += (
+                "|(://[^/]*headless_shell_wpt!.+)"
+            )
+
+        # Regex  matches:
+        # ://chrome/test\:telemetry_gpu_integration_test!flat::#gpu_tests.webgl1_test.WebGL1Test.Web_arrays
+        telemetry_gpu_test_regexp += "|(://(chrome|content)/test.:telemetry_gpu_integration_test[^/]*!.+)"
+
     merged_resultdb_bigquery_exports = [
         resultdb.export_test_results(
             bq_table = "chrome-luci-data.{}.ci_test_results".format(bq_dataset_name),
@@ -117,7 +134,7 @@ def ci_builder(
                 # Fuchsia and Android variants that have a suffix added to the
                 # end. Those are caught with [^/]*. The Fuchsia version is in
                 # //content/test since Fuchsia cannot depend on //chrome.
-                test_id_regexp = "ninja://(chrome|content)/test:telemetry_gpu_integration_test[^/]*/.+",
+                test_id_regexp = telemetry_gpu_test_regexp,
             ),
         ),
         resultdb.export_test_results(
