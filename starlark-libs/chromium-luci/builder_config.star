@@ -12,6 +12,8 @@ load("./enums.star", "enums")
 load("./gardener_rotations.star", "get_gardener_rotations")
 load("./html.star", "linkify_builder")
 load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
+load("./internal/codesearch.star", "codesearch")
+load("./internal/try.star", "location_filters_without_defaults")
 load("./nodes.star", "nodes")
 load("./structs.star", "structs")
 load("./targets-internal/targets-specs-generation.star", "get_targets_spec_generator", "register_targets")
@@ -748,8 +750,28 @@ def _set_builder_config_property(ctx):
     if cfg == None:
         fail("There is no buildbucket configuration file to update properties")
 
+    cq_builders_by_test_name_by_cq_group_name = {}
+    cq_config_groups_for_builder_list = []
+    for f in ctx.output:
+        if f == "luci/commit-queue.cfg":
+            cq_config_groups_for_builder_list = ctx.output[f].config_groups
+            break
+
     project_settings = _chromium_luci.project_settings()
     library_settings = _chromium_luci.builder_config_settings()
+
+    cq_groups_by_builder_name = {}
+    for cq_group in cq_config_groups_for_builder_list:
+        if cq_group.name not in library_settings.cq_groups_to_generate_test_coverage_files:
+            continue
+        for b in cq_group.verifiers.tryjob.builders:
+            if not b.includable_only and not b.experiment_percentage and not location_filters_without_defaults(b):
+                project_name, bucket_name, builder_name = b.name.split("/", 2)
+                if project_name != project_settings.name:
+                    continue
+                builder = (bucket_name, builder_name)
+                cq_groups = cq_groups_by_builder_name.setdefault(builder, set())
+                cq_groups.add(cq_group.name)
 
     bc_state = _bc_state()
     needs_mega_cq_mode = set()
@@ -906,6 +928,8 @@ def _set_builder_config_property(ctx):
                     for group, builder in sorted([(b.props.builder_group, b.key.id) for b in mirroring_builders])
                 ]
 
+            builder_cq_groups = cq_groups_by_builder_name.get((bucket_name, builder_name), [])
+
             targets_spec = _targets_spec(bc_state, targets_spec_nodes)
             if targets_spec:
                 builder_config["targets_spec_directory"] = (
@@ -916,6 +940,21 @@ def _set_builder_config_property(ctx):
                     )
                 )
                 for builder_group, contents in targets_spec.items():
+                    if builder_cq_groups:
+                        for builder_targets in contents.values():
+                            for test_type, tests in builder_targets.items():
+                                if test_type == "additional_compile_targets":
+                                    continue
+                                for test in tests:
+                                    for group_name in builder_cq_groups:
+                                        cq_builders_by_test_name = cq_builders_by_test_name_by_cq_group_name.setdefault(group_name, {})
+                                        builder_list = cq_builders_by_test_name.setdefault(test["name"], [])
+                                        builder_info = {
+                                            "name": builder.name,
+                                            "bucket": bucket_name,
+                                        }
+                                        if builder_info not in builder_list:
+                                            builder_list.append(builder_info)
                     json_file = "{}/{}/{}/targets/{}.json".format(
                         _chromium_luci.per_builder_outputs_settings().root_dir,
                         bucket_name,
@@ -1041,6 +1080,45 @@ def _set_builder_config_property(ctx):
             #    b.mode_allowlist.append("CQ_MODE_MEGA_DRY_RUN")
             #if "CQ_MODE_MEGA_FULL_RUN" not in b.mode_allowlist:
             #    b.mode_allowlist.append("CQ_MODE_MEGA_FULL_RUN")
+
+    for cq_group_name, file_path in library_settings.cq_groups_to_generate_test_coverage_files.items():
+        cq_builders_by_test_name = cq_builders_by_test_name_by_cq_group_name.get(cq_group_name, {})
+        md_content = "# List of CQ test suites\n\n"
+        for test_name, cq_builders_for_test in sorted(cq_builders_by_test_name.items()):
+            md_content += "\n### {}\n".format(test_name)
+            sorted_builders = sorted(cq_builders_for_test, key = lambda builder_item: builder_item["name"])
+            for builder in sorted_builders:
+                name = builder["name"]
+                bucket = builder["bucket"]
+                quoted_name = "\"\"{name}\"\"".format(name = name)
+                file_atom = "file:/{}/.*\\.star$".format(bucket)
+                if project == "chrome":
+                    codesearch_query = codesearch.internal_query(file_atom)
+                else:
+                    codesearch_query = codesearch.public_query(file_atom)
+                builder_url = "https://ci.chromium.org/ui/p/{project}/builders/{bucket}/{name}".format(
+                    project = project,
+                    bucket = bucket,
+                    name = name,
+                )
+                md_content += ("* [{name}]({builder_url}) ([definition]({definition_query}+{quoted_name}))\n").format(
+                    name = name,
+                    builder_url = builder_url,
+                    definition_query = codesearch_query,
+                    quoted_name = quoted_name,
+                )
+        tests_by_builder_name = {}
+        for test_name, builders in cq_builders_by_test_name.items():
+            for builder in builders:
+                tests = tests_by_builder_name.setdefault(builder["name"], [])
+                tests.append(test_name)
+
+        md_content += "\n\n## Tests by builder\n"
+        for builder_name, tests in sorted(tests_by_builder_name.items()):
+            for test_name in sorted(tests):
+                md_content += "{}||{}\n".format(builder_name, test_name)
+
+        ctx.output[file_path] = md_content
 
     # Print the mega CQ bots to a txt file for debugging / parsing purposes.
     # TODO(crbug.com/40282038): Can delete this when CV full supports custom

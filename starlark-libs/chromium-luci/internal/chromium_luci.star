@@ -248,6 +248,7 @@ _BUILDER_CONFIG_SETTINGS = _settings.settings("builder_config-settings", default
     standalone_trybot_excluded_builders = {},
     add_owner_to_description = True,
     non_chromium_add_owner_to_description = True,
+    cq_groups_to_generate_test_coverage_files = {},
 ))
 
 def _configure_builder_config(
@@ -257,6 +258,7 @@ def _configure_builder_config(
         mega_cq_excluded_gardener_rotations = {},
         standalone_trybot_excluded_builder_groups = {},
         standalone_trybot_excluded_builders = {},
+        cq_groups_to_generate_test_coverage_files = {},
         # TODO: crbug.com/436943600 - Remove this once M132 and lower have been
         # turned down
         add_owner_to_description = True,
@@ -280,6 +282,10 @@ def _configure_builder_config(
         standalone_trybot_excluded_builders: A list of simple builder names
             (e.g. "linux-rel") of try builders that do not need to declare
             mirrors.
+        cq_groups_to_generate_test_coverage_files: A dict where the keys are
+            the names of CQ groups and the values are the relative paths to
+            generate a markdown file containing the test coverage for the CQ
+            group.
         add_owner_to_description: A boolean indicating whether the builder owner
             should be added to its description. This is restricted to existing
             projects to prevent unnecessary changes to the generated config.
@@ -304,6 +310,7 @@ def _configure_builder_config(
         mega_cq_excluded_gardener_rotations = mega_cq_excluded_gardener_rotations,
         standalone_trybot_excluded_builder_groups = standalone_trybot_excluded_builder_groups,
         standalone_trybot_excluded_builders = standalone_trybot_excluded_builders,
+        cq_groups_to_generate_test_coverage_files = cq_groups_to_generate_test_coverage_files,
         add_owner_to_description = add_owner_to_description,
         non_chromium_add_owner_to_description =
             non_chromium_add_owner_to_description,
