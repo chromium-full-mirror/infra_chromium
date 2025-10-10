@@ -37,7 +37,13 @@ def _gpu_telemetry_test_spec_init(node, settings):
     is_android_webview = node.props.details.is_android_webview
 
     binary_node = _get_gpu_telemetry_test_binary_node(settings, is_android_webview)
-    spec_value = _isolated_script_test_spec_handler.init(node, settings, binary_node = binary_node)
+    module_scheme = node.props.details.module_scheme
+    spec_value = _isolated_script_test_spec_handler.init(
+        node,
+        settings,
+        binary_node = binary_node,
+        module_scheme = module_scheme,
+    )
 
     browser_config = "android-webview-instrumentation" if is_android_webview else settings.browser_config
     spec_value["browser_config"] = browser_config
@@ -128,7 +134,8 @@ def gpu_telemetry_test(
         telemetry_test_name = None,
         is_android_webview = False,
         args = None,
-        mixins = None):
+        mixins = None,
+        module_scheme = None):
     """Define a GPU telemetry test.
 
     A GPU telemetry test can be included in a basic suite to run the test for
@@ -144,6 +151,7 @@ def gpu_telemetry_test(
             WebView on Android.
         args: Arguments to be passed to the test binary.
         mixins: Mixins to apply when expanding the test.
+        module_scheme: The scheme to use for uploading to resultsdb.
     """
     if not (name.endswith("test") or name.endswith("tests")):
         fail("telemetry test names must end with test or tests, got {}".format(name))
@@ -165,6 +173,7 @@ def gpu_telemetry_test(
             additional_fields = dict(
                 telemetry_test_name = telemetry_test_name,
                 is_android_webview = is_android_webview,
+                module_scheme = module_scheme,
             ),
         ),
         mixins = mixins,

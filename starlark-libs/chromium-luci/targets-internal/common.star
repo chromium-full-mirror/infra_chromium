@@ -729,17 +729,24 @@ def _merge_args(spec_value):
         new_args[idx] = flag + separator.join(values)
     spec_value["args"] = new_args
 
-def _spec_init(node, settings, *, additional_fields = {}, binary_node = None):
+def _spec_init(
+        node,
+        settings,
+        *,
+        additional_fields = {},
+        binary_node = None,
+        module_scheme = None):
     """Init for gtest and isolated script test specs."""
     binary_node = binary_node or _get_test_binary_node(node)
     binary_test_config = binary_node.props.test_config or _binary_test_config()
+    module_scheme = module_scheme or binary_node.props.module_scheme
     return dict(
         name = node.key.id,
         description = None,
         test = binary_node.key.id,
         test_id_prefix = binary_node.props.test_id_prefix,
         module_name = binary_node.props.module_name,
-        module_scheme = binary_node.props.module_scheme,
+        module_scheme = module_scheme,
         args = list(node.props.details.args or []),
         ci_only = None,
         experiment_percentage = None,
