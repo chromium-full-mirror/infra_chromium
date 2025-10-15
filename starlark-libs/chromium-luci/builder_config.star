@@ -1090,7 +1090,7 @@ def _set_builder_config_property(ctx):
             for builder in sorted_builders:
                 name = builder["name"]
                 bucket = builder["bucket"]
-                quoted_name = "\"\"{name}\"\"".format(name = name)
+                name_query = '"name = \\"{name}\\""'.format(name = name)
                 file_atom = "file:/{}/.*\\.star$".format(bucket)
                 if project == "chrome":
                     codesearch_query = codesearch.internal_query(file_atom)
@@ -1101,11 +1101,11 @@ def _set_builder_config_property(ctx):
                     bucket = bucket,
                     name = name,
                 )
-                md_content += ("* [{name}]({builder_url}) ([definition]({definition_query}+{quoted_name}))\n").format(
+                md_content += ("* [{name}]({builder_url}) ([definition]({definition_query}+{name_query}))\n").format(
                     name = name,
                     builder_url = builder_url,
                     definition_query = codesearch_query,
-                    quoted_name = quoted_name,
+                    name_query = name_query,
                 )
         tests_by_builder_name = {}
         for test_name, builders in cq_builders_by_test_name.items():
