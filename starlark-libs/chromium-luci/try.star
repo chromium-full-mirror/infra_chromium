@@ -152,7 +152,7 @@ def cq_settings(
         if includable_only:
             settings_args.append("includable_only")
         if len(settings_args) != 1:
-            fail("exactly one of on_default_cq, location_filters or includable_only must be specified")
+            fail("exactly one of on_default_cq, location_filters or includable_only must be specified, but got {}".format(settings_args))
 
     def normalize_location_filter(f):
         if type(f) == type(""):
