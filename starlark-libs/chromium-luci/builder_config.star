@@ -1107,16 +1107,6 @@ def _set_builder_config_property(ctx):
                     definition_query = codesearch_query,
                     name_query = name_query,
                 )
-        tests_by_builder_name = {}
-        for test_name, builders in cq_builders_by_test_name.items():
-            for builder in builders:
-                tests = tests_by_builder_name.setdefault(builder["name"], [])
-                tests.append(test_name)
-
-        md_content += "\n\n## Tests by builder\n"
-        for builder_name, tests in sorted(tests_by_builder_name.items()):
-            for test_name in sorted(tests):
-                md_content += "{}||{}\n".format(builder_name, test_name)
 
         ctx.output[file_path] = md_content
 
