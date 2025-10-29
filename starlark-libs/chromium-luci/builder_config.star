@@ -1093,19 +1093,18 @@ def _set_builder_config_property(ctx):
                 name_query = '"name = \\"{name}\\""'.format(name = name)
                 file_atom = "file:/{}/.*\\.star$".format(bucket)
                 if project == "chrome":
-                    codesearch_query = codesearch.internal_query(file_atom)
+                    definition_url = codesearch.internal_query(file_atom, name_query)
                 else:
-                    codesearch_query = codesearch.public_query(file_atom)
+                    definition_url = codesearch.public_query(file_atom, name_query)
                 builder_url = "https://ci.chromium.org/ui/p/{project}/builders/{bucket}/{name}".format(
                     project = project,
                     bucket = bucket,
                     name = name,
                 )
-                md_content += ("* [{name}]({builder_url}) ([definition]({definition_query}+{name_query}))\n").format(
+                md_content += ("* [{name}]({builder_url}) ([definition]({definition_url}))\n").format(
                     name = name,
                     builder_url = builder_url,
-                    definition_query = codesearch_query,
-                    name_query = name_query,
+                    definition_url = definition_url,
                 )
 
         ctx.output[file_path] = md_content
