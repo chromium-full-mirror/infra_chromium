@@ -946,6 +946,8 @@ def _set_builder_config_property(ctx):
                                 if test_type == "additional_compile_targets":
                                     continue
                                 for test in tests:
+                                    if test.get("ci_only"):
+                                        continue
                                     for group_name in builder_cq_groups:
                                         cq_builders_by_test_name = cq_builders_by_test_name_by_cq_group_name.setdefault(group_name, {})
                                         builder_list = cq_builders_by_test_name.setdefault(test["name"], [])
