@@ -615,10 +615,7 @@ def _configure_try(
         include_headless_shell_wpt_in_blink_web_test_results = True,
         # TODO: crbug.com/435249186 - Remove this once M139 and lower have been
         # turned down
-        generate_default_cq_run_modes = True,
-        # TODO: crbug.com/436941589 - Remove this once M132 and lower have been
-        # turned down
-        add_default_disable_reuse_footers = True):
+        generate_default_cq_run_modes = True):
     """Configure the try library.
 
     Args:
@@ -639,9 +636,6 @@ def _configure_try(
             modes for tryjobs added to the CV config. This is restricted to
             existing projects to prevent unnecessary changes to the generated
             config.
-        add_default_disable_reuse_footers: Whether to add the default disable
-            reuse footers by default. This is restricted to existing projects to
-            prevent unnecessary changes to the generated config.
     """
     if not include_headless_shell_wpt_in_blink_web_test_results:
         _restrict_to_projects(
@@ -653,11 +647,6 @@ def _configure_try(
             ["chrome-m132", "chrome-m138", "chrome-m139"],
             "generate_default_cq_run_modes=False",
         )
-    if not add_default_disable_reuse_footers:
-        _restrict_to_projects(
-            ["chromium-m132", "chrome-m132"],
-            "add_default_disable_reuse_footers=False",
-        )
     return _TRY_SETTINGS.set(
         test_results_bq_dataset_name = test_results_bq_dataset_name,
         resultdb_index_by_timestamp = resultdb_index_by_timestamp,
@@ -665,7 +654,6 @@ def _configure_try(
         include_headless_shell_wpt_in_blink_web_test_results =
             include_headless_shell_wpt_in_blink_web_test_results,
         generate_default_cq_run_modes = generate_default_cq_run_modes,
-        add_default_disable_reuse_footers = add_default_disable_reuse_footers,
     )
 
 def _try_settings():
