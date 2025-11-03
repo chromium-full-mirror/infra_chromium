@@ -246,7 +246,6 @@ _BUILDER_CONFIG_SETTINGS = _settings.settings("builder_config-settings", default
     mega_cq_excluded_gardener_rotations = {},
     standalone_trybot_excluded_builder_groups = {},
     standalone_trybot_excluded_builders = {},
-    add_owner_to_description = True,
     non_chromium_add_owner_to_description = True,
     cq_groups_to_generate_test_coverage_files = {},
 ))
@@ -259,9 +258,6 @@ def _configure_builder_config(
         standalone_trybot_excluded_builder_groups = {},
         standalone_trybot_excluded_builders = {},
         cq_groups_to_generate_test_coverage_files = {},
-        # TODO: crbug.com/436943600 - Remove this once M132 and lower have been
-        # turned down
-        add_owner_to_description = True,
         # TODO: crbug.com/436943526 - Remove this once M138 and lower have been
         # turned down
         non_chromium_add_owner_to_description = True):
@@ -286,19 +282,11 @@ def _configure_builder_config(
             the names of CQ groups and the values are the relative paths to
             generate a markdown file containing the test coverage for the CQ
             group.
-        add_owner_to_description: A boolean indicating whether the builder owner
-            should be added to its description. This is restricted to existing
-            projects to prevent unnecessary changes to the generated config.
         non_chromium_add_owner_to_description: A boolean indicating whether the
             builder owner should be added to its description for builders not
             using the chromium family of recipes. This is restricted to existing
             projects to prevent unnecessary changes to the generated config.
     """
-    if not add_owner_to_description:
-        _restrict_to_projects(
-            ["chromium-m132", "chrome-m132"],
-            "add_owner_to_description=False",
-        )
     if not non_chromium_add_owner_to_description:
         _restrict_to_projects(
             ["chrome-m138"],
@@ -311,7 +299,6 @@ def _configure_builder_config(
         standalone_trybot_excluded_builder_groups = standalone_trybot_excluded_builder_groups,
         standalone_trybot_excluded_builders = standalone_trybot_excluded_builders,
         cq_groups_to_generate_test_coverage_files = cq_groups_to_generate_test_coverage_files,
-        add_owner_to_description = add_owner_to_description,
         non_chromium_add_owner_to_description =
             non_chromium_add_owner_to_description,
     )

@@ -798,9 +798,7 @@ def _set_builder_config_property(ctx):
                 builder,
                 bc_state,
             )
-            if library_settings.add_owner_to_description and (
-                node or library_settings.non_chromium_add_owner_to_description
-            ):
+            if node or library_settings.non_chromium_add_owner_to_description:
                 description = _get_builder_owner_description(
                     description,
                     builder.contact_team_email,
