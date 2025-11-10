@@ -6,7 +6,7 @@
 
 pkg.declare(
     name = "@chromium-luci",
-    lucicfg = "1.45.0",
+    lucicfg = "1.46.1",
 )
 
 # _check.star is just a top-level script that loads all of the starlark files

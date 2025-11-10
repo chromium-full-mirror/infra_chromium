@@ -252,7 +252,7 @@ def _bootstrap_properties(ctx):
                             },
                             "config_repo_submodule_path": "internal",
                         },
-                        "properties_file": "infra/config/generated/{}".format(properties_file),
+                        "properties_file": "{}/{}".format(settings.config_dir, properties_file),
                     }
                 else:
                     bootstrap_property = {
@@ -263,7 +263,7 @@ def _bootstrap_properties(ctx):
                             },
                             "ref": settings.ref,
                         },
-                        "properties_file": "infra/config/generated/{}".format(properties_file),
+                        "properties_file": "{}/{}".format(settings.config_dir, properties_file),
                     }
 
                 def remove_non_bootstrapped_properties(props):
@@ -273,7 +273,7 @@ def _bootstrap_properties(ctx):
 
                 if builder_shadow_properties:
                     shadow_properties_file = "{}/shadow-properties.json".format(out_dir)
-                    bootstrap_property["shadow_properties_file"] = "infra/config/generated/{}".format(shadow_properties_file)
+                    bootstrap_property["shadow_properties_file"] = "{}/{}".format(settings.config_dir, shadow_properties_file)
                     remove_non_bootstrapped_properties(builder_shadow_properties)
                     ctx.output[shadow_properties_file] = json.indent(json.encode(builder_shadow_properties), indent = "  ")
 

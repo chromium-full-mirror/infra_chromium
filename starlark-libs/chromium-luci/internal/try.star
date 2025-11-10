@@ -31,7 +31,7 @@ def default_location_filters(builder_name = None):
 
     filters = [
         # Contains configuration files that aren't active until after committed
-        location_filter(path_regexp = "infra/config/.+", exclude = True),
+        location_filter(path_regexp = "{}/.+".format(lucicfg.main_package().repo_path), exclude = True),
     ]
     for r in _chromium_luci.try_settings().additional_default_exclude_path_regexps:
         filters.append(location_filter(path_regexp = r, exclude = True))
@@ -47,7 +47,12 @@ def default_location_filters(builder_name = None):
         filters.append(
             # Contains builder-specific files that can be consumed by the builder
             # pre-submit
-            location_filter(path_regexp = "infra/config/generated/builders/{}/{}/.+".format(bucket, builder)),
+            location_filter(path_regexp = "{}/{}/{}/{}/.+".format(
+                _chromium_luci.project_settings().config_dir,
+                _chromium_luci.per_builder_outputs_settings().root_dir,
+                bucket,
+                builder,
+            )),
         )
 
     return filters

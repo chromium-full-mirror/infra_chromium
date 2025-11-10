@@ -4,6 +4,7 @@
 
 """Library providing project configuration."""
 
+load("@stdlib//internal/strutil.star", _strutil = "strutil")
 load("./experiments.star", _experiments = "experiments")
 load("./settings.star", _settings = "settings")
 load("//targets-internal/pyl-generators.star", "register_pyl_generators")
@@ -25,6 +26,7 @@ _PROJECT_SETTINGS = _settings.settings(
 def _configure_project(
         *,
         name,
+        config_dir = "generated",
         is_main,
         platforms = {},
         ref = "refs/heads/main",
@@ -34,6 +36,9 @@ def _configure_project(
 
     Args:
         name: The name of the project.
+        config_dir: The relative path from the root of the package to the
+            directory where generated files are written. This MUST be the same
+            as the config_dir argument to lucicfg.config.
         is_main: Whether the project is for the main branch.
         platforms: A dict of platforms that are enabled for the the branch. The
             keys of the dict should be one of the branches.platform values, with
@@ -53,6 +58,9 @@ def _configure_project(
     _experiments.enable(experiments)
     _PROJECT_SETTINGS.set(
         name = name,
+        # strutil.join_path will normalize the path if the config_dir value uses
+        # . or .. components
+        config_dir = _strutil.join_path(lucicfg.main_package().repo_path, config_dir),
         is_main = is_main,
         platforms = platforms,
         ref = ref,
@@ -69,6 +77,8 @@ def _project_settings():
     Returns:
         A struct with the following attributes:
             name: The name of the project
+            config_dir: The path to the root directory for all generated files,
+                relative to the root of the repo.
             is_main: Whether the project is for the main branch
             platforms: The platforms that the branch is enabled for if
                 is_main is false.

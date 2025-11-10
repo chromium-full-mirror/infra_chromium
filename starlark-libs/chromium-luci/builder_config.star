@@ -906,8 +906,9 @@ def _set_builder_config_property(ctx):
             )
             if node.props.additional_exclusions:
                 builder_config["additional_exclusions"] = [
-                    "{}infra/config/generated/{}/{}".format(
+                    "{}{}/{}/{}".format(
                         project_settings.relative_path + "/" if project_settings.relative_path else "",
+                        project_settings.config_dir,
                         _chromium_luci.per_builder_outputs_settings().root_dir,
                         exclusion,
                     )
@@ -930,8 +931,11 @@ def _set_builder_config_property(ctx):
 
             targets_spec = _targets_spec(bc_state, targets_spec_nodes)
             if targets_spec:
+                # TODO: crbug.com/458607662 - Don't assume the repo gets checked
+                # out to src
                 builder_config["targets_spec_directory"] = (
-                    "src/infra/config/generated/{}/{}/{}/targets".format(
+                    "src/{}/{}/{}/{}/targets".format(
+                        project_settings.config_dir,
                         _chromium_luci.per_builder_outputs_settings().root_dir,
                         bucket_name,
                         builder_name,
