@@ -13,6 +13,7 @@ load("./gardener_rotations.star", "get_gardener_rotations")
 load("./html.star", "linkify_builder")
 load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 load("./internal/codesearch.star", "codesearch")
+load("./internal/experiments.star", _experiments = "experiments")
 load("./internal/try.star", "location_filters_without_defaults")
 load("./nodes.star", "nodes")
 load("./structs.star", "structs")
@@ -782,6 +783,14 @@ def _set_builder_config_property(ctx):
 
     alerting_builders = []
 
+    # Path to the per-builder outputs root directory, relative to the top-level
+    # repo root
+    builders_generated_root = "{}{}/{}".format(
+        project_settings.relative_path + "/" if project_settings.relative_path else "",
+        project_settings.config_dir,
+        _chromium_luci.per_builder_outputs_settings().root_dir,
+    )
+
     for bucket in cfg.buckets:
         if not proto.has(bucket, "swarming"):
             continue
@@ -906,12 +915,7 @@ def _set_builder_config_property(ctx):
             )
             if node.props.additional_exclusions:
                 builder_config["additional_exclusions"] = [
-                    "{}{}/{}/{}".format(
-                        project_settings.relative_path + "/" if project_settings.relative_path else "",
-                        project_settings.config_dir,
-                        _chromium_luci.per_builder_outputs_settings().root_dir,
-                        exclusion,
-                    )
+                    "{}/{}".format(builders_generated_root, exclusion)
                     for exclusion in node.props.additional_exclusions
                 ]
 
@@ -931,16 +935,19 @@ def _set_builder_config_property(ctx):
 
             targets_spec = _targets_spec(bc_state, targets_spec_nodes)
             if targets_spec:
-                # TODO: crbug.com/458607662 - Don't assume the repo gets checked
-                # out to src
-                builder_config["targets_spec_directory"] = (
-                    "src/{}/{}/{}/{}/targets".format(
-                        project_settings.config_dir,
-                        _chromium_luci.per_builder_outputs_settings().root_dir,
-                        bucket_name,
-                        builder_name,
-                    )
+                targets_spec_directory = "{}/{}/{}/targets".format(
+                    builders_generated_root,
+                    bucket_name,
+                    builder_name,
                 )
+
+                # TODO: crbug.com/458607662 - Once all projects are updated,
+                # always make the targets spec directory relative to the source dir
+                if _experiments.is_enabled("builder_config.targets_spec_directory_relative_to_source_dir"):
+                    builder_config["targets_spec_directory_relative_to_source_dir"] = True
+                else:
+                    targets_spec_directory = "src/" + targets_spec_directory
+                builder_config["targets_spec_directory"] = targets_spec_directory
                 for builder_group, contents in targets_spec.items():
                     if builder_cq_groups:
                         for builder_targets in contents.values():
