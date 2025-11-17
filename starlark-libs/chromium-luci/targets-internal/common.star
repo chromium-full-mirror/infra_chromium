@@ -118,6 +118,7 @@ def _create_label_mapping(
         label_type = None,
         executable = None,
         executable_suffix = None,
+        module_scheme = None,
         script = None,
         skip_usage_check = False,
         args = None):
@@ -127,6 +128,7 @@ def _create_label_mapping(
         label_type = label_type,
         executable = executable,
         executable_suffix = executable_suffix,
+        module_scheme = module_scheme,
         script = script,
         skip_usage_check = skip_usage_check,
         args = args,
@@ -172,6 +174,7 @@ def _create_binary(
         label_type = label_type,
         executable = executable,
         executable_suffix = executable_suffix,
+        module_scheme = module_scheme,
         script = script,
         skip_usage_check = skip_usage_check,
         args = args,
@@ -211,7 +214,8 @@ def _basic_suite_test_config(
         telemetry_test_name = None,
         args = None,
         precommit_args = None,
-        non_precommit_args = None):
+        non_precommit_args = None,
+        module_scheme = None):
     """The details for the test included when included in a basic suite.
 
     When generating test_suites.pyl, these values will be written out for a test
@@ -229,6 +233,8 @@ def _basic_suite_test_config(
             on a try builder.
         non_precommit_args: Arguments to be passed to the test binary when not
             running on a try builder.
+        module_scheme: A scheme that can override the module_scheme provided by
+            the binary.
     """
     return struct(
         script = script,
@@ -237,6 +243,7 @@ def _basic_suite_test_config(
         args = args,
         precommit_args = precommit_args,
         non_precommit_args = non_precommit_args,
+        module_scheme = module_scheme,
     )
 
 def _create_legacy_test(*, name, basic_suite_test_config, mixins = None):

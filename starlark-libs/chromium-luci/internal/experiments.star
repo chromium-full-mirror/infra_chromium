@@ -30,6 +30,7 @@ _KNOWN_EXPERIMENTS = set([
     # go/keep-sorted start
     "builder_config.targets_spec_directory_relative_to_source_dir",
     "targets.module_name_without_slash",
+    "targets.module_scheme_generator",
     "targets.module_scheme_junit_tests",
     "targets.module_scheme_regex",
     "targets.module_scheme_script_tests",

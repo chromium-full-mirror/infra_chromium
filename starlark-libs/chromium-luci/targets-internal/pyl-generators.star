@@ -24,6 +24,7 @@ requires a manual sync step (see //infra/config/scripts/sync-pyl-files.py).
 
 load("@stdlib//internal/graph.star", "graph")
 load("@stdlib//internal/luci/common.star", "keys")
+load("../internal/experiments.star", _experiments = "experiments")
 load("./common.star", _targets_common = "common")
 load("./nodes.star", _targets_nodes = "nodes")
 
@@ -50,6 +51,11 @@ def _generate_gn_isolate_map_pyl(ctx):
             entries.append('    "executable": "{}",'.format(n.props.executable))
         if n.props.executable_suffix != None:
             entries.append('    "executable_suffix": "{}",'.format(n.props.executable_suffix))
+
+        if (_experiments.is_enabled("targets.module_scheme_generator") and
+            n.props.module_scheme) != None:
+            entries.append('    "module_scheme": "{}",'.format(n.props.module_scheme))
+
         if n.props.script != None:
             entries.append('    "script": "{}",'.format(n.props.script))
         if n.props.skip_usage_check:
@@ -445,6 +451,10 @@ def _generate_test_suites_pyl(ctx):
                     test_common_mixin_values[a] = value
 
             _generate_mixin_values(test_common_formatter, test_common_mixin_values)
+
+            if (_experiments.is_enabled("targets.module_scheme_generator") and
+                target_test_config.module_scheme):
+                test_common_formatter.add_line("'module_scheme': '{}',".format(target_test_config.module_scheme))
 
             test_formatter = _formatter(indent_level = 0)
 

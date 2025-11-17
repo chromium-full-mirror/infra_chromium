@@ -161,6 +161,7 @@ def gpu_telemetry_test(
         basic_suite_test_config = _targets_common.basic_suite_test_config(
             telemetry_test_name = telemetry_test_name,
             args = args,
+            module_scheme = module_scheme,
         ),
         mixins = mixins,
     )
