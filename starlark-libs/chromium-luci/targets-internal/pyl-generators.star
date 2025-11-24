@@ -233,8 +233,6 @@ def _generate_mixin_values(formatter, mixin):
     if "skylab" in mixin:
         skylab = mixin["skylab"]
         formatter.open_scope("'skylab': {")
-        if skylab.tast_expr:
-            formatter.add_line("'tast_expr': '{}',".format(skylab.tast_expr))
         if skylab.test_level_retries:
             formatter.add_line("'test_level_retries': {},".format(skylab.test_level_retries))
         if skylab.timeout_sec:

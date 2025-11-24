@@ -616,7 +616,6 @@ def _skylab(
         cros_ctp_suite_name = None,
         # TODO(gbeaty) Tast tests should have their own test function defined
         # and this should be removed from this function
-        tast_expr = None,
         test_level_retries = None,
         timeout_sec = None,
         shards = None):
@@ -640,7 +639,6 @@ def _skylab(
             public_builder_bucket fields can be used when default CTP builder is
             not sufficient/advised (ex: chromium cq, satlab for partners).
         public_builder_bucket: Optional luci bucket. See public_builder above.
-        tast_expr: The tast expression to run.
         test_level_retries: The number of times to retry tests. Only applicable
             to skylab tests.
         cros_test_tags: Tags of tests to run with tag criteria filter.
@@ -679,7 +677,6 @@ def _skylab(
         dut_pool = dut_pool,
         public_builder = public_builder,
         public_builder_bucket = public_builder_bucket,
-        tast_expr = tast_expr,
         test_level_retries = test_level_retries,
         timeout_sec = timeout_sec,
         shards = shards,
@@ -818,12 +815,7 @@ def _spec_finalize(builder_name, settings, spec_value, default_merge_script, def
             if key in ctp_tag_criteria_keys:
                 has_ctp_tag_criteria = True
         if "autotest_name" not in spec_value and not has_ctp_tag_criteria:
-            if "tast_expr" in spec_value:
-                if "lacros" in spec_value["name"]:
-                    autotest_name = "tast.lacros-from-gcs"
-                else:
-                    autotest_name = "tast.chrome-from-gcs"
-            elif "benchmark" in spec_value:
+            if "benchmark" in spec_value:
                 autotest_name = "chromium_Telemetry"
             else:
                 autotest_name = "chromium"
