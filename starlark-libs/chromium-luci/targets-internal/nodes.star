@@ -64,6 +64,9 @@ _PER_TEST_MODIFICATION = _nodes_lib.create_scoped_node_type("targets|per-test-mo
 # A mixin to ignore when expanding tests.
 _REMOVE_MIXIN = _nodes_lib.create_link_node_type("targets|legacy-remove-mixin", _PER_TEST_MODIFICATION, _MIXIN)
 
+# A node to indicate an override in whether a pyl entry is generated for a mixin
+_PYL_GENERATION_OVERRIDE = _nodes_lib.create_unscoped_node_type("targets|pyl-generation-override")
+
 nodes = struct(
     BINARY = _BINARY,
     LABEL_MAPPING = _LABEL_MAPPING,
@@ -81,4 +84,5 @@ nodes = struct(
     BUNDLE = _BUNDLE,
     PER_TEST_MODIFICATION = _PER_TEST_MODIFICATION,
     REMOVE_MIXIN = _REMOVE_MIXIN,
+    PYL_GENERATION_OVERRIDE = _PYL_GENERATION_OVERRIDE,
 )

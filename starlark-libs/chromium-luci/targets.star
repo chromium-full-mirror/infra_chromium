@@ -404,9 +404,7 @@ def _mixin_values(
     )
     return {k: v for k, v in mixin_values.items() if v != None}
 
-_IGNORE_UNUSED = "ignore_unused"
-
-def _mixin(*, name = None, generate_pyl_entry = None, **kwargs):
+def _mixin(*, name = None, generate_pyl_entry = False, **kwargs):
     """Define a mixin used for defining tests.
 
     //infra/config/generated/testing/mixins.pyl will be generated from the
@@ -421,22 +419,24 @@ def _mixin(*, name = None, generate_pyl_entry = None, **kwargs):
             generate_buildbot_json.py which won't cause an error if it isn't
             used. This enables mixins to be generated to the pyl file that are
             only used by the angle repo, which reuses the generated mixins.pyl.
-            By default, this will be True if name is provided.
         **kwargs: The mixin values, see _mixin_values for allowed keywords and
             their meanings.
     """
-    if generate_pyl_entry not in (None, False, True, _IGNORE_UNUSED):
-        fail("unexpected value for generate_pyl_entry: {}".format(generate_pyl_entry))
-    if generate_pyl_entry == None:
-        generate_pyl_entry = name != None
-    elif generate_pyl_entry:
+    allowed_generate_pyl_entry_values = _targets_common.ALLOWED_GENERATE_PYL_ENTRY_VALUES["mixin"]
+    if generate_pyl_entry not in allowed_generate_pyl_entry_values:
+        fail("unexpected value for generate_pyl_entry, must be one of {}, got {}".format(
+            repr(allowed_generate_pyl_entry_values).replace(_targets_common.IGNORE_UNUSED, "targets.IGNORE_UNUSED"),
+            generate_pyl_entry,
+        ))
+    if generate_pyl_entry:
         if name == None:
             fail("pyl entries can't be generated for anonymous mixins")
     key = _targets_nodes.MIXIN.add(name, props = dict(
         mixin_values = _mixin_values(**kwargs),
-        pyl_fail_if_unused = generate_pyl_entry == True,
+        generate_pyl_entry = generate_pyl_entry,
+        anonymous = name == None,
     ))
-    if generate_pyl_entry and name != None:
+    if name != None:
         graph.add_edge(keys.project(), key)
     return graph.keyset(key)
 
@@ -444,7 +444,7 @@ def _variant(
         *,
         name,
         identifier,
-        generate_pyl_entry = True,
+        generate_pyl_entry = False,
         enabled = None,
         mixins = None,
         **kwargs):
@@ -468,12 +468,19 @@ def _variant(
         **kwargs: The mixin values, see _mixin_values for allowed keywords and
             their meanings.
     """
+    allowed_generate_pyl_entry_values = _targets_common.ALLOWED_GENERATE_PYL_ENTRY_VALUES["variant"]
+    if generate_pyl_entry not in allowed_generate_pyl_entry_values:
+        fail("unexpected value for generate_pyl_entry, must be one of {}, got {}".format(
+            repr(allowed_generate_pyl_entry_values).replace(_targets_common.IGNORE_UNUSED, "targets.IGNORE_UNUSED"),
+            generate_pyl_entry,
+        ))
     if enabled == None:
         enabled = True
     variant_key = _targets_nodes.VARIANT.add(name, props = dict(
         identifier = identifier,
         enabled = enabled,
         mixin_values = _mixin_values(**kwargs),
+        generate_pyl_entry = generate_pyl_entry,
     ))
 
     for m in mixins or []:
@@ -482,8 +489,7 @@ def _variant(
         mixin_key = _targets_nodes.MIXIN.key(m)
         graph.add_edge(variant_key, mixin_key)
 
-    if generate_pyl_entry:
-        graph.add_edge(keys.project(), variant_key)
+    graph.add_edge(keys.project(), variant_key)
 
 def _bundle(*, name = None, additional_compile_targets = None, targets = None, mixins = None, variants = None, per_test_modifications = None):
     """Define a targets bundle.
@@ -723,7 +729,7 @@ targets = struct(
     legacy_matrix_compound_suite = _legacy_matrix_compound_suite,
     legacy_matrix_config = _legacy_matrix_config,
     mixin = _mixin,
-    IGNORE_UNUSED = _IGNORE_UNUSED,
+    IGNORE_UNUSED = _targets_common.IGNORE_UNUSED,
     variant = _variant,
     cipd_package = _cipd_package,
     merge = _targets_common.merge,

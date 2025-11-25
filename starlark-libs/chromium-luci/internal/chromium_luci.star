@@ -561,6 +561,28 @@ def _get_autoshard_exceptions(autoshard_exceptions_file):
                 exceptions_for_builder[test] = int(raw_exception_for_test["shards"])
     return autoshard_exceptions
 
+def _pyl_generation_configuration(*, mixin_overrides = {}, variant_overrides = {}):
+    """Configuration for pyl generation,
+
+    By default, when generating pyl files all named mixins and variants will
+    have an entry generated into their corresponding pyl file. This provides a
+    mechanism to override this behavior. The allowed override values are any
+    value that can be passed to the generate_pyl_entry argument of the
+    corresponding definition type.
+
+    Args:
+        mixin_overrides: A dict of mixin name to its override.
+        variant_overrides: A dict of variant name to its override.
+
+    Returns:
+        A struct that can be passed to the generate_pyl_files argument of
+        chromium_luci.configure_targets.
+    """
+    return struct(
+        mixin_overrides = mixin_overrides,
+        variant_overrides = variant_overrides,
+    )
+
 def _configure_targets(*, generate_pyl_files = False, autoshard_exceptions_file = None):
     """Configure the targets library.
 
@@ -569,7 +591,12 @@ def _configure_targets(*, generate_pyl_files = False, autoshard_exceptions_file 
             generated containing the reusable target declarations (variant,
             tests, legacy suites). This enables test and suite definitions to be
             shared between builders that have been migrated to starlark and
-            those that have not.
+            those that have not. Alternatively, a
+            chromium_luci.pyl_generation_configuration can be passed to modify
+            the generated pyl to omit certain entries or mark them so that
+            generate_buildbot_json.py won't fail if they are unused. This
+            enables sharing the targets definitions between projects with the
+            pyl files being tailored to what is actually needed by each project.
         autoshard_exceptions_file: Path to a file containing autoshard
             exceptions to be applied to generated tests. The file should be a
             json file with a dict where the shards for a test running on a
@@ -579,7 +606,7 @@ def _configure_targets(*, generate_pyl_files = False, autoshard_exceptions_file 
             any entries present must contain the "shards" key.
     """
     if generate_pyl_files:
-        register_pyl_generators()
+        register_pyl_generators(generate_pyl_files)
     return _TARGETS_SETTINGS.set(
         autoshard_exceptions = _get_autoshard_exceptions(autoshard_exceptions_file),
     )
@@ -697,6 +724,7 @@ chromium_luci = struct(
     configure_recipe_experiments = _configure_recipe_experiments,
     recipe_experiments_settings = _recipe_experiments_settings,
     configure_targets = _configure_targets,
+    pyl_generation_configuration = _pyl_generation_configuration,
     targets_settings = _targets_settings,
     configure_try = _configure_try,
     try_settings = _try_settings,

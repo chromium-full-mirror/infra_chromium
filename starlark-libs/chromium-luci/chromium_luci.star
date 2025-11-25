@@ -26,5 +26,6 @@ chromium_luci = struct(
     configure_gn_args = _chromium_luci.configure_gn_args,
     configure_recipe_experiments = _chromium_luci.configure_recipe_experiments,
     configure_targets = _chromium_luci.configure_targets,
+    pyl_generation_configuration = _chromium_luci.pyl_generation_configuration,
     configure_try = _chromium_luci.configure_try,
 )

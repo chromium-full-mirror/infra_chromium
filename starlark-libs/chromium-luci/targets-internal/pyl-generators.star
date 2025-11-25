@@ -319,13 +319,41 @@ def _generate_mixin_values(formatter, mixin):
     if "experiment_percentage" in mixin:
         formatter.add_line("'experiment_percentage': {},".format(mixin["experiment_percentage"]))
 
+def _get_override(node, override_type):
+    """Get an override for generating a node.
+
+    Returns:
+        A tuple (generate, ignore_unused):
+            generate: Whether an entry should be generated
+            ignore_unused: Whether the entry should be ignored by
+                generate_buildbot_json.py if it is not used
+    """
+    override_nodes = graph.children(node.key, _targets_nodes.PYL_GENERATION_OVERRIDE.kind)
+    if not override_nodes:
+        generate_pyl_entry = node.props.generate_pyl_entry
+    elif len(override_nodes) > 1:
+        fail(
+            "internal error: multiple override nodes for {} {}: {}".format(
+                override_type,
+                node.key.id,
+                override_nodes,
+            ),
+            trace = node.trace,
+        )
+    else:
+        generate_pyl_entry = override_nodes[0].props.generate_pyl_entry
+    return bool(generate_pyl_entry), generate_pyl_entry == _targets_common.IGNORE_UNUSED
+
 def _generate_mixins_pyl(ctx):
     formatter = _formatter()
 
     for n in graph.children(keys.project(), _targets_nodes.MIXIN.kind, graph.KEY_ORDER):
+        generate, ignore_unused = _get_override(n, "mixin")
+        if not generate:
+            continue
         mixin = n.props.mixin_values
         formatter.open_scope("'{}': {{".format(n.key.id))
-        if not n.props.pyl_fail_if_unused:
+        if ignore_unused:
             formatter.add_line("'fail_if_unused': False,")
 
         _generate_mixin_values(formatter, mixin)
@@ -348,8 +376,16 @@ def _generate_variants_pyl(ctx):
     formatter = _formatter()
 
     for n in graph.children(keys.project(), _targets_nodes.VARIANT.kind, graph.KEY_ORDER):
+        generate, ignore_unused = _get_override(n, "variant")
+        if not generate:
+            continue
         mixin = n.props.mixin_values
         formatter.open_scope("'{}': {{".format(n.key.id))
+        if ignore_unused:
+            fail(
+                "internal error: ignore_unused is not supported for variants, attempt to use it for variant {}".format(n.key.id),
+                trace = n.trace,
+            )
 
         formatter.add_line("'identifier': '{}',".format(n.props.identifier))
 
@@ -364,6 +400,11 @@ def _generate_variants_pyl(ctx):
         # DEFINITION_ORDER preserves the order that the edges were added
         # from the parent to the child
         for mixin in graph.children(n.key, _targets_nodes.MIXIN.kind, graph.DEFINITION_ORDER):
+            if mixin.props.anonymous:
+                fail(
+                    "cannot generate a pyl entry for variant {} because it uses an anonymous mixin, update it or add an override in chromium_luci.configure_targets to prevent generating it".format(n.key.id),
+                    trace = mixin.trace,
+                )
             mixins.append(mixin.key.id)
         if mixins:
             formatter.open_scope("'mixins': [")
@@ -565,8 +606,38 @@ def _generate_test_suites_pyl(ctx):
         entries = formatter.output(),
     )
 
-def register_pyl_generators():
+def _register_override(override_type, name, override, parent_node_type):
+    allowed_generate_pyl_entry_values = _targets_common.ALLOWED_GENERATE_PYL_ENTRY_VALUES[override_type]
+    if override not in allowed_generate_pyl_entry_values:
+        fail("invalid override value for {} {}, must be one of {}, got {}".format(
+            override_type,
+            name,
+            repr(allowed_generate_pyl_entry_values).replace(_targets_common.IGNORE_UNUSED, "targets.IGNORE_UNUSED"),
+            override,
+        ))
+
+    key = _targets_nodes.PYL_GENERATION_OVERRIDE.add("{}/{}".format(override_type, name), props = dict(
+        generate_pyl_entry = override,
+    ))
+    graph.add_edge(parent_node_type.key(name), key)
+
+def register_pyl_generators(pyl_generation_config):
+    """Register generators that generate pyl files.
+
+    Args:
+        pyl_generation_config: An argument controlling the generation of pyl
+            files. Can be a struct provided by
+            chromium_luci.pyl_generation_configuration, which enables overriding
+            the generation for individual declarations. Otherwise, the pyl files
+            will be generated with no overrides.
+    """
     lucicfg.generator(_generate_gn_isolate_map_pyl)
     lucicfg.generator(_generate_mixins_pyl)
     lucicfg.generator(_generate_variants_pyl)
     lucicfg.generator(_generate_test_suites_pyl)
+
+    if type(pyl_generation_config) == type(struct()):
+        for mixin, override in pyl_generation_config.mixin_overrides.items():
+            _register_override("mixin", mixin, override, _targets_nodes.MIXIN)
+        for variant, override in pyl_generation_config.variant_overrides.items():
+            _register_override("variant", variant, override, _targets_nodes.VARIANT)

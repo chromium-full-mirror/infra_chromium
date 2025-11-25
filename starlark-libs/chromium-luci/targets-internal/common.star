@@ -405,7 +405,7 @@ def _get_test_binary_node(node):
 def _spec_handler(*, type_name, init, finalize):
     """Declare a spec handler for a target type.
 
-    The node that is added for each test (type _target_nodes.TEST) will store a
+    The node that is added for each test (type _targets_nodes.TEST) will store a
     spec handler. When creating the initial spec for a test, the init function
     of the handler will be called. After the spec has been modified by all
     applicable mixins, the finalize function of the handler will be called to
@@ -415,7 +415,7 @@ def _spec_handler(*, type_name, init, finalize):
         type_name: The name of the test type. This will be used in error
             messages.
         init: The function to create the initial value of the spec. The function
-            will be called with the test node (type _target_nodes.TEST) and
+            will be called with the test node (type _targets_nodes.TEST) and
             should return a dict with all keys populated that are supported by
             the type.
         finalize: The function that produces the (mostly-)final value of a spec
@@ -845,7 +845,17 @@ def _spec_finalize(builder_name, settings, spec_value, default_merge_script, def
 
     return test_type, spec_value
 
+_IGNORE_UNUSED = "ignore_unused"
+
+_ALLOWED_GENERATE_PYL_ENTRY_VALUES = {
+    "mixin": [True, False, _IGNORE_UNUSED],
+    "variant": [True, False],
+}
+
 common = struct(
+    IGNORE_UNUSED = _IGNORE_UNUSED,
+    ALLOWED_GENERATE_PYL_ENTRY_VALUES = _ALLOWED_GENERATE_PYL_ENTRY_VALUES,
+
     # Functions used for creating objects that are part of the public API that
     # need to be used internally as well
     builder_defaults = _builder_defaults,
