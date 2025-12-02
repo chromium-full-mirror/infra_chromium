@@ -7,6 +7,7 @@
 load("@stdlib//internal/graph.star", "graph")
 load("@stdlib//internal/luci/common.star", "keys")
 load("./args.star", "args")
+load("./internal/experiments.star", _experiments = "experiments")
 load("./targets-internal/common.star", _targets_common = "common")
 load("./targets-internal/magic_args.star", _targets_magic_args = "magic_args")
 load("./targets-internal/nodes.star", _targets_nodes = "nodes")
@@ -404,7 +405,7 @@ def _mixin_values(
     )
     return {k: v for k, v in mixin_values.items() if v != None}
 
-def _mixin(*, name = None, generate_pyl_entry = False, **kwargs):
+def _mixin(*, name = None, generate_pyl_entry = None, **kwargs):
     """Define a mixin used for defining tests.
 
     //infra/config/generated/testing/mixins.pyl will be generated from the
@@ -423,7 +424,12 @@ def _mixin(*, name = None, generate_pyl_entry = False, **kwargs):
             their meanings.
     """
     allowed_generate_pyl_entry_values = _targets_common.ALLOWED_GENERATE_PYL_ENTRY_VALUES["mixin"]
-    if generate_pyl_entry not in allowed_generate_pyl_entry_values:
+    if generate_pyl_entry == None:
+        if _experiments.is_enabled("targets.generate_pyl_entry_default_off"):
+            generate_pyl_entry = False
+        else:
+            generate_pyl_entry = name != None
+    elif generate_pyl_entry not in allowed_generate_pyl_entry_values:
         fail("unexpected value for generate_pyl_entry, must be one of {}, got {}".format(
             repr(allowed_generate_pyl_entry_values).replace(_targets_common.IGNORE_UNUSED, "targets.IGNORE_UNUSED"),
             generate_pyl_entry,
@@ -444,7 +450,7 @@ def _variant(
         *,
         name,
         identifier,
-        generate_pyl_entry = False,
+        generate_pyl_entry = None,
         enabled = None,
         mixins = None,
         **kwargs):
@@ -469,7 +475,12 @@ def _variant(
             their meanings.
     """
     allowed_generate_pyl_entry_values = _targets_common.ALLOWED_GENERATE_PYL_ENTRY_VALUES["variant"]
-    if generate_pyl_entry not in allowed_generate_pyl_entry_values:
+    if generate_pyl_entry == None:
+        if _experiments.is_enabled("targets.generate_pyl_entry_default_off"):
+            generate_pyl_entry = False
+        else:
+            generate_pyl_entry = True
+    elif generate_pyl_entry not in allowed_generate_pyl_entry_values:
         fail("unexpected value for generate_pyl_entry, must be one of {}, got {}".format(
             repr(allowed_generate_pyl_entry_values).replace(_targets_common.IGNORE_UNUSED, "targets.IGNORE_UNUSED"),
             generate_pyl_entry,

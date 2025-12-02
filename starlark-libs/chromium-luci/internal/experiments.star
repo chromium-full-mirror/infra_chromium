@@ -29,6 +29,7 @@ _SETTINGS = _settings.settings(
 _KNOWN_EXPERIMENTS = set([
     # go/keep-sorted start
     "builder_config.targets_spec_directory_relative_to_source_dir",
+    "targets.generate_pyl_entry_default_off",
     "targets.module_name_without_slash",
     "targets.module_scheme_generator",
     "targets.module_scheme_junit_tests",
