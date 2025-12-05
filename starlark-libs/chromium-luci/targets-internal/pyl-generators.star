@@ -253,6 +253,15 @@ def _generate_mixin_values(formatter, mixin):
             formatter.add_line("'cros_img': '{}',".format(skylab.cros_img))
         if skylab.use_lkgm:
             formatter.add_line("'use_lkgm': True,")
+        if skylab.secondary_cros_board:
+            formatter.add_line("'secondary_cros_board': '{}',".format(skylab.secondary_cros_board))
+        if skylab.secondary_cros_img:
+            formatter.add_line("'secondary_cros_img': '{}',".format(skylab.secondary_cros_img))
+        if skylab.should_provision_browser_files:
+            formatter.open_scope("'should_provision_browser_files': [")
+            for v in skylab.should_provision_browser_files:
+                formatter.add_line("{},".format(v))
+            formatter.close_scope("],")
         if skylab.autotest_name:
             formatter.add_line("'autotest_name': '{}',".format(skylab.autotest_name))
         if skylab.bucket:

@@ -612,6 +612,9 @@ def _skylab(
         cros_img = None,
         use_lkgm = None,
         cros_model = None,
+        secondary_cros_board = None,
+        secondary_cros_img = None,
+        should_provision_browser_files = None,
         autotest_name = None,
         bucket = None,
         dut_pool = None,
@@ -641,6 +644,15 @@ def _skylab(
         use_lkgm: If True, use a ChromeOS image version derived from
             chromeos/CHROMEOS_LKGM file.
         cros_model: Optional ChromeOS DUT model.
+        secondary_cros_board: A string containing a comma-separated list of CrOS
+            DUT board names to use for additional DUTs in multi-DUT tests.
+        secondary_cros_img: A string containing a comma-separated list of CrOS
+            image versions to be deployed to additional DUTs in multi-DUT tests.
+            Must have the same number of elements as secondary_cros_board.
+        should_provision_browser_files: A list of booleans indicating whether
+            browser files should be downloaded to additional DUTs in multi-DUT
+            tests. Must have the same number of elements as
+            secondary_cros_board.
         autotest_name: The name of the autotest to be executed in Skylab.
         bucket: Optional Google Storage bucket where the specified image(s) are
             stored.
@@ -683,6 +695,9 @@ def _skylab(
         cros_ctp_suite_name = cros_ctp_suite_name,
         use_lkgm = use_lkgm,
         cros_model = cros_model,
+        secondary_cros_board = secondary_cros_board,
+        secondary_cros_img = secondary_cros_img,
+        should_provision_browser_files = should_provision_browser_files,
         autotest_name = autotest_name,
         bucket = bucket,
         dut_pool = dut_pool,
