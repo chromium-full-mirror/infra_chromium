@@ -124,8 +124,14 @@ def _generate_swarming_values(formatter, swarming):
 
     if swarming.enable != None:
         formatter.add_line("'can_use_on_swarming_builders': {},".format(swarming.enable))
+    if swarming.server != None:
+        formatter.add_line("'server': '{}',".format(swarming.server))
+    if swarming.realm != None:
+        formatter.add_line("'realm': '{}',".format(swarming.realm))
     if swarming.shards:
         formatter.add_line("'shards': {},".format(swarming.shards))
+    if swarming.priority != None:
+        formatter.add_line("'priority': {},".format(swarming.priority))
     if swarming.dimensions:
         formatter.open_scope("'dimensions': {")
         for dim, value in swarming.dimensions.items():

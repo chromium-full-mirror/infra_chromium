@@ -492,7 +492,10 @@ def _swarming(
         hard_timeout_sec = None,
         io_timeout_sec = None,
         shards = None,
+        priority = None,
         idempotent = None,
+        server = None,
+        realm = None,
         service_account = None,
         named_caches = None):
     """Define the swarming details for a test.
@@ -521,7 +524,12 @@ def _swarming(
         io_timeout_sec: The maximum time that can elapse between output from
             tasks for the test.
         shards: The number of tasks to split the test into.
+        priority: The priority value to use for the tasks.
         idempotent: Whether the test task should be considered idempotent.
+        server: The swarming server to run the tasks in. By default, tasks will
+            be run in the same swarming server that the builds run in.
+        realm: The realm that the tasks should be created in. By default, tasks
+            will be created in the same realm as the builder.
         service_account: The service account used to run the test's tasks.
         named_caches: A list of swarming.cache that detail the named caches that
             should be mounted for the test's tasks.
@@ -536,7 +544,10 @@ def _swarming(
         hard_timeout_sec = hard_timeout_sec,
         io_timeout_sec = io_timeout_sec,
         shards = shards,
+        priority = priority,
         idempotent = idempotent,
+        server = server,
+        realm = realm,
         service_account = service_account,
         named_caches = named_caches,
     )
