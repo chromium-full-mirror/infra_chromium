@@ -298,8 +298,8 @@ def _generate_mixin_values(formatter, mixin):
     if "resultdb" in mixin:
         resultdb = mixin["resultdb"]
         formatter.open_scope("'resultdb': {")
-        if resultdb.enable:
-            formatter.add_line("'enable': True,")
+        if resultdb.enable != None:
+            formatter.add_line("'enable': {},".format(resultdb.enable))
         if resultdb.has_native_resultdb_integration:
             formatter.add_line("'has_native_resultdb_integration': True,")
         if resultdb.result_format != None:
