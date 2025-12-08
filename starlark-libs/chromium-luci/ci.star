@@ -215,13 +215,14 @@ def ci_builder(
             gardener_rotations = defaults.get_value("gardener_rotations", gardener_rotations, merge = args.MERGE_LIST)
             gardener_rotations = args.listify([rotation.get() for rotation in gardener_rotations])
             for rotation in gardener_rotations:
-                luci.console_view_entry(
-                    builder = builder,
-                    console_view = rotation.console_name,
-                    category = overview_console_category,
-                    short_name = entry.short_name,
-                )
-                if tree_closing and notifiers.tree_closer_branch():
+                if rotation.console_name:
+                    luci.console_view_entry(
+                        builder = builder,
+                        console_view = rotation.console_name,
+                        category = overview_console_category,
+                        short_name = entry.short_name,
+                    )
+                if rotation.tree_closer_console and tree_closing and notifiers.tree_closer_branch():
                     luci.console_view_entry(
                         builder = builder,
                         console_view = rotation.tree_closer_console,
