@@ -26,6 +26,9 @@ _VARIANT = _nodes_lib.create_unscoped_node_type("targets|variant")
 # A test that can be included in a basic suite
 _LEGACY_TEST = _nodes_lib.create_unscoped_node_type("targets|legacy-test")
 
+# A legacy suite, contains functionality common to all suite types
+_LEGACY_SUITE = _nodes_lib.create_unscoped_node_type("targets|legacy-suite")
+
 # A basic suite, which is a set of tests with optional modifications
 _LEGACY_BASIC_SUITE = _nodes_lib.create_unscoped_node_type("targets|legacy-basic-suite")
 
@@ -73,6 +76,7 @@ nodes = struct(
     MIXIN = _MIXIN,
     VARIANT = _VARIANT,
     LEGACY_TEST = _LEGACY_TEST,
+    LEGACY_SUITE = _LEGACY_SUITE,
     LEGACY_BASIC_SUITE = _LEGACY_BASIC_SUITE,
     LEGACY_BASIC_SUITE_CONFIG = _LEGACY_BASIC_SUITE_CONFIG,
     LEGACY_BASIC_SUITE_REMOVE_MIXIN = _LEGACY_BASIC_SUITE_REMOVE_MIXIN,

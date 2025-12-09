@@ -561,18 +561,34 @@ def _get_autoshard_exceptions(autoshard_exceptions_file):
                 exceptions_for_builder[test] = int(raw_exception_for_test["shards"])
     return autoshard_exceptions
 
-def _pyl_generation_configuration(*, mixin_overrides = {}, variant_overrides = {}):
+def _pyl_generation_configuration(*, mixin_overrides = {}, variant_overrides = {}, suite_overrides = {}):
     """Configuration for pyl generation,
 
-    By default, when generating pyl files all named mixins and variants will
-    have an entry generated into their corresponding pyl file. This provides a
-    mechanism to override this behavior. The allowed override values are any
-    value that can be passed to the generate_pyl_entry argument of the
-    corresponding definition type.
+    By default, when generating pyl files, mixins and variants will not generate
+    an entry into their corresponding pyl file. This enables the declarations to
+    be shared with other projects without the other project having to know
+    whether a pyl entry will be generated upstream. Since the mixin/variant
+    declarations that generate pyl entries are the same format as declarations
+    used exclusively in starlark, this will result in the total configuration
+    shrinking as more config is migrated to starlark since the declarations
+    remain and the overrides are removed.
+
+    In contrast, legacy suites will generate an entry into test_suites.pyl by
+    default. This is because the legacy suite declarations are specifically
+    intended for referencing via //testing/buildbot. Once all references are
+    removed from //testing/buildbot, they should be replaced with a bundle
+    declaration. However, if a suite is shared between multiple projects, then
+    it may be necessary to keep a legacy suite declaration that doesn't generate
+    a pyl entry (either a suite is referenced only via a downstream package or a
+    package that doesn't use all of the suites define by an upstream package).
 
     Args:
-        mixin_overrides: A dict of mixin name to its override.
-        variant_overrides: A dict of variant name to its override.
+        mixin_overrides: A dict of mixin name to its override (one of True,
+            False or targets.IGNORE_UNUSED).
+        variant_overrides: A dict of variant name to its override (one of True
+            or False).
+        suite_overrides: A dict of suite name to its override (one of True or
+            False).
 
     Returns:
         A struct that can be passed to the generate_pyl_files argument of
@@ -581,6 +597,7 @@ def _pyl_generation_configuration(*, mixin_overrides = {}, variant_overrides = {
     return struct(
         mixin_overrides = mixin_overrides,
         variant_overrides = variant_overrides,
+        suite_overrides = suite_overrides,
     )
 
 def _configure_targets(*, generate_pyl_files = False, autoshard_exceptions_file = None):

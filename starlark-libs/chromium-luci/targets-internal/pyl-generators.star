@@ -435,6 +435,26 @@ def _generate_variants_pyl(ctx):
         entries = formatter.output(),
     )
 
+def _get_suite_common(node):
+    suite_common_nodes = graph.children(node.key, _targets_nodes.LEGACY_SUITE.kind)
+    if len(suite_common_nodes) > 1:
+        fail(
+            "internal error: multiple suite common nodes for {}: {}".format(
+                node.key.id,
+                suite_common_nodes,
+            ),
+            trace = node.trace,
+        )
+    if not suite_common_nodes:
+        fail(
+            "internal error: no suite common nodes for {}: {}".format(
+                node.key.id,
+                suite_common_nodes,
+            ),
+            trace = node.trace,
+        )
+    return suite_common_nodes[0]
+
 def _generate_test_suites_pyl(ctx):
     formatter = _formatter()
 
@@ -455,6 +475,14 @@ def _generate_test_suites_pyl(ctx):
     formatter.open_scope("'basic_suites': {")
 
     for suite in graph.children(keys.project(), _targets_nodes.LEGACY_BASIC_SUITE.kind, graph.KEY_ORDER):
+        generate, ignore_unused = _get_override(_get_suite_common(suite), "suite")
+        if not generate:
+            continue
+        if ignore_unused:
+            fail(
+                "internal error: ignore_unused is not supported for suites, attempt to use it for suite {}".format(suite.key.id),
+                trace = suite.trace,
+            )
         formatter.add_line("")
         formatter.open_scope("'{}': {{".format(suite.key.id))
 
@@ -575,6 +603,14 @@ def _generate_test_suites_pyl(ctx):
     formatter.open_scope("'compound_suites': {")
 
     for suite in graph.children(keys.project(), _targets_nodes.LEGACY_COMPOUND_SUITE.kind, graph.KEY_ORDER):
+        generate, ignore_unused = _get_override(_get_suite_common(suite), "suite")
+        if not generate:
+            continue
+        if ignore_unused:
+            fail(
+                "internal error: ignore_unused is not supported for suites, attempt to use it for suite {}".format(suite.key.id),
+                trace = suite.trace,
+            )
         formatter.add_line("")
         formatter.open_scope("'{}': [".format(suite.key.id))
         for basic_suite in graph.children(suite.key, _targets_nodes.LEGACY_BASIC_SUITE.kind, graph.KEY_ORDER):
@@ -588,6 +624,14 @@ def _generate_test_suites_pyl(ctx):
     formatter.open_scope("'matrix_compound_suites': {")
 
     for suite in graph.children(keys.project(), _targets_nodes.LEGACY_MATRIX_COMPOUND_SUITE.kind, graph.KEY_ORDER):
+        generate, ignore_unused = _get_override(_get_suite_common(suite), "suite")
+        if not generate:
+            continue
+        if ignore_unused:
+            fail(
+                "internal error: ignore_unused is not supported for suites, attempt to use it for suite {}".format(suite.key.id),
+                trace = suite.trace,
+            )
         formatter.add_line("")
         formatter.open_scope("'{}': {{".format(suite.key.id))
         for matrix_config in graph.children(suite.key, _targets_nodes.LEGACY_MATRIX_CONFIG.kind, graph.KEY_ORDER):
@@ -656,3 +700,5 @@ def register_pyl_generators(pyl_generation_config):
             _register_override("mixin", mixin, override, _targets_nodes.MIXIN)
         for variant, override in pyl_generation_config.variant_overrides.items():
             _register_override("variant", variant, override, _targets_nodes.VARIANT)
+        for suite, override in pyl_generation_config.suite_overrides.items():
+            _register_override("suite", suite, override, _targets_nodes.LEGACY_SUITE)

@@ -526,6 +526,12 @@ def _bundle(*, name = None, additional_compile_targets = None, targets = None, m
         per_test_modifications = per_test_modifications or {},
     ))
 
+def _suite_common(name, suite_key):
+    suite_common_key = _targets_nodes.LEGACY_SUITE.add(name, props = dict(
+        generate_pyl_entry = True,
+    ))
+    graph.add_edge(suite_key, suite_common_key)
+
 def _per_test_modification(test_config):
     mixins = args.listify(_mixin(**(test_config.mixin_values or {})), test_config.mixins)
     return _targets_common.per_test_modification(
@@ -553,6 +559,7 @@ def _legacy_basic_suite(*, name, tests):
             targets.legacy_test_config.
     """
     basic_suite_key = _targets_nodes.LEGACY_BASIC_SUITE.add(name)
+    _suite_common(name, basic_suite_key)
     graph.add_edge(keys.project(), basic_suite_key)
 
     _targets_common.create_bundle(
@@ -624,6 +631,7 @@ def _legacy_compound_suite(*, name, basic_suites):
         basic_suites: A list of names of basic suites to compose.
     """
     legacy_compound_suite_key = _targets_nodes.LEGACY_COMPOUND_SUITE.add(name)
+    _suite_common(name, legacy_compound_suite_key)
     graph.add_edge(keys.project(), legacy_compound_suite_key)
 
     for s in basic_suites:
@@ -657,6 +665,7 @@ def _legacy_matrix_compound_suite(*, name, basic_suites):
             basic suite without performing any variant expansion.
     """
     key = _targets_nodes.LEGACY_MATRIX_COMPOUND_SUITE.add(name)
+    _suite_common(name, key)
     graph.add_edge(keys.project(), key)
 
     dep_targets = []

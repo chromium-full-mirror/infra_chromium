@@ -875,6 +875,7 @@ _IGNORE_UNUSED = "ignore_unused"
 
 _ALLOWED_GENERATE_PYL_ENTRY_VALUES = {
     "mixin": [True, False, _IGNORE_UNUSED],
+    "suite": [True, False],
     "variant": [True, False],
 }
 
