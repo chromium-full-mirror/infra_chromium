@@ -13,7 +13,6 @@ load("./gardener_rotations.star", "get_gardener_rotations")
 load("./html.star", "linkify_builder")
 load("./internal/chromium_luci.star", _chromium_luci = "chromium_luci")
 load("./internal/codesearch.star", "codesearch")
-load("./internal/experiments.star", _experiments = "experiments")
 load("./internal/try.star", "location_filters_without_defaults")
 load("./nodes.star", "nodes")
 load("./structs.star", "structs")
@@ -941,12 +940,10 @@ def _set_builder_config_property(ctx):
                     builder_name,
                 )
 
-                # TODO: crbug.com/458607662 - Once all projects are updated,
-                # always make the targets spec directory relative to the source dir
-                if _experiments.is_enabled("builder_config.targets_spec_directory_relative_to_source_dir"):
-                    builder_config["targets_spec_directory_relative_to_source_dir"] = True
-                else:
-                    targets_spec_directory = "src/" + targets_spec_directory
+                # TODO: crbug.com/458607662 - Once the recipe always interprets
+                # targets_spec_directory relative to the source directory, this
+                # doesn't need to be set
+                builder_config["targets_spec_directory_relative_to_source_dir"] = True
                 builder_config["targets_spec_directory"] = targets_spec_directory
                 for builder_group, contents in targets_spec.items():
                     if builder_cq_groups:
