@@ -110,7 +110,7 @@ def _android_desktop_force_main_user(_, settings, spec_value):
 
 def _android_desktop_gtest_remote(_, settings, spec_value):
     """Substitute the correct Android Desktop remote gtest arguments."""
-    if settings.os_type != common.os_type.Android:
+    if settings.os_type != common.os_type.ANDROID:
         fail("Ran an Android Desktop-stpecific substitution on a non-Android builder")
     if not _get_android_desktop_board_name(spec_value):
         return []
