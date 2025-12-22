@@ -628,9 +628,6 @@ def _skylab(
         cros_test_names_exclude_from_file = None,
         cros_test_max_in_shard = None,
         cros_ctp_suite_name = None,
-        # TODO(gbeaty) Tast tests should have their own test function defined
-        # and this should be removed from this function
-        test_level_retries = None,
         timeout_sec = None,
         shards = None):
     """Define a Skylab test target.
@@ -662,8 +659,6 @@ def _skylab(
             public_builder_bucket fields can be used when default CTP builder is
             not sufficient/advised (ex: chromium cq, satlab for partners).
         public_builder_bucket: Optional luci bucket. See public_builder above.
-        test_level_retries: The number of times to retry tests. Only applicable
-            to skylab tests.
         cros_test_tags: Tags of tests to run with tag criteria filter.
         cros_test_tags_exclude: Tags to exclude for tests to run with tag
             criteria filter.
@@ -703,7 +698,6 @@ def _skylab(
         dut_pool = dut_pool,
         public_builder = public_builder,
         public_builder_bucket = public_builder_bucket,
-        test_level_retries = test_level_retries,
         timeout_sec = timeout_sec,
         shards = shards,
     )

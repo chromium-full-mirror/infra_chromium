@@ -239,8 +239,6 @@ def _generate_mixin_values(formatter, mixin):
     if "skylab" in mixin:
         skylab = mixin["skylab"]
         formatter.open_scope("'skylab': {")
-        if skylab.test_level_retries:
-            formatter.add_line("'test_level_retries': {},".format(skylab.test_level_retries))
         if skylab.timeout_sec:
             formatter.add_line("'timeout_sec': {},".format(skylab.timeout_sec))
         if skylab.cros_board:
