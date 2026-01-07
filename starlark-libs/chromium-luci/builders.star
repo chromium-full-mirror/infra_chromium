@@ -886,12 +886,6 @@ def builder(
 
         if defaults.get_value("siso_enable_cloud_monitoring", siso_enable_cloud_monitoring):
             siso["enable_cloud_monitoring"] = True
-
-            # TODO: crbug.com/368518993 - It uses the same GCP project with
-            # Reclient so that we can reuse the existing monitoring setup.
-            # We need to consider migrating to chromium-build-stats or the
-            # RBE project.
-            siso["metrics_project"] = "chromium-reclient-metrics"
         properties["$build/siso"] = siso
         if shadow_rbe_project:
             shadow_siso = dict(siso)
