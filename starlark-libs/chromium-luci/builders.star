@@ -643,8 +643,8 @@ def builder(
             for `--output_local_strategy`. full, greedy or minimum.
         siso_remote_linking: If True, enable remote linking. Relevant configs
             and GN args will be adjusted accordingly.
-        siso_limits: a string to override sito limits.
-        siso_keep_going: Bool flag whether to pass '-k 0' or not.
+        siso_limits: a string to override siso limits.
+        siso_keep_going: an integer which will be used as the value for '-k'
         siso_disable_batch_mode: Bool flag whether to pass `-batch=false` or
             not.
         skip_profile_upload: A boolean indicating whether the PGO profile should
@@ -859,8 +859,10 @@ def builder(
             "project": rbe_project,
         }
         siso_keep_going = defaults.get_value("siso_keep_going", siso_keep_going)
-        if siso_keep_going:
-            siso["keep_going"] = True
+
+        # don't rely on falsy-ness since 0 is a valid value
+        if siso_keep_going != None:
+            siso["keep_going"] = siso_keep_going
 
         siso_disable_batch_mode = defaults.get_value("siso_disable_batch_mode", siso_disable_batch_mode)
         if siso_disable_batch_mode:
