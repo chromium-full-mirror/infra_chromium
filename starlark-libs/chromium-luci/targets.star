@@ -512,13 +512,20 @@ def _bundle(*, name = None, additional_compile_targets = None, targets = None, m
         additional_compile_targets: A list of targets to build but not run.
         targets: A list of tests, bundles or legacy suites to include in the
             bundle.
-        mixins: A list of mixins to apply to all tests in the bundle.
+        mixins: A list of mixins to apply to all tests in the bundle. Has a
+            module-level default. Mixins specified in the module-level default
+            will be applied before any mixins or modifications specified in the
+            bundle. Care should be taken when specifying a mixin that has merged
+            fields (e.g. args field) as a default since it could be applied
+            multiple times if a bundle references a named bundle defined in the
+            same file.
         variants: A list of variants to apply to all tests in the bundle.
         per_test_modifications: A dict mapping from test name to mixins to apply
             to that test.
     """
     return graph.keyset(_targets_common.create_bundle(
         name = name,
+        use_bundle_defaults = True,
         additional_compile_targets = args.listify(additional_compile_targets),
         targets = args.listify(targets),
         mixins = args.listify(mixins),
@@ -738,7 +745,9 @@ targets = struct(
     bundle = _bundle,
     per_test_modification = _targets_common.per_test_modification,
     replacements = _targets_common.replacements,
-    builder_defaults = _targets_common.builder_defaults,
+    bundle_defaults = _targets_common.bundle_defaults,
+    # Remove this once all projects are switched to using bundle_defaults instead
+    builder_defaults = _targets_common.bundle_defaults,
     settings = _targets_common.settings,
     settings_defaults = _targets_common.settings_defaults,
     browser_config = _targets_common.browser_config,

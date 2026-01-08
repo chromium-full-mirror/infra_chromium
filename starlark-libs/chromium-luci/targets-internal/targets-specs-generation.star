@@ -46,10 +46,10 @@ def register_targets(*, parent_key, builder_group, builder_name, name, targets, 
     """
     targets_key = _targets_common.create_bundle(
         name = name,
+        use_bundle_defaults = True,
         builder_group = builder_group,
         builder_name = builder_name,
         targets = args_lib.listify(targets),
-        mixins = _targets_common.builder_defaults.mixins.get(),
         settings = settings or _targets_common.settings(),
     )
 

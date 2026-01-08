@@ -11,7 +11,10 @@ load("./nodes.star", _targets_nodes = "nodes")
 load("//args.star", args_lib = "args")
 load("//enums.star", "enums")
 
-_builder_defaults = args_lib.defaults(
+# Defaults that are applied when explicitly creating a bundle using
+# targets.bundle or when a bundle is implicitly defined for a builder that
+# specifies targets
+_bundle_defaults = args_lib.defaults(
     mixins = [],
 )
 
@@ -328,6 +331,7 @@ def _replacements(*, args = None, precommit_args = None, non_precommit_args = No
 def _create_bundle(
         *,
         name,
+        use_bundle_defaults = False,
         additional_compile_targets = [],
         targets = [],
         builder_group = None,
@@ -342,21 +346,57 @@ def _create_bundle(
             tests_to_remove.append(test_name)
             per_test_modifications.pop(test_name)
 
-    bundle_key = _targets_nodes.BUNDLE.add(name, props = dict(
+    def props(builder_group = None, builder_name = None, settings = None, tests_to_remove = []):
+        return dict(
+            builder_group = builder_group,
+            builder_name = builder_name,
+            settings = settings,
+            tests_to_remove = tests_to_remove,
+            # Record the stacktrace so that failures actually point out the failing
+            # definition (this is especially important for unnamed bundles since
+            # they won't have a useful name to search for)
+            stacktrace = stacktrace(skip = 4),
+        )
+
+    bundle_key = _targets_nodes.BUNDLE.add(name, props = props(
         builder_group = builder_group,
         builder_name = builder_name,
         settings = settings,
         tests_to_remove = tests_to_remove,
-        # Record the stacktrace so that failures actually point out the failing
-        # definition (this is especially important for unnamed bundles since
-        # they won't have a useful name to search for)
-        stacktrace = stacktrace(skip = 3),
     ))
+
+    default_mixins = _bundle_defaults.mixins.get() if use_bundle_defaults else []
 
     for t in additional_compile_targets:
         graph.add_edge(bundle_key, _targets_nodes.COMPILE_TARGET.key(t))
     for t in targets:
-        graph.add_edge(bundle_key, _targets_nodes.BUNDLE.key(t))
+        target_key = _targets_nodes.BUNDLE.key(t)
+
+        # The elements of targets can either be a keyset (an anonymous bundle)
+        # or a string (the name of a named bundle). For each named bundle,
+        # create an anonymous bundle that has an edge to the named bundle and
+        # edges to the default mixins. This will ensure that for each top-level
+        # bundle declaration the default mixins will get applied before mixins
+        # and per test modifications specified in the bundle.
+        #
+        # Anonymous bundles should already have the default mixins applied
+        # because it wouldn't be possible to get a keyset for an anonymous
+        # bundle in another file unless someone manually constructed it;
+        # operations that modify the graph can't be executed when a file is
+        # being loaded, so an anonymous bundle would have to be created by a
+        # function that's being executed in same context as the file being
+        # exec'ed.
+        #
+        # If a bundle X references a named bundle Y defined in the same file,
+        # then the defaults will be applied to Y again as part of the expansion
+        # of X.
+        if default_mixins and type(t) == type(""):
+            wrapped_target_bundle_key = _targets_nodes.BUNDLE.add(None, props = props())
+            for m in default_mixins:
+                graph.add_edge(wrapped_target_bundle_key, _targets_nodes.MIXIN.key(m))
+            graph.add_edge(wrapped_target_bundle_key, target_key)
+            target_key = wrapped_target_bundle_key
+        graph.add_edge(bundle_key, target_key)
     for m in mixins:
         graph.add_edge(bundle_key, _targets_nodes.MIXIN.key(m))
     for v in variants:
@@ -879,7 +919,7 @@ common = struct(
 
     # Functions used for creating objects that are part of the public API that
     # need to be used internally as well
-    builder_defaults = _builder_defaults,
+    bundle_defaults = _bundle_defaults,
     settings = _settings,
     settings_defaults = _settings_defaults,
     browser_config = _browser_config,
