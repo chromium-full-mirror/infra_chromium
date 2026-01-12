@@ -940,10 +940,6 @@ def _set_builder_config_property(ctx):
                     builder_name,
                 )
 
-                # TODO: crbug.com/458607662 - Once the recipe always interprets
-                # targets_spec_directory relative to the source directory, this
-                # doesn't need to be set
-                builder_config["targets_spec_directory_relative_to_source_dir"] = True
                 builder_config["targets_spec_directory"] = targets_spec_directory
                 for builder_group, contents in targets_spec.items():
                     if builder_cq_groups:
