@@ -311,7 +311,7 @@ defaults = args.defaults(
     siso_enabled = True,
     siso_project = None,
     siso_configs = ["builder"],
-    siso_enable_cloud_profiler = True,
+    siso_profile_mode = "cloud",
     siso_enable_cloud_trace = True,
     siso_enable_cloud_monitoring = True,
     siso_experiments = [],
@@ -424,7 +424,7 @@ def builder(
         siso_enabled = args.DEFAULT,
         siso_project = args.DEFAULT,
         siso_configs = args.DEFAULT,
-        siso_enable_cloud_profiler = args.DEFAULT,
+        siso_profile_mode = args.DEFAULT,
         siso_enable_cloud_trace = args.DEFAULT,
         siso_enable_cloud_monitoring = args.DEFAULT,
         siso_experiments = args.DEFAULT,
@@ -631,7 +631,8 @@ def builder(
             instance and Cloud logging/trace/profile for Siso to use.
         siso_configs: a list of siso configs to enable. available values are
             defined in //build/config/siso/config.star.
-        siso_enable_cloud_profiler: If True, enable cloud profiler in Siso.
+        siso_profile_mode: The profiler mode for Siso. Set to 'cloud' to
+            enable the cloud profiler, or 'local' for the local profiler.
         siso_enable_cloud_trace: If True, enable cloud trace in Siso.
         siso_enable_cloud_monitoring: If true, enable cloud monitoring in Siso.
         siso_experiments: a list of experiment flags for siso.
@@ -853,7 +854,7 @@ def builder(
 
     if use_siso:
         siso = {
-            "enable_cloud_profiler": defaults.get_value("siso_enable_cloud_profiler", siso_enable_cloud_profiler),
+            "profile_mode": defaults.get_value("siso_profile_mode", siso_profile_mode),
             "enable_cloud_trace": defaults.get_value("siso_enable_cloud_trace", siso_enable_cloud_trace),
             "experiments": defaults.get_value("siso_experiments", siso_experiments),
             "project": rbe_project,
