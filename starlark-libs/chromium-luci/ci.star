@@ -148,13 +148,18 @@ def ci_builder(
     ]
     merged_resultdb_bigquery_exports.extend(resultdb_bigquery_exports or [])
 
+    all_gardener_rotations = args.listify(gardener_rotations)
     project_settings = _chromium_luci.project_settings()
-    branch_gardener_rotations = [
-        _gardener_rotations.rotation(platform_settings.gardener_rotation, None, None)
-        for platform, platform_settings in project_settings.platforms.items()
-        if branches.matches(branch_selector, platform = platform) and platform_settings.gardener_rotation
-    ]
-    branch_gardener_rotations = args.listify(gardener_rotations, branch_gardener_rotations)
+
+    # Only assign the builder to the branch-specific rotation if it normally has
+    # a rotation and that rotation is trunk-only.
+    if any([not r.get() or r.get().main_only for r in defaults.get_value("gardener_rotations", gardener_rotations, merge = args.MERGE_LIST)]):
+        branch_gardener_rotations = [
+            _gardener_rotations.rotation(platform_settings.gardener_rotation, None, None, main_only = False)
+            for platform, platform_settings in project_settings.platforms.items()
+            if branches.matches(branch_selector, platform = platform) and platform_settings.gardener_rotation
+        ]
+        all_gardener_rotations = args.listify(all_gardener_rotations, branch_gardener_rotations)
 
     # Define the builder first so that any validation of luci.builder arguments
     # (e.g. bucket) occurs before we try to use it
@@ -163,7 +168,7 @@ def ci_builder(
         branch_selector = branch_selector,
         console_view_entry = console_view_entry,
         resultdb_bigquery_exports = merged_resultdb_bigquery_exports,
-        gardener_rotations = branch_gardener_rotations,
+        gardener_rotations = all_gardener_rotations,
         resultdb_index_by_timestamp = library_settings.resultdb_index_by_timestamp,
         **kwargs
     )

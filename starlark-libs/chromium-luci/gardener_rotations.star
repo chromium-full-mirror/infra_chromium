@@ -15,12 +15,7 @@ _GARDENER_ROTATION = nodes.create_unscoped_node_type("gardener_rotation")
 _GARDENED_BUILDER = nodes.create_bucket_scoped_node_type("gardened_builder")
 
 gardener_rotations = struct(
-    rotation = lambda name, console_name, tree_closer_console: _gardener_rotations.rotation(
-        name = name,
-        console_name = console_name,
-        tree_closer_console = tree_closer_console,
-        main_only = True,
-    ),
+    rotation = _gardener_rotations.rotation,
 )
 
 def register_gardener_builder(bucket, builder, gardener_rotations):
