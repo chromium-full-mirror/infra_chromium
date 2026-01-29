@@ -152,10 +152,10 @@ def ci_builder(
     project_settings = _chromium_luci.project_settings()
 
     # Only assign the builder to the branch-specific rotation if it normally has
-    # a rotation and that rotation is trunk-only.
-    if any([not r.get() or r.get().main_only for r in defaults.get_value("gardener_rotations", gardener_rotations, merge = args.MERGE_LIST)]):
+    # a rotation and that rotation does not apply to this branch.
+    if any([not r.get() or not branches.matches(r.get().branch_selector) for r in defaults.get_value("gardener_rotations", gardener_rotations, merge = args.MERGE_LIST)]):
         branch_gardener_rotations = [
-            _gardener_rotations.rotation(platform_settings.gardener_rotation, None, None, main_only = False)
+            _gardener_rotations.rotation(platform_settings.gardener_rotation, None, None, branch_selector = branches.selector.ALL_BRANCHES)
             for platform, platform_settings in project_settings.platforms.items()
             if branches.matches(branch_selector, platform = platform) and platform_settings.gardener_rotation
         ]
