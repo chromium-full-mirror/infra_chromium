@@ -812,6 +812,7 @@ def _spec_init(
         module_name = binary_node.props.module_name,
         module_scheme = module_scheme,
         args = list(node.props.details.args or []),
+        check_flakiness_for_new_tests = None,
         ci_only = None,
         experiment_percentage = None,
         precommit_args = [],

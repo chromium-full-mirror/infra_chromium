@@ -26,6 +26,7 @@ def _script_test_spec_init(node, settings):
         resultdb = None,
         module_name = module_name,
         module_scheme = module_scheme,
+        check_flakiness_for_new_tests = None,
     )
 
 def _script_test_spec_finalize(_builder_name, test_name, _settings, spec_value):
