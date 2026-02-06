@@ -111,6 +111,10 @@ def _apply_mixin(spec, settings, mixin_values):
     if description_mixin:
         spec_value["description"] = "\n".join(args_lib.listify(spec_value["description"], description_mixin)) or None
 
+    resultdb_mixin = mixin_values.pop("resultdb", None)
+    if resultdb_mixin:
+        spec_value["resultdb"] = _targets_common.merge_resultdb(spec_value["resultdb"], resultdb_mixin)
+
     spec_value.update(mixin_values)
 
     return structs.evolve(spec, value = spec_value), None

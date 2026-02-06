@@ -242,37 +242,6 @@ def _cipd_package(
         revision = revision,
     )
 
-def _resultdb(
-        *,
-        enable = None,
-        has_native_resultdb_integration = None,
-        result_format = None,
-        result_file = None,
-        inv_extended_properties_dir = None):
-    """Define the ResultDB integration to be used for a test.
-
-    Args:
-        enable: Whether or not ResultDB is enabled for the test.
-        has_native_resultdb_integration: Whether or not the test has native
-            integration with resultdb. If not, result_adapter will be used,
-            which parses output to determine results to upload results to
-            ResultDB.
-        result_format: The format of the test results.
-        result_file: The file to write out test results to.
-        inv_extended_properties_dir: A path to the directory containing extended
-            properties for the test's invocation.
-
-    Return:
-        A struct that can be passed to the resultdb argument of `target.mixin`
-    """
-    return struct(
-        enable = enable,
-        has_native_resultdb_integration = has_native_resultdb_integration,
-        result_format = result_format,
-        result_file = result_file,
-        inv_extended_properties_dir = inv_extended_properties_dir,
-    )
-
 def _mixin_values(
         description = None,
         args = None,
@@ -763,7 +732,7 @@ targets = struct(
     cipd_package = _cipd_package,
     merge = _targets_common.merge,
     remove = _targets_common.remove,
-    resultdb = _resultdb,
+    resultdb = _targets_common.resultdb,
     swarming = _targets_common.swarming,
     skylab = _targets_common.skylab,
     magic_args = _targets_magic_args,

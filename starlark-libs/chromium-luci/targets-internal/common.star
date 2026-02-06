@@ -752,6 +752,54 @@ def _merge_skylab(skylab1, skylab2):
             d[a] = value
     return _skylab(**d)
 
+def _resultdb(
+        *,
+        enable = None,
+        has_native_resultdb_integration = None,
+        result_format = None,
+        result_file = None,
+        inv_extended_properties_dir = None,
+        base_variant = None):
+    """Define the ResultDB integration to be used for a test.
+
+    Args:
+        enable: Whether or not ResultDB is enabled for the test.
+        has_native_resultdb_integration: Whether or not the test has native
+            integration with resultdb. If not, result_adapter will be used,
+            which parses output to determine results to upload results to
+            ResultDB.
+        result_format: The format of the test results.
+        result_file: The file to write out test results to.
+        inv_extended_properties_dir: A path to the directory containing extended
+            properties for the test's invocation.
+        base_variant: Dict of key:val string pairs to attach as variants to the
+            test's ResultDB invocation.
+
+    Return:
+        A struct that can be passed to the resultdb argument of `target.mixin`
+    """
+    return struct(
+        enable = enable,
+        has_native_resultdb_integration = has_native_resultdb_integration,
+        result_format = result_format,
+        result_file = result_file,
+        inv_extended_properties_dir = inv_extended_properties_dir,
+        base_variant = base_variant,
+    )
+
+def _merge_resultdb(resultdb1, resultdb2):
+    if not (resultdb1 and resultdb2):
+        return resultdb1 or resultdb2
+
+    d = {a: getattr(resultdb1, a) for a in dir(resultdb1)}
+    to_merge = {a: getattr(resultdb2, a) for a in dir(resultdb2)}
+
+    d["base_variant"] = ((d["base_variant"] or {}) | (to_merge.pop("base_variant") or {})) or None
+    for k, v in to_merge.items():
+        if v != None:
+            d[k] = v
+    return _resultdb(**d)
+
 def _finalize_resultdb(resultdb):
     if not resultdb:
         return None
@@ -927,10 +975,12 @@ common = struct(
     os_type = _os_type,
     merge = _merge,
     remove = _remove,
+    resultdb = _resultdb,
     swarming = _swarming,
     skylab = _skylab,
 
     # Functions for performing common operations
+    merge_resultdb = _merge_resultdb,
     merge_swarming = _merge_swarming,
     merge_skylab = _merge_skylab,
 
