@@ -321,6 +321,11 @@ def _generate_mixin_values(formatter, mixin):
             formatter.add_line("'result_file': '{}',".format(resultdb.result_file))
         if resultdb.inv_extended_properties_dir != None:
             formatter.add_line("'inv_extended_properties_dir': '{}',".format(resultdb.inv_extended_properties_dir))
+        if resultdb.base_variant != None:
+            formatter.open_scope("'base_variant': {")
+            for k, v in resultdb.base_variant.items():
+                formatter.add_line("'{}': '{}',".format(k, v))
+            formatter.close_scope("},")
         formatter.close_scope("},")
 
     if "use_isolated_scripts_api" in mixin:
