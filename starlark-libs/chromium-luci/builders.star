@@ -288,6 +288,7 @@ defaults = args.defaults(
     fully_qualified_builder_dimension = False,
     console_view = args.COMPUTE,
     list_view = args.COMPUTE,
+    machine_type = None,
     os = None,
     pool = None,
     skip_profile_upload = False,
@@ -398,6 +399,7 @@ def builder(
         parent = None,
         mirrors = None,
         builder_config_settings = args.DEFAULT,
+        machine_type = args.DEFAULT,
         pool = args.DEFAULT,
         ssd = args.DEFAULT,
         gardener_rotations = None,
@@ -544,6 +546,9 @@ def builder(
         builder_config_settings: Additional builder configuration that used by
             the recipes. Could be an instance of ci_settings or try_settings.
             It can only be set if one of builder_spec or mirrors is set.
+        machine_type: a string indicating the type of machines that run the
+            builder. Emits a dimension of the form
+            'machine_type:<machine_type>'. By default, considered None.
         pool: a string indicating the pool of the machines that run the builder.
             Emits a dimension of the form 'pool:<pool>'. By default, considered
             None. When running a builder that has no explicit pool dimension,
@@ -779,6 +784,10 @@ def builder(
     builder_group = defaults.get_value("builder_group", builder_group)
     if builder_group != None:
         properties["builder_group"] = builder_group
+
+    machine_type = defaults.get_value("machine_type", machine_type)
+    if machine_type != None:
+        dimensions["machine_type"] = machine_type
 
     pool = defaults.get_value("pool", pool)
     if pool:
