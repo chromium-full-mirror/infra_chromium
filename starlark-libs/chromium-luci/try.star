@@ -168,6 +168,7 @@ def cq_settings(
         location_filters = [normalize_location_filter(f) for f in location_filters]
 
     return struct(
+        on_default_cq = on_default_cq,
         disable_reuse = disable_reuse,
         add_default_disable_reuse_footers = add_default_disable_reuse_footers,
         disable_reuse_footers = disable_reuse_footers,
