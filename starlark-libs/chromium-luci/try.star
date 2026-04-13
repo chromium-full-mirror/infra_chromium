@@ -8,8 +8,8 @@ The `try_builder` function defined in this module enables defining a builder and
 the tryjob verifier for it in the same location. It can also be accessed through
 `try_.builder`.
 
-The `tryjob` function specifies the verifier details for a builder. It can also
-be accessed through `try_.job`.
+The `cq_settings` function specifies the verifier details for a builder. It can also
+be accessed through `try_.cq_settings`.
 
 The `defaults` struct provides module-level defaults for the arguments to
 `try_builder`. The parameters that support module-level defaults have a
@@ -79,12 +79,6 @@ defaults = args.defaults(
     orchestrator_siso_remote_jobs = args.DEFAULT,
 )
 
-# TODO(crbug.com/442860599): Remove this once all tryjob usages are migrated to
-# cq_settings.
-def tryjob(**kwargs):
-    """DEPRECATED: Use cq_settings. Specifies the details of a tryjob verifier."""
-    return cq_settings(**kwargs)
-
 def cq_settings(
         *,
         on_default_cq = False,
@@ -132,11 +126,11 @@ def cq_settings(
         equivalent_builder: See cq.tryjob_verifier.
         equivalent_builder_percentage: See cq.tryjob_verifier.
         equivalent_builder_whitelist: See cq.tryjob_verifier.
-        omit_from_luci_cv: A bool indicating whether the tryjob will be added to
+        omit_from_luci_cv: A bool indicating whether the cq_settings will be added to
             luci verifier. This is useful for the equivalent_builder which can't
             be added twice.
         custom_cq_run_modes: List of cq.run_mode names that will trigger this
-            tryjob. Uses cq.MODE_DRY_RUN, cq.MODE_FULL_RUN if not specified.
+            cq_settings. Uses cq.MODE_DRY_RUN, cq.MODE_FULL_RUN if not specified.
 
     Returns:
         A struct that can be passed to the `cq_settings` argument of
@@ -164,7 +158,7 @@ def cq_settings(
 
     if location_filters:
         if includable_only:
-            fail("Tryjobs with location_filters cannot be includable_only")
+            fail("cq_settings with location_filters cannot be includable_only")
         location_filters = [normalize_location_filter(f) for f in location_filters]
 
     return struct(
@@ -195,7 +189,6 @@ def try_builder(
         main_list_view = args.DEFAULT,
         subproject_list_view = args.DEFAULT,
         cq_settings = None,
-        tryjob = None,  # DEPRECATED in favor of cq_settings
         resultdb_bigquery_exports = args.DEFAULT,
         **kwargs):
     """Define a try builder.
@@ -226,8 +219,6 @@ def try_builder(
             defaults to None.
         cq_settings: An optional try_.cq_settings controlling when the builder is
             added to the CQ.
-        tryjob: DEPRECATED An optional try_.job controlling when the builder is
-            added to the CQ.
         resultdb_bigquery_exports: a list of resultdb.export_test_results(...)
             specifying additional parameters for exporting test results to
             BigQuery. Will always upload to the following tables in addition to
@@ -242,10 +233,6 @@ def try_builder(
         The lucicfg keyset for the builder, None if the builder wasn't defined
         (e.g. branch selector doesn't match current project's settings).
     """
-    if cq_settings and tryjob:
-        fail("try_builder cannot be called with both cq_settings and tryjob. Use cq_settings.")
-    if tryjob:
-        cq_settings = tryjob
 
     if not branches.matches(branch_selector):
         return None
@@ -436,7 +423,7 @@ def try_builder(
 
     return ret
 
-def presubmit_builder(*, name, cq_settings = None, tryjob = None, **kwargs):
+def presubmit_builder(*, name, cq_settings = None, **kwargs):
     """Define a presubmit builder.
 
     Presubmit builders are builders that run fast checks that don't require
@@ -449,19 +436,12 @@ def presubmit_builder(*, name, cq_settings = None, tryjob = None, **kwargs):
         cq_settings: An optional try_.cq_settings controlling when the builder is
             added to the CQ. If disable_reuse isn't set, it will be set to
             True. The add_default_filters value will be forced to False.
-        tryjob: DEPRECATED An optional try_.job controlling when the builder is
-            added to the CQ. If disable_reuse isn't set, it will be set to
-            True. The add_default_filters value will be forced to False.
         **kwargs: Additional keyword args to forward to try_.builder.
 
     Returns:
         The lucicfg keyset for the builder, None if the builder wasn't defined
         (e.g. branch selector doesn't match current project's settings).
     """
-    if cq_settings and tryjob:
-        fail("presubmit_builder cannot be called with both cq_settings and tryjob. Use cq_settings.")
-    if tryjob:
-        cq_settings = tryjob
 
     if cq_settings:
         cq_settings_args = {a: getattr(cq_settings, a) for a in dir(cq_settings)}
@@ -605,7 +585,6 @@ try_ = struct(
     # Functions for declaring try builders
     builder = try_builder,
     presubmit_builder = presubmit_builder,
-    job = tryjob,  # DEPRECATED in favor of cq_settings
     cq_settings = cq_settings,
     orchestrator_builder = _orchestrator_builder,
     compilator_builder = _compilator_builder,
