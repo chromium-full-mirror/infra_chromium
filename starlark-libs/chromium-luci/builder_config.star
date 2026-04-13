@@ -185,7 +185,8 @@ def _clusterfuzz_archive(
         gs_bucket,
         archive_name_prefix,
         gs_acl = None,
-        archive_subdir = None):
+        archive_subdir = None,
+        archive_schema_version = 0):
     """The details for configuring clusterfuzz archiving.
 
     Args:
@@ -198,6 +199,9 @@ def _clusterfuzz_archive(
             the uploaded archive.
         archive_subdir: (str) An optional additional subdirectory within the
             platform/target directory to upload the archive to.
+        archive_schema_version: (int) The version of the schema to use.
+            0 (legacy/default): archives at build dir, 1: archives at source dir.
+            Learn more: go/crfuzz-fixing-msan-builds
     """
     if not gs_bucket:
         fail("gs_bucket must be provided")
@@ -208,6 +212,7 @@ def _clusterfuzz_archive(
         gs_acl = gs_acl,
         archive_name_prefix = archive_name_prefix,
         archive_subdir = archive_subdir,
+        archive_schema_version = archive_schema_version,
     )
 
 def _bisect_archive(
