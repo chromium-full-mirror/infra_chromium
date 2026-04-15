@@ -1031,6 +1031,7 @@ def _set_builder_config_property(ctx):
             if not mirrors:
                 continue
             allowed_trybot_recipes = [
+                "chrome/orchestrator",
                 "chromium_trybot",
                 "chromium_trybot_internal",
                 "chromium/fuzz",
