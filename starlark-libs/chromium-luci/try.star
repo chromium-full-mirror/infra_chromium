@@ -137,16 +137,15 @@ def cq_settings(
         `try_.builder` to enable the builder for CQ.
     """
 
-    if _experiments.is_enabled("try.enforce_cq_settings_exclusivity"):
-        settings_args = []
-        if on_default_cq:
-            settings_args.append("on_default_cq")
-        if location_filters:
-            settings_args.append("location_filters")
-        if includable_only:
-            settings_args.append("includable_only")
-        if len(settings_args) != 1:
-            fail("exactly one of on_default_cq, location_filters or includable_only must be specified, but got {}".format(settings_args))
+    settings_args = []
+    if on_default_cq:
+        settings_args.append("on_default_cq")
+    if location_filters:
+        settings_args.append("location_filters")
+    if includable_only:
+        settings_args.append("includable_only")
+    if len(settings_args) != 1:
+        fail("exactly one of on_default_cq, location_filters or includable_only must be specified, but got {}".format(settings_args))
 
     def normalize_location_filter(f):
         if type(f) == type(""):

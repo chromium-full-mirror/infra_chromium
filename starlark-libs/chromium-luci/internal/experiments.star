@@ -34,7 +34,6 @@ _KNOWN_EXPERIMENTS = set([
     "targets.module_scheme_junit_tests",
     "targets.module_scheme_regex",
     "targets.module_scheme_script_tests",
-    "try.enforce_cq_settings_exclusivity",
     # go/keep-sorted end
 ])
 
