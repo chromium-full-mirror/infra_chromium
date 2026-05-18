@@ -367,6 +367,7 @@ def _gpu_telemetry_no_root_for_unrooted_devices(_, settings, spec_value):
         "dm1q",  # Samsung S23.
         "devonn",  # Motorola Moto G Power 5G.
         "s5e9945",  # Samsung S24
+        "canoe",  # Samsung S26
     )
     dimensions = _get_dimensions(spec_value)
     device_type = dimensions.get("device_type")
