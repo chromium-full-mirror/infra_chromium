@@ -248,7 +248,9 @@ def _builder_spec(
         expose_trigger_properties = None,
         skylab_upload_location = None,
         clusterfuzz_archive = None,
-        bisect_archive = None):
+        bisect_archive = None,
+        no_history = None,
+        shallow = None):
     """Details for configuring execution for a single builder.
 
     Args:
@@ -289,6 +291,11 @@ def _builder_spec(
         clusterfuzz_archive: (clusterfuzz_archive) The details of archiving for
             clusterfuzz.
         bisect_archive: (bisect_archive) The details of archiving for bisection.
+        no_history: (no_history) Sync the repo and all repo dependencies without
+            any history. Equivalent to running `gclient sync` with
+            `--no-history`.
+        shallow: (shallow) Sync the repo and all repo dependencies with limited
+            history. Equivalent to running `gclient sync` with `--shallow`.
 
     Returns:
         A builder spec struct that can be passed to builder to set the builder
@@ -315,6 +322,8 @@ def _builder_spec(
         skylab_upload_location = skylab_upload_location,
         clusterfuzz_archive = clusterfuzz_archive,
         bisect_archive = bisect_archive,
+        no_history = no_history,
+        shallow = shallow,
     )
 
 def _ci_settings(
