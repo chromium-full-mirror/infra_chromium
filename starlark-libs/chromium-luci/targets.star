@@ -261,6 +261,7 @@ def _mixin_values(
         use_isolated_scripts_api = None,
         expand_as_isolated_script = None,
         ci_only = None,
+        retry_only_failed_tests = None,
         check_flakiness_for_new_tests = None,
         resultdb = None,
         isolate_profile_data = None,
@@ -328,6 +329,10 @@ def _mixin_values(
         check_flakiness_for_new_tests: A bool indicating whether try builders
             running the test should rerun new tests additional times to check
             for flakiness.
+        retry_only_failed_tests: A bool indicating whether retrying the failing
+            test will limit execution to only the failed test cases. By default,
+            the entire shards that contain failing test cases will be rerun.
+            Applies only to swarmed tests.
         resultdb: A targets.resultdb describing the ResultDB integration for the
             test.
         isolate_profile_data: A bool indicating whether profile data for the
@@ -360,6 +365,7 @@ def _mixin_values(
         use_isolated_scripts_api = use_isolated_scripts_api,
         expand_as_isolated_script = expand_as_isolated_script,
         ci_only = ci_only,
+        retry_only_failed_tests = retry_only_failed_tests,
         check_flakiness_for_new_tests = check_flakiness_for_new_tests,
         resultdb = resultdb,
         isolate_profile_data = isolate_profile_data,
