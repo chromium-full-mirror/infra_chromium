@@ -250,7 +250,8 @@ def _builder_spec(
         clusterfuzz_archive = None,
         bisect_archive = None,
         no_history = None,
-        shallow = None):
+        shallow = None,
+        use_test_trigger_cas = None):
     """Details for configuring execution for a single builder.
 
     Args:
@@ -296,6 +297,9 @@ def _builder_spec(
             `--no-history`.
         shallow: (shallow) Sync the repo and all repo dependencies with limited
             history. Equivalent to running `gclient sync` with `--shallow`.
+        use_test_trigger_cas: Use a CAS isolate provided by the parent builder
+            for triggering tests instead of performing a full checkout.
+            Primarily intended for thin child testers.
 
     Returns:
         A builder spec struct that can be passed to builder to set the builder
@@ -324,6 +328,7 @@ def _builder_spec(
         bisect_archive = bisect_archive,
         no_history = no_history,
         shallow = shallow,
+        use_test_trigger_cas = use_test_trigger_cas,
     )
 
 def _ci_settings(
