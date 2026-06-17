@@ -864,7 +864,6 @@ def _spec_init(
         ci_only = None,
         experiment_percentage = None,
         precommit_args = [],
-        retry_only_failed_tests = None,
         isolate_profile_data = None,
         swarming = _swarming(enable = settings.use_swarming),
         merge = binary_test_config.merge,
