@@ -186,7 +186,9 @@ def _clusterfuzz_archive(
         archive_name_prefix,
         gs_acl = None,
         archive_subdir = None,
-        archive_schema_version = None):
+        archive_schema_version = None,
+        archive_path = None,
+        use_archive_path = False):
     """The details for configuring clusterfuzz archiving.
 
     Args:
@@ -202,17 +204,27 @@ def _clusterfuzz_archive(
         archive_schema_version: (optional int) The version of the schema to use.
             0 (legacy): archives at build dir, 1: archives at source dir.
             Learn more: go/crfuzz-fixing-msan-builds
+        archive_path: (optional str) Path prefix to use verbatim for the
+            uploaded zip archive. If `use_archive_path` is true, this path is
+            used verbatim. Otherwise, the derived path is checked to match this
+            path.
+        use_archive_path: (bool) If true, use `archive_path` verbatim and skip
+            path derivation.
     """
     if not gs_bucket:
         fail("gs_bucket must be provided")
     if not archive_name_prefix:
         fail("archive_name_prefix must be provided")
+    if use_archive_path and not archive_path:
+        fail("archive_path must be provided if use_archive_path is true")
     return struct(
         gs_bucket = gs_bucket,
         gs_acl = gs_acl,
         archive_name_prefix = archive_name_prefix,
         archive_subdir = archive_subdir,
         archive_schema_version = archive_schema_version,
+        archive_path = archive_path,
+        use_archive_path = use_archive_path,
     )
 
 def _bisect_archive(
