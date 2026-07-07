@@ -273,7 +273,7 @@ def _generate_mixin_values(formatter, mixin):
         if skylab.shards:
             formatter.add_line("'shards': {},".format(skylab.shards))
         if skylab.shard_level_retries_on_ctp:
-            formatter.add_line("'shard_level_retries_on_ctp': {}".format(skylab.shard_level_retries_on_ctp))
+            formatter.add_line("'shard_level_retries_on_ctp': {},".format(skylab.shard_level_retries_on_ctp))
         if skylab.cros_test_tags:
             formatter.open_scope("'cros_test_tags': [")
             for v in skylab.cros_test_tags:
