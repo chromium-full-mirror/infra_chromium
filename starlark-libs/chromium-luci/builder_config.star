@@ -209,11 +209,11 @@ def _clusterfuzz_archive(
             used verbatim. Otherwise, the derived path is checked to match this
             path.
         use_archive_path: (bool) If true, use `archive_path` verbatim and skip
-            path derivation.
+            path derivation. In that case, `archive_name_prefix` is optional.
     """
     if not gs_bucket:
         fail("gs_bucket must be provided")
-    if not archive_name_prefix:
+    if not archive_name_prefix and not use_archive_path:
         fail("archive_name_prefix must be provided")
     if use_archive_path and not archive_path:
         fail("archive_path must be provided if use_archive_path is true")
