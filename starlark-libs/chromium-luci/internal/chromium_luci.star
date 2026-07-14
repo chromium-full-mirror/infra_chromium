@@ -391,10 +391,7 @@ def _configure_ci(
         *,
         test_results_bq_dataset_name,
         resultdb_index_by_timestamp = False,
-        main_console_view = None,
-        # TODO: crbug.com/435248194 - Remove this once M139 and lower have been
-        # turned down
-        include_headless_shell_wpt_in_blink_web_test_results = True):
+        main_console_view = None):
     """Configure the ci library.
 
     Args:
@@ -407,22 +404,11 @@ def _configure_ci(
             searching for results by timestamp.
         main_console_view: The name of a main console view to add all CI
             builders to.
-        include_headless_shell_wpt_in_blink_web_test_results: Whether to include
-            a regex to match tests with an ID ending in headless_shell_wpt/ in
-            blink web tests results. This is restricted to existing projects to
-            prevent unnecessary changes to the generated config.
     """
-    if not include_headless_shell_wpt_in_blink_web_test_results:
-        _restrict_to_projects(
-            ["chrome-m132", "chrome-m138", "chrome-m139"],
-            "include_headless_shell_wpt_in_blink_web_test_results=False",
-        )
     return _CI_SETTINGS.set(
         test_results_bq_dataset_name = test_results_bq_dataset_name,
         resultdb_index_by_timestamp = resultdb_index_by_timestamp,
         main_console_view = main_console_view,
-        include_headless_shell_wpt_in_blink_web_test_results =
-            include_headless_shell_wpt_in_blink_web_test_results,
     )
 
 def _ci_settings():
@@ -650,10 +636,7 @@ def _configure_try(
         *,
         test_results_bq_dataset_name,
         resultdb_index_by_timestamp = False,
-        additional_default_exclude_path_regexps = [],
-        # TODO: crbug.com/435248194 - Remove this once M139 and lower have been
-        # turned down
-        include_headless_shell_wpt_in_blink_web_test_results = True):
+        additional_default_exclude_path_regexps = []):
     """Configure the try library.
 
     Args:
@@ -666,22 +649,11 @@ def _configure_try(
             searching for results by timestamp.
         additional_default_exclude_path_regexps: Additional paths regexps that
             will be excluded by the default filters for a tryjob.
-        include_headless_shell_wpt_in_blink_web_test_results: Whether to include
-            a regex to match tests with an ID ending in headless_shell_wpt/ in
-            blink web tests results. This is restricted to existing projects to
-            prevent unnecessary changes to the generated config.
     """
-    if not include_headless_shell_wpt_in_blink_web_test_results:
-        _restrict_to_projects(
-            ["chrome-m132", "chrome-m138", "chrome-m139"],
-            "include_headless_shell_wpt_in_blink_web_test_results=False",
-        )
     return _TRY_SETTINGS.set(
         test_results_bq_dataset_name = test_results_bq_dataset_name,
         resultdb_index_by_timestamp = resultdb_index_by_timestamp,
         additional_default_exclude_path_regexps = additional_default_exclude_path_regexps,
-        include_headless_shell_wpt_in_blink_web_test_results =
-            include_headless_shell_wpt_in_blink_web_test_results,
     )
 
 def _try_settings():

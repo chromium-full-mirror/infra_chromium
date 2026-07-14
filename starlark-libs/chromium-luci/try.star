@@ -239,23 +239,15 @@ def try_builder(
     library_settings = _chromium_luci.try_settings()
     bq_dataset_name = library_settings.test_results_bq_dataset_name
     blink_web_tests_test_id_regexp = (
-        "(ninja://[^/]*blink_web_tests/.+)|(ninja://[^/]*_wpt_tests/.+)"
+        "(ninja://[^/]*blink_web_tests/.+)|(ninja://[^/]*_wpt_tests/.+)|(ninja://[^/]*headless_shell_wpt/.+)"
     )
-    if library_settings.include_headless_shell_wpt_in_blink_web_test_results:
-        blink_web_tests_test_id_regexp += (
-            "|(ninja://[^/]*headless_shell_wpt/.+)"
-        )
     telemetry_gpu_test_regexp = "(ninja://(chrome|content)/test:telemetry_gpu_integration_test[^/]*/.+)"
 
     if _experiments.is_enabled("targets.module_scheme_regex"):
         # Regex matches ://\:blink_web_tests!webtest::accessibility#crash.html
         blink_web_tests_test_id_regexp += (
-            "|(://[^/]*blink_web_tests!.+)|(://[^/]*_wpt_tests!.+)"
+            "|(://[^/]*blink_web_tests!.+)|(://[^/]*_wpt_tests!.+)|(://[^/]*headless_shell_wpt!.+)"
         )
-        if library_settings.include_headless_shell_wpt_in_blink_web_test_results:
-            blink_web_tests_test_id_regexp += (
-                "|(://[^/]*headless_shell_wpt!.+)"
-            )
 
         # Regex  matches:
         # ://chrome/test\:telemetry_gpu_integration_test!flat::#gpu_tests.webgl1_test.WebGL1Test.Web_arrays
