@@ -868,6 +868,7 @@ def _spec_init(
         check_flakiness_for_new_tests = None,
         ci_only = None,
         experiment_percentage = None,
+        enable_rts_filtering = None,
         precommit_args = [],
         isolate_profile_data = None,
         swarming = _swarming(enable = settings.use_swarming),

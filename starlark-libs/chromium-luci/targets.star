@@ -265,7 +265,8 @@ def _mixin_values(
         resultdb = None,
         isolate_profile_data = None,
         merge = None,
-        experiment_percentage = None):
+        experiment_percentage = None,
+        enable_rts_filtering = None):
     """Define values to be mixed into a target.
 
     Unless otherwise specified, each field will overwrite an existing value on a
@@ -338,6 +339,9 @@ def _mixin_values(
             percentage chance that the test will be run, with failures in the
             test not resulting in failures in the build.
 
+        enable_rts_filtering: A bool indicating that the test should be actively
+            skipped by the Regression Test Selection (RTS) framework.
+
     Returns:
         A dict containing the values to be mixed in.
     """
@@ -365,6 +369,7 @@ def _mixin_values(
         isolate_profile_data = isolate_profile_data,
         merge = merge,
         experiment_percentage = experiment_percentage,
+        enable_rts_filtering = enable_rts_filtering,
     )
     return {k: v for k, v in mixin_values.items() if v != None}
 
