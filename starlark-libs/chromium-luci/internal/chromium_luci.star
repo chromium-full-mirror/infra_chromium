@@ -175,10 +175,15 @@ def _os_dimension_overrides(*, default = None, overrides = {}):
         A struct that can be used as a value in the os_dimension_overrides
         argument of chromium_luci.configure_builders.
     """
+    normalized_overrides = {}
+    for bucket, builder_map in overrides.items():
+        normalized_overrides[bucket] = {}
+        for builder, dimension in builder_map.items():
+            normalized_overrides[bucket][builder] = _normalize_os(dimension)
     return struct(
         __os_dimension_overrides__ = True,
         default = None if default == None else _normalize_os(default),
-        overrides = {k: _normalize_os(v) for k, v in overrides},
+        overrides = normalized_overrides,
     )
 
 def _normalize_overrides(overrides):
