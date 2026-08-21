@@ -28,6 +28,7 @@ load("//dimensions.star", "dimensions")  # @unused
 load("//enums.star", "enums")  # @unused
 load("//gardener_rotations.star", "get_gardener_rotations")  # @unused
 load("//gn_args.star", "gn_args")  # @unused
+load("//gpu.star", "gpu")  # @unused
 load("//headers.star", "headers")  # @unused
 load("//html.star", "linkify")  # @unused
 load("//nodes.star", "nodes")  # @unused
