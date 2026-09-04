@@ -179,6 +179,15 @@ def _get_gpus(spec_value):
         return []
     return dimensions["gpu"].split("|")
 
+def _is_targeting_gce(spec_value):
+    """Determines if a test spec is targeting a GCE instance."""
+    dimensions = _get_dimensions(spec_value)
+    if dimensions.get("gce", "0") == "1":
+        return True
+    if "gpu" not in dimensions or dimensions["gpu"] == "none":
+        return True
+    return False
+
 def _get_android_vulkan_device(settings, spec_value):
     if settings.os_type == common.os_type.ANDROID:
         dimensions = _get_dimensions(spec_value)
@@ -287,6 +296,18 @@ def _gpu_expected_device_id_skylab(spec_value):
     gpu_device = _CROS_BOARD_GPUS.get(cros_board)
     device_id = gpu_device.device if gpu_device else "0"
     return ["--expected-device-id", device_id]
+
+def _gpu_no_xvfb_for_real_hardware(_, settings, spec_value):
+    """Add --no-xvfb if the test is running on real hardware."""
+    if not settings.os_type:
+        fail("os_type must be specified")
+
+    if settings.os_type != common.os_type.LINUX:
+        fail("--no-xvfb only applies to Linux, magic arg should be applied via linux_args")
+
+    if _is_targeting_gce(spec_value):
+        return []
+    return ["--no-xvfb"]
 
 def _gpu_parallel_jobs(builder_name, settings, spec_value):
     """Substitute the correct number of jobs for GPU tests.
@@ -466,6 +487,10 @@ magic_args = struct(
     GPU_EXPECTED_DEVICE_ID = _placeholder(
         pyl_arg_value = "$$MAGIC_SUBSTITUTION_GPUExpectedDeviceId",
         function = _gpu_expected_device_id,
+    ),
+    GPU_NO_XVFB_FOR_REAL_HARDWARE = _placeholder(
+        pyl_arg_value = "$$MAGIC_SUBSTITUTION_GPUNoXvfbForRealHardware",
+        function = _gpu_no_xvfb_for_real_hardware,
     ),
     GPU_PARALLEL_JOBS = _placeholder(
         pyl_arg_value = "$$MAGIC_SUBSTITUTION_GPUParallelJobs",
