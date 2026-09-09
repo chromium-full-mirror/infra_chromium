@@ -83,6 +83,7 @@ def cq_settings(
         *,
         on_default_cq = False,
         disable_reuse = None,
+        reuse_max_commit_distance = None,
         experiment_percentage = None,
         includable_only = False,
         location_filters = None,
@@ -104,6 +105,7 @@ def cq_settings(
         on_default_cq: A bool indicating whether the builder should be on the
             default CQ.
         disable_reuse: See cq.tryjob_verifier.
+        reuse_max_commit_distance: See cq.tryjob_verifier.
         experiment_percentage: See cq.tryjob_verifier.
         includable_only: See cq.tryjob_verifier.
         location_filters: A list of cq.location_filter objects and/or strings.
@@ -163,6 +165,7 @@ def cq_settings(
     return struct(
         on_default_cq = on_default_cq,
         disable_reuse = disable_reuse,
+        reuse_max_commit_distance = reuse_max_commit_distance,
         add_default_disable_reuse_footers = add_default_disable_reuse_footers,
         disable_reuse_footers = disable_reuse_footers,
         experiment_percentage = experiment_percentage,
@@ -386,6 +389,7 @@ def try_builder(
                         cq_group = cq_group,
                         disable_reuse = cq_settings.disable_reuse,
                         disable_reuse_footers = disable_reuse_footers,
+                        reuse_max_commit_distance = cq_settings.reuse_max_commit_distance,
                         experiment_percentage = cq_settings.experiment_percentage,
                         includable_only = cq_settings.includable_only,
                         location_filters = location_filters,
