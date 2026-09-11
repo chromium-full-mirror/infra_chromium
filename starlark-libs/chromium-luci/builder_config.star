@@ -183,48 +183,31 @@ def _skylab_upload_location(*, gs_bucket, gs_extra = None):
 def _clusterfuzz_archive(
         *,
         gs_bucket,
-        archive_name_prefix,
+        archive_path,
         gs_acl = None,
-        archive_subdir = None,
-        archive_schema_version = None,
-        archive_path = None,
-        use_archive_path = False):
+        archive_schema_version = None):
     """The details for configuring clusterfuzz archiving.
 
     Args:
         gs_bucket: (str) The name of the Google Cloud Storage bucket to upload
             the archive to.
-        archive_name_prefix: (str) The prefix of the archive's name. The name of
-            the archive will contain additional details such as platform and
-            target among others.
+        archive_path: (str) Path prefix to use verbatim for the uploaded zip
+            archive.
         gs_acl: (str) The name of a Google Cloud Storage canned ACL to apply to
             the uploaded archive.
-        archive_subdir: (str) An optional additional subdirectory within the
-            platform/target directory to upload the archive to.
         archive_schema_version: (optional int) The version of the schema to use.
             0 (legacy): archives at build dir, 1: archives at source dir.
             Learn more: go/crfuzz-fixing-msan-builds
-        archive_path: (optional str) Path prefix to use verbatim for the
-            uploaded zip archive. If `use_archive_path` is true, this path is
-            used verbatim. Otherwise, the derived path is checked to match this
-            path.
-        use_archive_path: (bool) If true, use `archive_path` verbatim and skip
-            path derivation. In that case, `archive_name_prefix` is optional.
     """
     if not gs_bucket:
         fail("gs_bucket must be provided")
-    if not archive_name_prefix and not use_archive_path:
-        fail("archive_name_prefix must be provided")
-    if use_archive_path and not archive_path:
-        fail("archive_path must be provided if use_archive_path is true")
+    if not archive_path:
+        fail("archive_path must be provided")
     return struct(
         gs_bucket = gs_bucket,
         gs_acl = gs_acl,
-        archive_name_prefix = archive_name_prefix,
-        archive_subdir = archive_subdir,
-        archive_schema_version = archive_schema_version,
         archive_path = archive_path,
-        use_archive_path = use_archive_path,
+        archive_schema_version = archive_schema_version,
     )
 
 def _bisect_archive(
