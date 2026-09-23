@@ -767,8 +767,10 @@ def builder(
             else:
                 dimensions["builder"] = name
 
+    executable = defaults.get_value("executable", executable)
     exempted_from_description = name in library_settings.exempted_from_description_builders.get(bucket, [])
-    if not kwargs.get("description_html", "").strip() and not exempted_from_description and not mirrors:
+    has_auto_description = bool(mirrors) or executable == "recipe:chromium/compilator"
+    if not kwargs.get("description_html", "").strip() and not exempted_from_description and not has_auto_description:
         fail("Builder " + name + " must have a description_html. All new builders must specify a description.")
     elif kwargs.get("description_html", "").strip() and exempted_from_description:
         fail("Need to remove builder " + bucket + "/" + name + " from exempted_from_description_builders")
@@ -941,7 +943,6 @@ def builder(
     kwargs = dict(kwargs)
     if bucket != args.COMPUTE:
         kwargs["bucket"] = bucket
-    executable = defaults.get_value("executable", executable)
     if executable != args.COMPUTE:
         kwargs["executable"] = executable
 
