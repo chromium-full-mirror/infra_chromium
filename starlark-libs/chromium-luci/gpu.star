@@ -148,6 +148,16 @@ def _gpu_try_optional_win_builder(*args, **kwargs):
     kwargs = _apply_gpu_win_builder_defaults(kwargs)
     return try_.builder(*args, **kwargs)
 
+def _gpu_try_presubmit_linux_builder(*args, **kwargs):
+    """Defines a GPU-related Linux presubmit trybot.
+
+    This is effectively a rate-limited builder that uses try_.presubmit_builder
+    instead of try_.builder.
+    """
+    kwargs = _apply_gpu_rate_limited_try_builder_defaults(kwargs)
+    kwargs = _apply_gpu_linux_builder_defaults(kwargs)
+    return try_.presubmit_builder(*args, **kwargs)
+
 gpu = struct(
     ci = struct(
         POOL = "luci.chromium.gpu.ci",
@@ -159,6 +169,7 @@ gpu = struct(
         POOL = "luci.chromium.gpu.try",
         linux_manual_builder = _gpu_try_manual_linux_builder,
         linux_optional_builder = _gpu_try_optional_linux_builder,
+        linux_presubmit_builder = _gpu_try_presubmit_linux_builder,
         linux_rate_limited_builder = _gpu_try_rate_limited_linux_builder,
         mac_manual_builder = _gpu_try_manual_mac_builder,
         mac_optional_builder = _gpu_try_optional_mac_builder,
