@@ -62,10 +62,6 @@ SOURCELESS_BUILDER_CACHE = swarming.cache(
 defaults = args.defaults(
     extends = builders.defaults,
     check_for_flakiness = True,
-    # TODO(crbug.com/40273153) - Once we've migrated to the ResultDB-based solution
-    # this should be deprecated in favor for the original check_for_flakiness
-    # argument.
-    check_for_flakiness_with_resultdb = True,
     cq_group = None,
     main_list_view = None,
     subproject_list_view = None,
@@ -185,7 +181,6 @@ def try_builder(
         name,
         branch_selector = branches.selector.MAIN,
         check_for_flakiness = args.DEFAULT,
-        check_for_flakiness_with_resultdb = args.DEFAULT,
         cq_group = args.DEFAULT,
         list_view = args.DEFAULT,
         main_list_view = args.DEFAULT,
@@ -202,13 +197,6 @@ def try_builder(
         check_for_flakiness: If True, it checks for new tests in a given try
             build and reruns them multiple times to ensure that they are not
             flaky.
-        # TODO(crbug.com/40273153) - Once we've migrated to the ResultDB-based
-        # solution this should be deprecated in favor for the original
-        # check_for_flakiness argument.
-        check_for_flakiness_with_resultdb: If True, it checks for new tests in a
-            given try build using resultdb as the data source, instead of the
-            previous mechanism which utilized a pregenerated test history. New
-            tests are rerun multiple times to ensure that they are not flaky.
         cq_group: The CQ group to add the builder to. If cq_settings is None, it
             will be added as includable_only.
         list_view: A string or list of strings identifying the ID(s) of the list
@@ -321,23 +309,14 @@ def try_builder(
         cq_reason = "required" if not cq_settings.location_filters else "path-based"
         properties["cq"] = cq_reason
 
-        # TODO(crbug.com/40273153) - Once we've migrated to the ResultDB-based solution
-        # check_for_flakiness_with_resultdb should be deprecated in favor for the
-        # original check_for_flakiness argument.
         check_for_flakiness = defaults.get_value(
             "check_for_flakiness",
             check_for_flakiness,
-        )
-        check_for_flakiness_with_resultdb = defaults.get_value(
-            "check_for_flakiness_with_resultdb",
-            check_for_flakiness_with_resultdb,
         )
 
         flakiness = {}
         if defaults.get_value("check_for_flakiness", check_for_flakiness):
             flakiness["check_for_flakiness"] = True
-        if defaults.get_value("check_for_flakiness_with_resultdb", check_for_flakiness_with_resultdb):
-            flakiness["check_for_flakiness_with_resultdb"] = True
         if flakiness:
             properties["$build/flakiness"] = flakiness
 
