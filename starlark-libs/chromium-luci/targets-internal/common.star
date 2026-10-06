@@ -43,6 +43,7 @@ _os_type = enums.enum(
 
 _settings_defaults = args_lib.defaults(
     allow_script_tests = True,
+    android_results_bucket = "chromium-result-details",
     browser_config = None,
     os_type = None,
     use_swarming = True,
@@ -52,6 +53,7 @@ _settings_defaults = args_lib.defaults(
 def _settings(
         *,
         allow_script_tests = args_lib.DEFAULT,
+        android_results_bucket = args_lib.DEFAULT,
         browser_config = args_lib.DEFAULT,
         os_type = args_lib.DEFAULT,
         use_swarming = args_lib.DEFAULT,
@@ -63,6 +65,10 @@ def _settings(
             configured to run script tests. It is an error if allow_script_tests
             is False and a builder includes script tests. Supports a
             module-level default.
+        android_results_bucket: The Google Storage bucket that swarmed tests
+            targeting Android upload their output and results details to.
+            Projects whose results must not be public should set a private
+            bucket. Supports a module-level default.
         browser_config: One of the values from targets.browser_config that
             indicates the configuration of the browser to execute the test with.
         os_type: One of the values from targets.os_type that indicates the OS
@@ -86,6 +92,7 @@ def _settings(
         fail("unknown os_type: {}".format(os_type))
 
     allow_script_tests = _settings_defaults.get_value("allow_script_tests", allow_script_tests)
+    android_results_bucket = _settings_defaults.get_value("android_results_bucket", android_results_bucket)
     use_swarming = _settings_defaults.get_value("use_swarming", use_swarming)
     use_android_merge_script_by_default = _settings_defaults.get_value(
         "use_android_merge_script_by_default",
@@ -93,6 +100,7 @@ def _settings(
     )
     return struct(
         allow_script_tests = allow_script_tests,
+        android_results_bucket = android_results_bucket,
         browser_config = browser_config,
         os_type = os_type,
         use_swarming = use_swarming,
@@ -880,7 +888,7 @@ def _spec_init(
     )
 
 def _update_spec_for_android_presentation(settings, spec_value):
-    results_bucket = "chromium-result-details"
+    results_bucket = settings.android_results_bucket
     spec_value["args"] = args_lib.listify(spec_value["args"], "--gs-results-bucket={}".format(results_bucket))
     if spec_value["swarming"].enable and not spec_value["merge"] and settings.use_android_merge_script_by_default:
         spec_value["merge"] = _merge(
