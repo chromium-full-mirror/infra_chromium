@@ -101,7 +101,6 @@ luci.builder(
         free_space = "standard",
         os = "Ubuntu-22.04",
         pool = "luci.chromium.try",
-        ssd = "0",
     ),
 )
 
