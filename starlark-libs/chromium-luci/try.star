@@ -30,6 +30,7 @@ location_filters_without_defaults = _location_filters_without_defaults
 
 _DEFAULT_DISABLE_REUSE_FOOTERS = [
     "Include-Ci-Only-Tests",
+    "Missing-Deps",
 ]
 
 def default_owner_whitelist_group_for_cq_bots(project):
