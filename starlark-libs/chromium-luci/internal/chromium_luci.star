@@ -443,12 +443,8 @@ def _configure_gn_args(*, enable_siso_defaults = True):
     """Configure the gn_args library.
 
     Args:
-        enable_siso_defaults: If True (default), builders that set gn_args will
-            have default GN args set depending on whether they are using siso
-            and whether they are using the built-in RBE client:
-            * if using siso, the use_siso GN arg will be set to "true"
-            * if using the siso built-in RBE client, the use_reclient GN arg
-                will be set to "false"
+        enable_siso_defaults: If True (default), builders using siso will have
+            the use_siso GN arg set to "true".
     """
     _GN_ARGS_SETTINGS.set(
         enable_siso_defaults = enable_siso_defaults,

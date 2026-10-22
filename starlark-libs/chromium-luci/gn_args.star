@@ -213,7 +213,6 @@ def register_gn_args(builder_group, bucket, builder, gn_args, use_siso):
     if settings.enable_siso_defaults:
         if use_siso:
             defaults["use_siso"] = True
-            defaults["use_reclient"] = False
 
     builder_node_name = "{}/{}".format(bucket, builder)
     if gn_args:
