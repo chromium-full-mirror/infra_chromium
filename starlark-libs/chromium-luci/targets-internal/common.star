@@ -678,7 +678,8 @@ def _skylab(
         cros_ctp_suite_name = None,
         timeout_sec = None,
         shards = None,
-        shard_level_retries_on_ctp = None):
+        shard_level_retries_on_ctp = None,
+        strip_chrome = None):
     """Define a Skylab test target.
 
     Args:
@@ -727,6 +728,8 @@ def _skylab(
         shard_level_retries_on_ctp: Maximum number of trials running on
             different shards. If 0, the test will retry infinitely until
             timeout. If 1, the test will run only once and won't retry.
+        strip_chrome: If True, strip ELF binary symbols before deploying Chrome
+            to ChromeOS devices.
     """
     return struct(
         cros_board = cros_board,
@@ -753,6 +756,7 @@ def _skylab(
         timeout_sec = timeout_sec,
         shards = shards,
         shard_level_retries_on_ctp = shard_level_retries_on_ctp,
+        strip_chrome = strip_chrome,
     )
 
 def _merge_skylab(skylab1, skylab2):
