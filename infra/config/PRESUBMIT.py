@@ -4,10 +4,16 @@
 
 PRESUBMIT_VERSION = '2.0.0'
 
+
 def CheckLucicfgGenOutputMain(input_api, output_api):
-  return input_api.RunTests(input_api.canned_checks.CheckLucicfgGenOutput(
-      input_api, output_api, 'main.star'))
+    return input_api.RunTests(
+        input_api.canned_checks.CheckLucicfgGenOutput(
+            input_api, output_api, 'main.star'
+        )
+    )
+
 
 def CheckChangedLUCIConfigs(input_api, output_api):
-  return input_api.canned_checks.CheckChangedLUCIConfigs(
-      input_api, output_api)
+    return input_api.canned_checks.CheckChangedLUCIConfigs(
+        input_api, output_api
+    )

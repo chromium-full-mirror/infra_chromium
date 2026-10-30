@@ -9,5 +9,7 @@ PRESUBMIT_VERSION = '2.0.0'
 # starlark files can be loaded and are lint-clean
 def CheckLucicfgGenOutput(input_api, output_api):
     return input_api.RunTests(
-        input_api.canned_checks.CheckLucicfgGenOutput(input_api, output_api,
-                                                      '_check.star'))
+        input_api.canned_checks.CheckLucicfgGenOutput(
+            input_api, output_api, '_check.star'
+        )
+    )
