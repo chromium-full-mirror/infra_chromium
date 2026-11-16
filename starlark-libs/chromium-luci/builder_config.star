@@ -246,7 +246,8 @@ def _builder_spec(
         bisect_archive = None,
         no_history = None,
         shallow = None,
-        use_test_trigger_cas = None):
+        use_test_trigger_cas = None,
+        gn_check_generated = None):
     """Details for configuring execution for a single builder.
 
     Args:
@@ -295,6 +296,9 @@ def _builder_spec(
         use_test_trigger_cas: Use a CAS isolate provided by the parent builder
             for triggering tests instead of performing a full checkout.
             Primarily intended for thin child testers.
+        gn_check_generated: (bool) Whether to run "gn check --check-generated"
+            after compile and fail the compile on violations. Try builders get
+            it from the builders they mirror.
 
     Returns:
         A builder spec struct that can be passed to builder to set the builder
@@ -324,6 +328,7 @@ def _builder_spec(
         no_history = no_history,
         shallow = shallow,
         use_test_trigger_cas = use_test_trigger_cas,
+        gn_check_generated = gn_check_generated,
     )
 
 def _ci_settings(
