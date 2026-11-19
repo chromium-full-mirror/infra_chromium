@@ -12,9 +12,10 @@ The `cq_settings` function specifies the verifier details for a builder. It can 
 be accessed through `try_.cq_settings`.
 
 The `defaults` struct provides module-level defaults for the arguments to
-`try_builder`. The parameters that support module-level defaults have a
-corresponding attribute on `defaults` that is a `lucicfg.var` that can be used
-to set the default value. Can also be accessed through `try_.defaults`.
+`try_builder` and `cq_settings`. The parameters that support module-level
+defaults have a corresponding attribute on `defaults` that is a `lucicfg.var`
+that can be used to set the default value. Can also be accessed through
+`try_.defaults`.
 """
 
 load("./args.star", "args")
@@ -64,6 +65,7 @@ defaults = args.defaults(
     extends = builders.defaults,
     check_for_flakiness = True,
     cq_group = None,
+    reuse_max_commit_distance = None,
     main_list_view = None,
     subproject_list_view = None,
     resultdb_bigquery_exports = [],
@@ -80,7 +82,7 @@ def cq_settings(
         *,
         on_default_cq = False,
         disable_reuse = None,
-        reuse_max_commit_distance = None,
+        reuse_max_commit_distance = args.DEFAULT,
         experiment_percentage = None,
         includable_only = False,
         location_filters = None,
@@ -102,7 +104,8 @@ def cq_settings(
         on_default_cq: A bool indicating whether the builder should be on the
             default CQ.
         disable_reuse: See cq.tryjob_verifier.
-        reuse_max_commit_distance: See cq.tryjob_verifier.
+        reuse_max_commit_distance: See cq.tryjob_verifier. Supports a
+            module-level default that defaults to None.
         experiment_percentage: See cq.tryjob_verifier.
         includable_only: See cq.tryjob_verifier.
         location_filters: A list of cq.location_filter objects and/or strings.
@@ -159,6 +162,16 @@ def cq_settings(
             fail("cq_settings with location_filters cannot be includable_only")
         location_filters = [normalize_location_filter(f) for f in location_filters]
 
+    if disable_reuse:
+        if reuse_max_commit_distance != args.DEFAULT and reuse_max_commit_distance != None:
+            fail("reuse_max_commit_distance cannot be set when disable_reuse is True")
+        reuse_max_commit_distance = None
+    else:
+        reuse_max_commit_distance = defaults.get_value(
+            "reuse_max_commit_distance",
+            reuse_max_commit_distance,
+        )
+
     return struct(
         on_default_cq = on_default_cq,
         disable_reuse = disable_reuse,
@@ -199,7 +212,8 @@ def try_builder(
             build and reruns them multiple times to ensure that they are not
             flaky.
         cq_group: The CQ group to add the builder to. If cq_settings is None, it
-            will be added as includable_only.
+            will be added as includable_only, using the
+            reuse_max_commit_distance module-level default if set.
         list_view: A string or list of strings identifying the ID(s) of the list
             view to add an entry to. Supports a module-level default that
             defaults to the group of the builder, if provided.
@@ -385,6 +399,7 @@ def try_builder(
                 luci.cq_tryjob_verifier(
                     builder = builder,
                     cq_group = cq_group,
+                    reuse_max_commit_distance = defaults.reuse_max_commit_distance.get(),
                     includable_only = True,
                     # If someone adds a builder using CQ-Include-Trybots and it
                     # has ci_only tests configured, then we would want it to get
@@ -406,7 +421,8 @@ def presubmit_builder(*, name, cq_settings = None, **kwargs):
         name: The builder to define.
         cq_settings: An optional try_.cq_settings controlling when the builder is
             added to the CQ. If disable_reuse isn't set, it will be set to
-            True. The add_default_filters value will be forced to False.
+            True and reuse_max_commit_distance will be set to None. The
+            add_default_filters value will be forced to False.
         **kwargs: Additional keyword args to forward to try_.builder.
 
     Returns:
@@ -418,6 +434,7 @@ def presubmit_builder(*, name, cq_settings = None, **kwargs):
         cq_settings_args = {a: getattr(cq_settings, a) for a in dir(cq_settings)}
         if cq_settings_args.get("disable_reuse") == None:
             cq_settings_args["disable_reuse"] = True
+            cq_settings_args["reuse_max_commit_distance"] = None
         cq_settings_args["add_default_filters"] = False
         cq_settings = try_.cq_settings(**cq_settings_args)
     return try_builder(name = name, cq_settings = cq_settings, **kwargs)
