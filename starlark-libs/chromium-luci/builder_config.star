@@ -358,6 +358,7 @@ def _try_settings(
         include_all_triggered_testers = False,
         is_compile_only = None,
         analyze_names = None,
+        disable_analyze = None,
         retry_failed_shards = None,
         retry_without_patch = None):
     """Settings specific to try builders.
@@ -368,6 +369,8 @@ def _try_settings(
         is_compile_only: (bool) If true, any configured compile targets or tests
             will be compiled, but not tests will be triggered.
         analyze_names: (list[str]|str) Additional names to analyze in the build.
+        disable_analyze: (bool) If true, skip analyze and build/test all
+            targets. Cannot be set with `analyze_names`.
         retry_failed_shards: (bool) Whether or not failing shards of a test will
             be retried. If retries for all failed shards of a test succeed, the
             test will be considered to have passed.
@@ -379,10 +382,13 @@ def _try_settings(
         A struct that can be passed to the `try_settings` argument of the
         builder.
     """
+    if disable_analyze and analyze_names:
+        fail("analyze_names cannot be set when disable_analyze is True")
     return struct(
         include_all_triggered_testers = include_all_triggered_testers,
         is_compile_only = is_compile_only,
         analyze_names = analyze_names,
+        disable_analyze = disable_analyze,
         retry_failed_shards = retry_failed_shards,
         retry_without_patch = retry_without_patch,
     )
