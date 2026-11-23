@@ -266,7 +266,8 @@ def _mixin_values(
         isolate_profile_data = None,
         merge = None,
         experiment_percentage = None,
-        enable_rts_filtering = None):
+        enable_rts_filtering = None,
+        location_filters = None):
     """Define values to be mixed into a target.
 
     Unless otherwise specified, each field will overwrite an existing value on a
@@ -341,10 +342,24 @@ def _mixin_values(
 
         enable_rts_filtering: A bool indicating that the test should be actively
             skipped by the Regression Test Selection (RTS) framework.
+        location_filters: A list of regexps for paths relative to the top-level
+            repo (src/). Each regexp must fully match a path, the same as the
+            path_regexp of cq.location_filter. When set, try builders only run
+            the test if at least one file affected by the CL matches one of the
+            regexps; otherwise the test is skipped before analyze, so it is not
+            compiled or triggered. CI builders and Mega CQ runs always run the
+            test.
 
     Returns:
         A dict containing the values to be mixed in.
     """
+    if location_filters != None:
+        if type(location_filters) != type([]) or not location_filters:
+            fail("location_filters must be a non-empty list, got {!r}".format(location_filters))
+        for f in location_filters:
+            if type(f) != type("") or not f:
+                fail("location_filters must contain non-empty strings, got {!r}".format(f))
+
     mixin_values = dict(
         description = description,
         args = args,
@@ -370,6 +385,7 @@ def _mixin_values(
         merge = merge,
         experiment_percentage = experiment_percentage,
         enable_rts_filtering = enable_rts_filtering,
+        location_filters = location_filters,
     )
     return {k: v for k, v in mixin_values.items() if v != None}
 

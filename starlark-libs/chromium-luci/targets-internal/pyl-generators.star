@@ -341,6 +341,12 @@ def _generate_mixin_values(formatter, mixin):
     if "experiment_percentage" in mixin:
         formatter.add_line("'experiment_percentage': {},".format(mixin["experiment_percentage"]))
 
+    if "location_filters" in mixin:
+        formatter.open_scope("'location_filters': [")
+        for f in mixin["location_filters"]:
+            formatter.add_line("{!r},".format(f))
+        formatter.close_scope("],")
+
 def _get_override(node, override_type):
     """Get an override for generating a node.
 
